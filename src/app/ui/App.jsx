@@ -65,7 +65,7 @@ export function App({ store }) {
     <div class="app">
       <main>
         {screen === 'today' && <Today model={model} store={store} nav={nav} askCycle={askCycle} />}
-        {screen === 'calendar' && <CalendarScreen model={model} nav={nav} />}
+        {screen === 'calendar' && <CalendarScreen model={model} nav={nav} store={store} />}
         {screen === 'stats' && <Stats model={model} />}
       </main>
 

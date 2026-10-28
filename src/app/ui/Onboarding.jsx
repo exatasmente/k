@@ -27,7 +27,8 @@ function Stepper({ label, hint, value, min, max, onChange }) {
 export function Onboarding({ store }) {
   const today = localToday();
   const [step, setStep] = useState(0);
-  const [lastPeriodStart, setLast] = useState(addDays(today, -7));
+  // Sem dia pré-marcado: um padrão silencioso virava uma menstruação que ela não registrou.
+  const [lastPeriodStart, setLast] = useState(null);
   const [cycleLength, setCycle] = useState(28);
   const [periodLength, setPeriod] = useState(5);
   const [birthDate, setBirth] = useState('');
@@ -35,7 +36,7 @@ export function Onboarding({ store }) {
   const [aiEnabled, setAi] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const daysAgo = diffDays(lastPeriodStart, today);
+  const daysAgo = lastPeriodStart ? diffDays(lastPeriodStart, today) : null;
   // No iPhone, tocar no campo já preenche a data de hoje ("0 anos"): limita e avisa.
   const birthMin = addMonths(today, -12 * MAX_AGE);
   const birthMax = addMonths(today, -12 * MIN_AGE);
@@ -63,7 +64,8 @@ export function Onboarding({ store }) {
             <MonthPicker label="Primeiro dia da última menstruação" value={lastPeriodStart} onChange={setLast} min={addMonths(today, -12)} max={today} />
           </div>
           <div class="small muted" aria-live="polite">
-            {daysAgo === 0 ? 'Começou hoje.' : `Começou há ${daysAgo} ${daysAgo === 1 ? 'dia' : 'dias'}.`}
+            {daysAgo == null ? 'Nenhum dia escolhido ainda. Se está menstruando hoje, toque em hoje.'
+              : daysAgo === 0 ? 'Começou hoje.' : `Começou há ${daysAgo} ${daysAgo === 1 ? 'dia' : 'dias'}.`}
             {daysAgo > 60 ? ' Faz bastante tempo: se você estiver grávida ou amamentando, dá para ativar o modo gestação depois do cadastro.' : ''}
           </div>
         </>
@@ -121,7 +123,7 @@ export function Onboarding({ store }) {
       )}
 
       <div style={{ marginTop: 'auto' }}>
-        <button class="btn primary block" disabled={saving || (step === 1 && birthInvalid)} onClick={step < 3 ? () => setStep(step + 1) : finish}>
+        <button class="btn primary block" disabled={saving || (step === 0 && !lastPeriodStart) || (step === 1 && birthInvalid)} onClick={step < 3 ? () => setStep(step + 1) : finish}>
           {step < 3 ? 'Continuar' : 'Começar'}
         </button>
       </div>

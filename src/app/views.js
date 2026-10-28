@@ -493,7 +493,13 @@ export function dayDetail(model, date) {
     phase = `${date > model.today ? 'Previsão: ' : ''}${PHASE_LABEL[ph.phase]}${ph.cycleDay ? ` · dia ${ph.cycleDay} do ciclo` : ''}`;
   }
   if (model.consult === date) phase += ' · consulta do pré-natal';
-  return { date, title: `${date === model.today ? 'Hoje, ' : ''}${fmt(date)}`, phase, tags: [...codes].map(tagOf), canLog: date <= model.today };
+  // Menstruação registrada que contém o dia (para corrigir um registro feito por engano).
+  const p = model.livePeriods.find((x) => x.start <= date && date <= (x.end ?? model.today) && date <= model.today);
+  const period = p && {
+    id: p.id,
+    text: p.end ? `Menstruação de ${fmt(p.start)} a ${fmt(p.end)}` : `Menstruação desde ${fmt(p.start)}`,
+  };
+  return { date, title: `${date === model.today ? 'Hoje, ' : ''}${fmt(date)}`, phase, tags: [...codes].map(tagOf), canLog: date <= model.today, period };
 }
 
 // ---------------------------------------------------------------- Resumo

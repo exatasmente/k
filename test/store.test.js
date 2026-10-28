@@ -279,3 +279,18 @@ test('histórico com um registro inválido não grava nada', async () => {
   assert.equal(store.getModel().periods.length, 1);
   await assert.rejects(store.importHistory({ format: 'outro' }), /não é um histórico/);
 });
+
+test('apagar uma menstruação registrada por engano tira também o fluxo dos dias dela', async () => {
+  const { store } = await setup(); // cadastro: 17/10
+  await store.tap('2026-10-18', 'flow_heavy');
+  await store.tap('2026-10-18', 'cramps');
+  const p = store.getModel().livePeriods.find((x) => x.start === '2026-10-17');
+  const { dayDetail } = await import('../src/app/views.js');
+  assert.match(dayDetail(store.getModel(), '2026-10-18').period.text, /Menstruação de 17 de outubro a 21 de outubro/);
+  await store.removePeriod(p.id);
+  const m = store.getModel();
+  assert.equal(m.periods.length, 0);
+  assert.ok(!m.codesOn('2026-10-18').has('flow_heavy'), 'fluxo sai junto');
+  assert.ok(m.codesOn('2026-10-18').has('cramps'), 'o resto do dia fica');
+  assert.equal(dayDetail(m, '2026-10-18').period, undefined);
+});

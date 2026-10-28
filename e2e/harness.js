@@ -1,6 +1,7 @@
 import { after, afterEach, before } from 'node:test';
 import { preview } from 'vite';
 import { chromium } from 'playwright';
+import { addDays } from '../src/domain/dates.js';
 
 // Sobe o build (dist/) com `vite preview` e abre um navegador por suíte.
 // Cada cenário usa um contexto novo: banco vazio, celular, fuso de São Paulo
@@ -54,6 +55,8 @@ export async function openApp({ today = TODAY, width = 390, height = 844, colorS
 /** Onboarding completo. `lastPeriodStart` pode estar em meses anteriores. */
 export async function onboard(page, { lastPeriodStart, cycle = 28, periodLength = 5, birth = '1996-05-12', method = 'Preservativo' } = {}) {
   if (lastPeriodStart) await pickDate(page, lastPeriodStart);
+  // O cadastro não pré-marca dia: sem escolha feita antes, usa uma semana antes de TODAY.
+  else if (await page.getByRole('button', { name: 'Continuar' }).isDisabled()) await pickDate(page, addDays(TODAY, -7));
   await page.getByRole('button', { name: 'Continuar' }).click();
   const steppers = [[0, cycle, 'duração do ciclo'], [1, periodLength, 'duração da menstruação']];
   for (const [i, target, name] of steppers) {

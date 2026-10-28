@@ -582,3 +582,29 @@ test('importar histórico de outro app acrescenta ciclos antigos sem apagar o ca
   assert.match(await page.locator('.card', { hasText: 'Ciclo médio' }).innerText(), /28 dias/);
   assert.deepEqual(errors, []);
 });
+
+test('cadastro não marca dia sozinho; menstruação por engano sai pelo calendário e o ciclo se acerta', async () => {
+  const { page, errors } = await openApp();
+  assert.equal(await page.getByRole('button', { name: 'Continuar' }).isDisabled(), true, 'sem dia escolhido não avança');
+  await pickDate(page, '2026-10-21'); // engano: ela menstruou hoje
+  await onboard(page);
+  const file = join(tmpdir(), `historico-${Date.now()}.json`);
+  await writeFile(file, JSON.stringify({ format: 'ciclo-historico', version: 1, periods: [{ start: '2026-09-30', end: '2026-10-04' }] }));
+  await page.getByRole('button', { name: 'Ajustes e privacidade' }).click();
+  await page.getByLabel('Arquivo de histórico').setInputFiles(file);
+  await page.getByText(/^Histórico importado/).waitFor();
+  await page.keyboard.press('Escape');
+  assert.match(await ringText(page), /Dia 8 do ciclo/, 'o caso dela: ciclo de 21 dias, janela fértil hoje');
+
+  await page.getByRole('button', { name: 'Calendário', exact: true }).click();
+  await page.getByRole('button', { name: /^21, menstruação/ }).click();
+  await page.getByText('Menstruação de 21 de outubro a 25 de outubro').waitFor();
+  await page.getByRole('button', { name: 'Apagar esta menstruação' }).click();
+  await page.getByRole('button', { name: 'Apagar mesmo' }).click();
+  await page.getByRole('button', { name: /^21(, hoje)?$/ }).waitFor();
+  await page.getByRole('button', { name: 'Hoje', exact: true }).click();
+  await page.locator('.quick.period').click(); // Menstruei hoje
+  await page.locator('.quick.period.on').waitFor();
+  assert.match(await ringText(page), /Dia 1 da menstruação/);
+  assert.deepEqual(errors, []);
+});
