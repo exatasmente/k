@@ -1,5 +1,7 @@
-import { todayView } from '../views.js';
+import { useState } from 'preact/hooks';
+import { copyOf, todayView } from '../views.js';
 import { Icon, catStyle } from './icons.jsx';
+import { Sourced } from './Sources.jsx';
 
 const R = 96;
 const C = 2 * Math.PI * R;
@@ -61,9 +63,22 @@ function PregnancyCards({ p, nav, store }) {
         <ul style={{ margin: 0, paddingLeft: 20 }}>
           {p.flags.map((f) => <li key={f}>{f}</li>)}
         </ul>
-        <div class="small muted">Se acontecer, procure atendimento. Se for intenso, vá ao pronto-socorro ou ligue 192 (SAMU).</div>
+        <Sourced class="small muted" copy={p.flagsCopy} />
       </details>
     </>
+  );
+}
+
+function PendingPeriod({ p, store, today }) {
+  const [end, setEnd] = useState(p.end);
+  return (
+    <section class="card" aria-label="Confirmar fim da menstruação">
+      <strong>Sua menstruação terminou em {p.endText}?</strong>
+      <div class="small muted">Ela começou em {p.startText} e o fim não foi marcado. Fechamos pela sua média; confirme ou corrija.</div>
+      <label for="period-end" class="small muted">Último dia de sangramento</label>
+      <input id="period-end" class="field" type="date" min={p.start} max={today} value={end} onChange={(e) => setEnd(e.currentTarget.value)} />
+      <div class="row"><button class="btn accent" onClick={() => store.confirmPeriodEnd(p.id, end)}>Confirmar</button></div>
+    </section>
   );
 }
 
@@ -71,8 +86,10 @@ export function Today({ model, store, nav, askCycle }) {
   const v = todayView(model);
   const q = v.quick;
 
+  const [lochiaAsk, setLochiaAsk] = useState(false);
   const endOrStartPeriod = async () => {
     if (q.periodOpen) nav.askCycle(await store.endPeriod());
+    else if (v.postpartum?.lochiaPossible) setLochiaAsk(true);
     else await store.startPeriod();
   };
   const answer = async (a) => {
@@ -93,8 +110,13 @@ export function Today({ model, store, nav, askCycle }) {
       {v.redFlag && (
         <div class="alert danger" role="alert">
           <strong style={{ display: 'flex', gap: 8, alignItems: 'center' }}><Icon name="warn" width={2} /> Procure atendimento</strong>
-          <div>{v.redFlag}</div>
+          <div>{v.redFlag.marked}</div>
+          <Sourced copy={v.redFlag} />
         </div>
+      )}
+
+      {v.pregnancy?.postTerm && (
+        <section class="alert warn" aria-label="41 semanas"><Sourced copy={v.pregnancy.postTerm} /></section>
       )}
 
       {v.pregnancy && <PregnancyCards p={v.pregnancy} nav={nav} store={store} />}
@@ -103,8 +125,21 @@ export function Today({ model, store, nav, askCycle }) {
         <section class="card big">
           <span class="eyebrow" style={{ color: 'var(--indigo-ink)' }}>Pós-parto</span>
           <div class="display" style={{ fontSize: 22 }}>{v.postpartum.since}</div>
-          <div class="muted">Nos primeiros meses, principalmente amamentando, a menstruação pode demorar a voltar e vir irregular. Os avisos de regularidade ficam pausados.</div>
-          <div style={{ color: 'var(--danger-ink)' }}>Sangramento muito intenso, febre ou dor forte: procure atendimento.</div>
+          <Sourced class="muted" copy={v.postpartum.paused} />
+          <details>
+            <summary style={{ color: 'var(--danger-ink)', fontWeight: 700 }}>Sinais de alerta no pós-parto</summary>
+            <Sourced copy={v.postpartum.warning} />
+          </details>
+        </section>
+      )}
+
+      {lochiaAsk && (
+        <section class="alert warn" aria-label="Menstruação ou lóquio">
+          <Sourced copy={copyOf('lochia')} />
+          <div class="row">
+            <button class="btn" onClick={async () => { setLochiaAsk(false); await store.startPeriod(); }}>É menstruação</button>
+            <button class="btn" onClick={() => setLochiaAsk(false)}>É o sangramento do pós-parto</button>
+          </div>
         </section>
       )}
 
@@ -114,6 +149,8 @@ export function Today({ model, store, nav, askCycle }) {
           <div class="muted">Quando ela vier, toque em "Menstruei". As previsões voltam a partir daí. Seu histórico continua guardado.</div>
         </section>
       )}
+
+      {v.pendingPeriod && <PendingPeriod key={v.pendingPeriod.id} p={v.pendingPeriod} store={store} today={model.today} />}
 
       {askCycle && v.mode === 'cycle' && (
         <section class="card" aria-label="Pergunta sobre o ciclo">
@@ -136,7 +173,9 @@ export function Today({ model, store, nav, askCycle }) {
               <span><i class="swatch" style={{ background: 'var(--fertile)' }} />Janela fértil</span>
             </div>
           )}
-          {v.ring.hormonalNote && <div class="small muted">{v.ring.hormonalNote}</div>}
+          {v.ring.hormonalNote && <Sourced class="small muted" copy={v.ring.hormonalNote} />}
+          {v.ring.fertileNote && <Sourced class="small muted" copy={v.ring.fertileNote} />}
+          {v.ring.absenceNote && <Sourced class="pill-note" style={{ background: 'var(--warn-tint)', color: 'var(--warn-ink)' }} copy={v.ring.absenceNote} />}
           {v.ring.window && <div class="pill-note">{v.ring.window}</div>}
         </section>
       )}
@@ -174,12 +213,36 @@ export function Today({ model, store, nav, askCycle }) {
       )}
 
       {v.pds && (
-        <div class="alert warn" role="alert">
-          <strong style={{ display: 'flex', gap: 8, alignItems: 'center' }}><Icon name="warn" width={2} />{v.pds.title}</strong>
-          <div>{v.pds.body}</div>
-          <div class="row"><button class="btn" onClick={() => store.dismiss('pds', v.pds.context)}>Ok</button></div>
-        </div>
+        <section class="alert info" aria-label="Sobre a pílula do dia seguinte">
+          <strong style={{ display: 'flex', gap: 8, alignItems: 'center' }}><Icon name="pill" width={2} />{v.pds.title}</strong>
+          <Sourced copy={v.pds} />
+          <div class="row">
+            <button class="btn" style={{ background: 'var(--indigo)', color: 'var(--on-accent)', border: 0 }}
+              onClick={() => { store.dismiss('pds', v.pds.context); nav.ask('Quantas vezes tomei a pílula do dia seguinte neste ano?'); }}>Entender melhor</button>
+            <button class="btn" onClick={() => store.dismiss('pds', v.pds.context)}>Ok</button>
+          </div>
+        </section>
       )}
+
+      {v.irregular && (
+        <section class="alert warn" aria-label="Ciclos irregulares">
+          <strong style={{ display: 'flex', gap: 8, alignItems: 'center' }}><Icon name="warn" width={2} />{v.irregular.title}</strong>
+          <Sourced copy={v.irregular} />
+          <div class="row">
+            <button class="btn" style={{ background: 'var(--warn-ink)', color: 'var(--on-accent)', border: 0 }}
+              onClick={() => { store.dismiss('irregular', v.irregular.context); nav.goStats(); }}>Ver meus ciclos</button>
+            <button class="btn" onClick={() => store.dismiss('irregular', v.irregular.context)}>Ok</button>
+          </div>
+        </section>
+      )}
+
+      {['prolonged', 'intermenstrual'].map((rule) => v[rule] && (
+        <section key={rule} class="alert warn" aria-label={v[rule].title}>
+          <strong style={{ display: 'flex', gap: 8, alignItems: 'center' }}><Icon name="warn" width={2} />{v[rule].title}</strong>
+          <Sourced copy={v[rule]} />
+          <div class="row"><button class="btn" onClick={() => store.dismiss(rule, v[rule].context)}>Ok</button></div>
+        </section>
+      ))}
 
       <button class="btn primary block" onClick={() => nav.openLog()}>
         <span class="row" style={{ justifyContent: 'center' }}><Icon name="plus" width={2.2} />Registrar sintomas, humor e mais</span>

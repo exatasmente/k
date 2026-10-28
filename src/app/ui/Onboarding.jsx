@@ -1,11 +1,11 @@
 import { useState } from 'preact/hooks';
-import { addDays, ageOn, today as localToday } from '../../domain/dates.js';
-import { METHODS } from '../../domain/contraception.js';
+import { addDays, addMonths, ageOn, diffDays, today as localToday } from '../../domain/dates.js';
+import { METHODS, tracksOvulation } from '../../domain/contraception.js';
 import { Icon } from './icons.jsx';
 import { Switch } from './Sheet.jsx';
-
-const WD = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
-const MONTHS = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+import { MonthPicker } from './MonthPicker.jsx';
+import { copyOf, PROLONGED_AFTER_DAYS } from '../views.js';
+import { Sourced } from './Sources.jsx';
 
 function Stepper({ label, hint, value, min, max, onChange }) {
   return (
@@ -31,8 +31,8 @@ export function Onboarding({ store }) {
   const [aiEnabled, setAi] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const days = Array.from({ length: 28 }, (_, i) => addDays(today, i - 27));
-  const hormonal = METHODS[method].suppressesOvulation;
+  const daysAgo = diffDays(lastPeriodStart, today);
+  const hormonal = !tracksOvulation(method);
 
   const finish = async () => {
     setSaving(true);
@@ -50,17 +50,13 @@ export function Onboarding({ store }) {
       {step === 0 && (
         <>
           <h1>Quando começou sua última menstruação?</h1>
-          <p class="muted" style={{ margin: 0 }}>Toque no dia. Se não lembrar exato, escolha o mais próximo.</p>
-          <div class="days">
-            {days.map((d) => {
-              const [, m, n] = d.split('-').map(Number);
-              const wd = WD[new Date(`${d}T12:00:00`).getDay()];
-              return (
-                <button key={d} aria-pressed={d === lastPeriodStart ? 'true' : 'false'} aria-label={`${n} de ${MONTHS[m - 1]}`} onClick={() => setLast(d)}>
-                  <small>{wd}</small><strong>{n}</strong>
-                </button>
-              );
-            })}
+          <p class="muted" style={{ margin: 0 }}>Toque no dia. Use as setas para voltar aos meses anteriores. Se não lembrar exato, escolha o mais próximo.</p>
+          <div class="card">
+            <MonthPicker label="Primeiro dia da última menstruação" value={lastPeriodStart} onChange={setLast} min={addMonths(today, -12)} max={today} />
+          </div>
+          <div class="small muted" aria-live="polite">
+            {daysAgo === 0 ? 'Começou hoje.' : `Começou há ${daysAgo} ${daysAgo === 1 ? 'dia' : 'dias'}.`}
+            {daysAgo > 60 ? ' Faz bastante tempo: se você estiver grávida ou amamentando, dá para ativar o modo gestação depois do cadastro.' : ''}
           </div>
         </>
       )}
@@ -70,7 +66,8 @@ export function Onboarding({ store }) {
           <h1>Seu ritmo</h1>
           <p class="muted" style={{ margin: 0 }}>Não sabe? Deixe 28 e 5. O app aprende com seus registros.</p>
           <Stepper label="Duração do ciclo" hint="De uma menstruação à outra" value={cycleLength} min={15} max={90} onChange={setCycle} />
-          <Stepper label="Duração da menstruação" hint="Dias de sangramento" value={periodLength} min={1} max={15} onChange={setPeriod} />
+          <Stepper label="Duração da menstruação" hint="Dias de sangramento, em média" value={periodLength} min={1} max={15} onChange={setPeriod} />
+          {periodLength > PROLONGED_AFTER_DAYS && <Sourced class="small muted" copy={copyOf('prolongedDeclared')} />}
           <div class="card">
             <label for="birth" style={{ fontWeight: 700 }}>Data de nascimento</label>
             <input id="birth" class="field" type="date" max={today} value={birthDate} onChange={(e) => setBirth(e.currentTarget.value)} />

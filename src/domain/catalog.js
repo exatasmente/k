@@ -43,16 +43,32 @@ export const CATALOG = Object.freeze([
   { code: 'flow_dark', label: 'Escuro / borra', cat: 'flow', group: 'flow', only: C },
   { code: 'spotting', label: 'Escape', cat: 'flow', only: C },
 
-  // Sinais de alerta da gestação. PENDENTE de revisão por obstetra antes de abrir para terceiras.
-  { code: 'bleeding', label: 'Sangramento ou escape', cat: 'alert', only: P, alert: true },
-  { code: 'fluid_loss', label: 'Perda de líquido', cat: 'alert', only: P, alert: true },
-  { code: 'severe_abdominal', label: 'Dor forte na barriga', cat: 'alert', only: P, alert: true },
-  { code: 'severe_headache', label: 'Dor de cabeça forte ou visão turva', cat: 'alert', only: P, alert: true },
-  { code: 'sudden_swelling', label: 'Inchaço súbito no rosto ou nas mãos', cat: 'alert', only: P, alert: true },
-  { code: 'fever', label: 'Febre', cat: 'alert', only: P, alert: true },
+  // Sinais de alerta da gestação: lista "busque atendimento imediatamente" da Caderneta
+  // Brasileira da Gestante (MS, 2026), mais perda de líquido e contrações (CAB 32, MS 2012),
+  // vômitos que impedem comer, dor numa perna só e pensamentos de se machucar (CDC, 2024).
+  // Fontes: docs/fontes-clinicas.md. PENDENTE de revisão por obstetra antes de abrir para terceiras.
+  { code: 'bleeding', label: 'Sangramento pela vagina', cat: 'alert', only: P, alert: true },
+  { code: 'fluid_loss', label: 'Perda de líquido pela vagina', cat: 'alert', only: P, alert: true },
+  { code: 'severe_abdominal', label: 'Dor forte ou que não passa na barriga', cat: 'alert', only: P, alert: true },
+  { code: 'epigastric_pain', label: 'Dor forte na boca do estômago', cat: 'alert', only: P, alert: true },
+  { code: 'severe_headache', label: 'Dor de cabeça forte ou que não melhora', cat: 'alert', only: P, alert: true },
+  { code: 'vision_change', label: 'Visão turva, flashes ou pontos escuros', cat: 'alert', only: P, alert: true },
+  { code: 'sudden_swelling', label: 'Inchaço repentino no rosto, mãos ou pernas', cat: 'alert', only: P, alert: true },
+  { code: 'high_bp', label: 'Pressão alta (14 por 9 ou mais)', cat: 'alert', only: P, alert: true },
+  { code: 'fever', label: 'Febre (37,8 °C ou mais)', cat: 'alert', only: P, alert: true },
+  { code: 'urinary_pain', label: 'Dor ou ardência ao urinar', cat: 'alert', only: P, alert: true },
   { code: 'persistent_vomiting', label: 'Vômitos que impedem comer ou beber', cat: 'alert', only: P, alert: true },
+  { code: 'red_spots', label: 'Manchas vermelhas na pele ou olhos vermelhos', cat: 'alert', only: P, alert: true },
+  { code: 'short_breath', label: 'Falta de ar', cat: 'alert', only: P, alert: true },
+  { code: 'chest_pain', label: 'Dor forte no peito', cat: 'alert', only: P, alert: true },
+  { code: 'fainting', label: 'Desmaio', cat: 'alert', only: P, alert: true },
+  { code: 'seizure', label: 'Convulsão', cat: 'alert', only: P, alert: true },
+  { code: 'leg_pain', label: 'Dor, calor ou inchaço em uma perna só', cat: 'alert', only: P, alert: true },
+  { code: 'unwell', label: 'Mal-estar intenso ou sensação de que algo não está bem', cat: 'alert', only: P, alert: true },
+  { code: 'self_harm_thoughts', label: 'Pensamentos de se machucar ou machucar o bebê', cat: 'alert', only: P, alert: true },
   { code: 'regular_contractions', label: 'Contrações regulares', cat: 'alert', only: P, alert: true, minWeek: 20 },
-  { code: 'less_movement', label: 'Bebê mexendo menos', cat: 'alert', only: P, alert: true, minWeek: 28 },
+  // Caderneta 2026: "mais de 4 horas sem se mexer após as 20 semanas".
+  { code: 'less_movement', label: 'Bebê mexendo menos ou parado', cat: 'alert', only: P, alert: true, minWeek: 20 },
 
   { code: 'no_symptoms', label: 'Sem sintomas', cat: 'symptom', negates: true, hiddenInGrid: true },
   { code: 'cramps', label: 'Cólica', cat: 'symptom', only: C },

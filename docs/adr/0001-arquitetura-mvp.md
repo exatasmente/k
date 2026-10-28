@@ -33,6 +33,8 @@ talvez algumas amigas testando. O protótipo de alta fidelidade foi validado ant
 - Previsão, regularidade, alertas (PDS, sinais de alerta da gestação) e estatísticas são **funções puras**
   em `src/domain`, testadas com `node --test`. Nenhuma depende da IA.
 - A IA (fase seguinte) interpreta a pergunta e chama essas funções; os números vêm do código.
+- Até lá, a assistente responde as perguntas sugeridas localmente (`src/app/assistant.js`), com as mesmas
+  funções e guardrails (na gestação, nunca avalia remédios; sinal de alerta vira "procure atendimento").
 
 ### 4. Regras de produto fechadas no protótipo
 - **Previsão em janela:** do ciclo recente mais curto ao mais longo (nunca menor que média ± 1);

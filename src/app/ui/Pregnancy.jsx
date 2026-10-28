@@ -14,7 +14,7 @@ export function PregnancySetupSheet({ model, store, nav }) {
 
   const input = method === 'ultrasound' ? { method, dueDate: due } : { method, lmp };
   const ready = method === 'ultrasound' ? !!due : !!lmp;
-  const r = ready ? datePregnancy(input, model.today) : null;
+  const r = ready ? datePregnancy({ ...input, cycleLength: model.ctx?.avgCycleLength }, model.today) : null;
   const save = async () => {
     await store.savePregnancy(input);
     nav.goToday();
@@ -50,7 +50,7 @@ export function PregnancySetupSheet({ model, store, nav }) {
         </div>
         {r?.valid && r.earlyWarning && (
           <div class="alert warn" role="status">
-            Pela data informada seriam só {r.ga.label}. Os testes costumam dar positivo a partir de umas 4 semanas, contando da última menstruação. Se aquele sangramento foi um escape, informe a menstruação anterior ou use a ultrassonografia.
+            Pela data informada seriam só {r.ga.label}. O teste de farmácia costuma dar positivo só a partir do dia em que a menstruação viria. Se aquele sangramento foi um escape, informe a menstruação anterior ou use a ultrassonografia.
           </div>
         )}
         <button class="btn accent block" disabled={!r?.valid} onClick={save}>{current ? 'Salvar datação' : 'Começar o modo gestação'}</button>

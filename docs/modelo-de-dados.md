@@ -81,7 +81,7 @@ Todos os stores têm também `updatedAt` (data-hora ISO) e `deletedAt` (null se 
 
 | Store | Chave | O que guarda | Regras |
 |---|---|---|---|
-| `profile` | `'me'` | Nascimento, onboarding, método padrão, IA ligada, categorias escondidas | Recusa `name`, `email`, `phone`, `photo`. Idade é calculada, não gravada. |
+| `profile` | `'me'` | Nascimento, onboarding, método padrão, IA ligada, categorias escondidas, preferências de lembrete | Recusa `name`, `email`, `phone`, `photo`. Idade é calculada, não gravada. |
 | `entries` | `date\|code` | Um registro por ícone marcado num dia | Toque liga/desliga via `deletedAt`. `code` precisa existir no catálogo. Escolha única e negações são aplicadas antes de gravar (`applyTap`). |
 | `periods` | uuid | Menstruações (início e fim) | Fonte da verdade do ciclo. O fluxo diário em `entries` é só intensidade. Aberta há 10+ dias: fechada pela média com `source: 'auto'` até ela confirmar (RF01.4). |
 | `methods` | uuid | Método contraceptivo com vigência | Trocar fecha o vigente no dia anterior; o passado não é reescrito (RN01). |
@@ -89,6 +89,7 @@ Todos os stores têm também `updatedAt` (data-hora ISO) e `deletedAt` (null se 
 | `cycleAnswers` | `cycleStart\|code` | "Teve cólica nesta menstruação?" | Só `yes`/`no`. "Não lembro" não é gravado e mantém o ciclo como sem registro. |
 | `appointments` | uuid | Consultas do pré-natal | — |
 | `dismissals` | `rule\|context` | Alertas já vistos | Ex.: `pds|2026-10-17` para não repetir o alerta da PDS no mesmo ciclo. |
+| `reminders` | `plan` | Próximos lembretes | Calculado pelo app aberto; o service worker só lê e mostra o que venceu. Lembrete mostrado vira `dismissals` com regra `notified` (ver ADR 0002). |
 
 ## O que é calculado (nunca gravado)
 

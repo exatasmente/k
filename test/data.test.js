@@ -12,7 +12,9 @@ test('todo store tem validador', () => {
 
 test('perfil não aceita dados de identificação direta', () => {
   assert.deepEqual(validate.profile({ id: 'me', birthDate: '1996-05-12', ...stamp }), []);
-  assert.ok(validate.profile({ id: 'me', email: 'x@y.com', ...stamp }).some((m) => m.includes('email')));
+  for (const field of ['name', 'email', 'phone', 'photo']) {
+    assert.ok(validate.profile({ id: 'me', [field]: 'x', ...stamp }).some((m) => m.includes(field)), field);
+  }
 });
 
 test('registro do dia tem id determinístico e código do catálogo', () => {
@@ -43,18 +45,32 @@ test('upgrade cria os stores só com id, sem índices', () => {
 });
 
 test('registro anônimo de retenção: sem datas, sem vida sexual, idade em anos', () => {
+  // Ciclos de 30 e depois 26 dias: a ordem no tempo também não pode ficar no registro.
   const periods = [
-    { start: '2026-08-23', end: '2026-08-27' }, { start: '2026-09-19', end: '2026-09-23' }, { start: '2026-10-17', end: '2026-10-21' },
+    { start: '2026-08-20', end: '2026-08-24' }, { start: '2026-09-19', end: '2026-09-23' }, { start: '2026-10-15', end: '2026-10-19' },
   ];
-  const onboarding = { lastPeriodStart: '2026-08-23', periodLength: 5, cycleLength: 28 };
+  const onboarding = { lastPeriodStart: '2026-08-20', periodLength: 5, cycleLength: 28 };
   const ctx = buildCycleContext({ periods, onboarding, today: '2026-10-28' });
   const entries = [
-    { date: '2026-10-17', code: 'cramps' }, { date: '2026-10-23', code: 'sex_vaginal' },
-    { date: '2026-10-24', code: 'emergency_contraception' }, { date: '2026-10-27', code: 'mood_anxious' },
+    { date: '2026-10-15', code: 'cramps' }, { date: '2026-10-23', code: 'sex_vaginal' }, { date: '2026-10-23', code: 'protection_none' },
+    { date: '2026-10-24', code: 'emergency_contraception' }, { date: '2026-10-25', code: 'preg_test_negative' },
+    { date: '2026-10-27', code: 'mood_anxious' },
   ];
   const r = buildAnonymousRetention({ birthDate: '1996-05-12', ctx, entries, today: '2026-10-28' });
   assert.equal(r.ageYears, 30);
-  assert.deepEqual(r.cycleLengths, [27, 28]);
+  assert.deepEqual(r.cycleLengths, [26, 30], 'ordenadas, não na sequência em que aconteceram');
   assert.deepEqual(Object.keys(r.symptomCountsByPhase).sort(), ['cramps', 'mood_anxious']);
-  assert.ok(!/\d{4}-\d{2}-\d{2}/.test(JSON.stringify(r)), 'nenhuma data no registro');
+  const text = JSON.stringify(r);
+  assert.ok(!/\d{4}-\d{2}/.test(text), 'nenhuma data, nem parcial (ano-mês)');
+  assert.ok(!/sex|protection|emergency|preg|1996/.test(text), 'nada de vida sexual, PDS, teste ou nascimento');
+});
+
+test('preferências de lembrete e plano validados', () => {
+  const prefs = { enabled: true, details: false, daysBefore: 2 };
+  assert.deepEqual(validate.profile({ id: 'me', reminders: prefs, ...stamp }), []);
+  assert.ok(validate.profile({ id: 'me', reminders: { ...prefs, daysBefore: 30 }, ...stamp }).length > 0);
+  const item = { key: 'period_soon|2026-10-17', kind: 'period_soon', date: '2026-11-10', title: 'Ciclo', body: 'Você tem um lembrete.' };
+  assert.deepEqual(validate.reminders({ id: 'plan', items: [item], ...stamp }), []);
+  assert.ok(validate.reminders({ id: 'plan', items: [{ ...item, kind: 'pilula' }], ...stamp }).length > 0);
+  assert.ok(validate.reminders({ id: 'outro', items: [], ...stamp }).length > 0);
 });

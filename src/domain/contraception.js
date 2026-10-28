@@ -1,20 +1,25 @@
 import { addDays, isWithin } from './dates.js';
 
-// Métodos contraceptivos e o que cada um implica para o app.
-// - suppressesOvulation: esconde ovulação/janela fértil (decisão de produto: sem janela
-//   fértil para quem não ovula). PENDENTE de revisão médica antes de abrir para terceiras.
+// Métodos contraceptivos e o que cada um implica para o app (fontes: docs/fontes-clinicas.md).
+// - ovulation: 'suppressed' = impede a ovulação como mecanismo principal (OMS, Handbook 2022):
+//   sem janela fértil. 'uncertain' = pode ou não ovular (DIU hormonal: >75% ovulam, FSRH 2023;
+//   minipílula de levonorgestrel/noretisterona, FSRH 2022): sem janela fértil e sem avaliar
+//   regularidade. 'normal' = ovula normalmente.
 // - baselineProtection: protege sem ação a cada relação (o preservativo é por ato).
+// - hormonal: muda o padrão de sangramento (não avaliamos regularidade nem ausência).
 export const METHODS = Object.freeze({
-  none: { label: 'Nenhum', suppressesOvulation: false, baselineProtection: false },
-  condom: { label: 'Preservativo', suppressesOvulation: false, baselineProtection: false },
-  pill: { label: 'Pílula (com pausa)', suppressesOvulation: true, baselineProtection: true },
-  continuous_pill: { label: 'Pílula contínua', suppressesOvulation: true, baselineProtection: true },
-  hormonal_iud: { label: 'DIU hormonal', suppressesOvulation: false, baselineProtection: true },
-  copper_iud: { label: 'DIU de cobre', suppressesOvulation: false, baselineProtection: true },
-  implant: { label: 'Implante', suppressesOvulation: true, baselineProtection: true },
-  injection: { label: 'Injeção', suppressesOvulation: true, baselineProtection: true },
-  ring_or_patch: { label: 'Anel ou adesivo', suppressesOvulation: true, baselineProtection: true },
-  other: { label: 'Outro', suppressesOvulation: false, baselineProtection: false },
+  none: { label: 'Nenhum', ovulation: 'normal', baselineProtection: false, hormonal: false },
+  condom: { label: 'Preservativo', ovulation: 'normal', baselineProtection: false, hormonal: false },
+  pill: { label: 'Pílula combinada (com pausa)', ovulation: 'suppressed', baselineProtection: true, hormonal: true },
+  continuous_pill: { label: 'Pílula combinada contínua', ovulation: 'suppressed', baselineProtection: true, hormonal: true },
+  desogestrel: { label: 'Pílula de desogestrel', ovulation: 'suppressed', baselineProtection: true, hormonal: true },
+  minipill: { label: 'Minipílula (amamentação)', ovulation: 'uncertain', baselineProtection: true, hormonal: true },
+  hormonal_iud: { label: 'DIU hormonal', ovulation: 'uncertain', baselineProtection: true, hormonal: true },
+  copper_iud: { label: 'DIU de cobre', ovulation: 'normal', baselineProtection: true, hormonal: false },
+  implant: { label: 'Implante', ovulation: 'suppressed', baselineProtection: true, hormonal: true },
+  injection: { label: 'Injeção', ovulation: 'suppressed', baselineProtection: true, hormonal: true },
+  ring_or_patch: { label: 'Anel ou adesivo', ovulation: 'suppressed', baselineProtection: true, hormonal: true },
+  other: { label: 'Outro', ovulation: 'normal', baselineProtection: false, hormonal: false },
 });
 
 /** @typedef {{method: keyof typeof METHODS, from: string, to: string|null}} MethodPeriod */
@@ -44,8 +49,14 @@ export function changeMethod(periods, method, from) {
   return [...kept, { method, from, to: null }];
 }
 
+/** Ovulação previsível: mostra janela fértil e fases do ciclo. */
 export function tracksOvulation(method) {
-  return !METHODS[method].suppressesOvulation;
+  return METHODS[method].ovulation === 'normal';
+}
+
+/** O padrão de sangramento é do método, não do ciclo: sem avaliar regularidade nem ausência. */
+export function bleedingFromMethod(method) {
+  return METHODS[method].hormonal;
 }
 
 /**
