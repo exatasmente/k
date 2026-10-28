@@ -62,6 +62,7 @@ test('RF01.4: menstruação aberta há 10+ dias pede confirmação do fim', asyn
   await pickDate(page, '2026-09-30');
   await onboard(page);
   await page.locator('.quick.period').click(); // Menstruei em 28/10
+  await page.locator('.quick.period.on').waitFor(); // gravado antes de recarregar
   await setToday('2026-11-09');
   const card = page.getByRole('region', { name: 'Confirmar fim da menstruação' });
   await card.waitFor();
