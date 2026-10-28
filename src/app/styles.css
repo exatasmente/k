@@ -187,6 +187,16 @@ h1, h2, h3 { margin: 0; }
 .sec-head { display: flex; justify-content: space-between; align-items: baseline; }
 .sec-head h3 { font-size: 15px; font-weight: 800; color: var(--color); }
 
+/* Assistente */
+.fab { position: fixed; right: max(18px, calc(50vw - 240px + 18px)); bottom: calc(84px + env(safe-area-inset-bottom)); width: 58px; height: 58px; border-radius: 29px; border: 0; background: var(--indigo); color: #fff; display: grid; place-items: center; box-shadow: 0 8px 24px rgba(75, 68, 176, 0.35); z-index: 6; }
+.chat { min-height: 260px; gap: 10px; }
+.bubble { max-width: 85%; padding: 10px 14px; border-radius: 18px; white-space: pre-line; }
+.bubble.ai { align-self: flex-start; background: var(--ground); border-bottom-left-radius: 6px; }
+.bubble.me { align-self: flex-end; background: var(--ink); color: var(--ground); border-bottom-right-radius: 6px; }
+.chat-foot { padding: 10px 16px 14px; display: flex; flex-direction: column; gap: 10px; border-top: 1px solid var(--line); }
+.pills { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+.pill { flex: none; min-height: 38px; padding: 0 12px; border-radius: 19px; border: 1px solid var(--fertile); background: var(--indigo-tint); color: var(--indigo-ink); font-size: 13px; font-weight: 600; }
+
 /* Interruptor */
 .switch { width: 56px; height: 34px; border-radius: 17px; border: 0; padding: 3px; display: flex; background: var(--line); flex: none; }
 .switch[aria-pressed='true'] { background: var(--indigo); justify-content: flex-end; }
@@ -235,10 +245,9 @@ h1, h2, h3 { margin: 0; }
 .steps { flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
 .steps i { height: 6px; border-radius: 3px; background: var(--line); }
 .steps i.on { background: var(--ink); }
-.days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
-.days button { height: 52px; border-radius: 14px; border: 1px solid var(--line); background: var(--card); display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.days button small { font-size: 11px; opacity: 0.85; }
-.days button[aria-pressed='true'] { background: var(--berry); color: #fff; border: 0; }
+.picker { display: flex; flex-direction: column; gap: 10px; }
+.picker .day[aria-pressed='true'] { background: var(--berry); color: #fff; border-color: var(--berry); }
+.picker .day:disabled { opacity: 0.3; }
 .stepper { display: flex; align-items: center; gap: 10px; flex: none; }
 .stepper output { min-width: 72px; text-align: center; font-family: var(--display); font-size: 20px; font-weight: 750; white-space: nowrap; }
 .field { height: 44px; border-radius: 12px; border: 1px solid var(--line); padding: 0 12px; background: var(--ground); width: 100%; }

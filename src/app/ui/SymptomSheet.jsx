@@ -1,4 +1,5 @@
 import { symptomView } from '../views.js';
+import { symptomQuestion } from '../assistant.js';
 import { Icon, catStyle } from './icons.jsx';
 import { CloseButton, Sheet } from './Sheet.jsx';
 
@@ -71,6 +72,7 @@ export function SymptomSheet({ model, nav, code, back }) {
         </section>
 
         <div class="card" style={{ background: 'var(--ground)', border: 0 }}>{v.insight}</div>
+        <button class="btn accent block" onClick={() => nav.ask(symptomQuestion(model, code))}>Perguntar à assistente</button>
       </div>
     </Sheet>
   );

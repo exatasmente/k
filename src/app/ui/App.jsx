@@ -8,6 +8,8 @@ import { LogSheet } from './LogSheet.jsx';
 import { SymptomSheet } from './SymptomSheet.jsx';
 import { SettingsSheet } from './Settings.jsx';
 import { PregnancySetupSheet, PregnancyEndSheet } from './Pregnancy.jsx';
+import { ChatSheet } from './ChatSheet.jsx';
+import { answer, GREETING } from '../assistant.js';
 
 const TABS = [
   ['today', 'Hoje', 'home'],
@@ -33,6 +35,8 @@ export function App({ store }) {
   // Folha aberta: {type: 'log'|'symptom'|'settings'|'pregSetup'|'pregEnd', ...}
   const [sheet, setSheet] = useState(null);
   const [askCycle, setAskCycle] = useState(null);
+  // Conversa da assistente: só em memória, some ao fechar o app.
+  const [messages, setMessages] = useState([{ from: 'ai', text: GREETING }]);
 
   if (!model.onboarded) return <Onboarding store={store} />;
 
@@ -45,6 +49,11 @@ export function App({ store }) {
     close: () => setSheet(null),
     goToday: () => { setSheet(null); setScreen('today'); },
     askCycle: setAskCycle,
+    openChat: () => setSheet({ type: 'chat' }),
+    ask: (q) => {
+      setMessages((ms) => [...ms, { from: 'me', text: q }, { from: 'ai', text: answer(store.getModel(), q) }]);
+      setSheet({ type: 'chat' });
+    },
   };
 
   return (
@@ -54,6 +63,10 @@ export function App({ store }) {
         {screen === 'calendar' && <CalendarScreen model={model} nav={nav} />}
         {screen === 'stats' && <Stats model={model} />}
       </main>
+
+      {!sheet && (
+        <button class="fab" aria-label="Abrir assistente" onClick={nav.openChat}><Icon name="spark" size={26} /></button>
+      )}
 
       <nav class="tabbar" aria-label="Navegação principal">
         {TABS.map(([id, label, icon]) => (
@@ -69,6 +82,7 @@ export function App({ store }) {
       {sheet?.type === 'settings' && <SettingsSheet model={model} store={store} nav={nav} />}
       {sheet?.type === 'pregSetup' && <PregnancySetupSheet model={model} store={store} nav={nav} />}
       {sheet?.type === 'pregEnd' && <PregnancyEndSheet store={store} nav={nav} />}
+      {sheet?.type === 'chat' && <ChatSheet model={model} nav={nav} messages={messages} ask={nav.ask} />}
     </div>
   );
 }

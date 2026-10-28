@@ -1,11 +1,9 @@
 import { useState } from 'preact/hooks';
-import { addDays, ageOn, today as localToday } from '../../domain/dates.js';
+import { addDays, addMonths, ageOn, diffDays, today as localToday } from '../../domain/dates.js';
 import { METHODS } from '../../domain/contraception.js';
 import { Icon } from './icons.jsx';
 import { Switch } from './Sheet.jsx';
-
-const WD = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
-const MONTHS = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+import { MonthPicker } from './MonthPicker.jsx';
 
 function Stepper({ label, hint, value, min, max, onChange }) {
   return (
@@ -31,7 +29,7 @@ export function Onboarding({ store }) {
   const [aiEnabled, setAi] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const days = Array.from({ length: 28 }, (_, i) => addDays(today, i - 27));
+  const daysAgo = diffDays(lastPeriodStart, today);
   const hormonal = METHODS[method].suppressesOvulation;
 
   const finish = async () => {
@@ -50,17 +48,13 @@ export function Onboarding({ store }) {
       {step === 0 && (
         <>
           <h1>Quando começou sua última menstruação?</h1>
-          <p class="muted" style={{ margin: 0 }}>Toque no dia. Se não lembrar exato, escolha o mais próximo.</p>
-          <div class="days">
-            {days.map((d) => {
-              const [, m, n] = d.split('-').map(Number);
-              const wd = WD[new Date(`${d}T12:00:00`).getDay()];
-              return (
-                <button key={d} aria-pressed={d === lastPeriodStart ? 'true' : 'false'} aria-label={`${n} de ${MONTHS[m - 1]}`} onClick={() => setLast(d)}>
-                  <small>{wd}</small><strong>{n}</strong>
-                </button>
-              );
-            })}
+          <p class="muted" style={{ margin: 0 }}>Toque no dia. Use as setas para voltar aos meses anteriores. Se não lembrar exato, escolha o mais próximo.</p>
+          <div class="card">
+            <MonthPicker label="Primeiro dia da última menstruação" value={lastPeriodStart} onChange={setLast} min={addMonths(today, -12)} max={today} />
+          </div>
+          <div class="small muted" aria-live="polite">
+            {daysAgo === 0 ? 'Começou hoje.' : `Começou há ${daysAgo} ${daysAgo === 1 ? 'dia' : 'dias'}.`}
+            {daysAgo > 60 ? ' Faz bastante tempo: se você estiver grávida ou amamentando, dá para ativar o modo gestação depois do cadastro.' : ''}
           </div>
         </>
       )}

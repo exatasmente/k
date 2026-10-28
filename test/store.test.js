@@ -90,3 +90,31 @@ test('apagar tudo devolve só o registro anônimo e zera o banco', async () => {
   const fresh = await openRepository({ indexedDB });
   assert.equal(fresh.get('profile', 'me'), undefined);
 });
+
+test('onboarding com a última menstruação no mês passado', async () => {
+  const repo = await openRepository({ indexedDB: new IDBFactory() });
+  const store = createStore(repo, { today: () => '2026-10-28' });
+  await store.completeOnboarding({ lastPeriodStart: '2026-09-20', periodLength: 5, cycleLength: 30, birthDate: '', method: 'none', aiEnabled: false });
+  const m = store.getModel();
+  assert.equal(m.periods[0].start, '2026-09-20');
+  assert.equal(m.periods[0].end, '2026-09-24');
+  // 38 dias depois, com ciclo de 30: a janela (dias 28 a 32) já passou.
+  assert.equal(m.prediction.status, 'late');
+  assert.equal(m.prediction.daysLate, 6);
+});
+
+test('RF01.4: menstruação aberta há 10+ dias pede confirmação do fim', async () => {
+  const repo = await openRepository({ indexedDB: new IDBFactory() });
+  const clock = { today: '2026-10-10' };
+  const store = createStore(repo, { today: () => clock.today });
+  await store.completeOnboarding({ lastPeriodStart: '2026-09-01', periodLength: 5, cycleLength: 28, birthDate: '', method: 'none', aiEnabled: false });
+  await store.startPeriod();
+  clock.today = '2026-10-21';
+  store.refresh();
+  const pending = store.getModel().ctx.pendingConfirmation;
+  assert.equal(pending.length, 1);
+  await store.confirmPeriodEnd(pending[0].id, '2026-10-15');
+  const m = store.getModel();
+  assert.equal(m.ctx.pendingConfirmation.length, 0);
+  assert.equal(m.periods.find((p) => p.start === '2026-10-10').end, '2026-10-15');
+});

@@ -1,3 +1,4 @@
+import { useState } from 'preact/hooks';
 import { todayView } from '../views.js';
 import { Icon, catStyle } from './icons.jsx';
 
@@ -67,6 +68,19 @@ function PregnancyCards({ p, nav, store }) {
   );
 }
 
+function PendingPeriod({ p, store, today }) {
+  const [end, setEnd] = useState(p.end);
+  return (
+    <section class="card" aria-label="Confirmar fim da menstruação">
+      <strong>Sua menstruação terminou em {p.endText}?</strong>
+      <div class="small muted">Ela começou em {p.startText} e o fim não foi marcado. Fechamos pela sua média; confirme ou corrija.</div>
+      <label for="period-end" class="small muted">Último dia de sangramento</label>
+      <input id="period-end" class="field" type="date" min={p.start} max={today} value={end} onChange={(e) => setEnd(e.currentTarget.value)} />
+      <div class="row"><button class="btn accent" onClick={() => store.confirmPeriodEnd(p.id, end)}>Confirmar</button></div>
+    </section>
+  );
+}
+
 export function Today({ model, store, nav, askCycle }) {
   const v = todayView(model);
   const q = v.quick;
@@ -114,6 +128,8 @@ export function Today({ model, store, nav, askCycle }) {
           <div class="muted">Quando ela vier, toque em "Menstruei". As previsões voltam a partir daí. Seu histórico continua guardado.</div>
         </section>
       )}
+
+      {v.pendingPeriod && <PendingPeriod key={v.pendingPeriod.id} p={v.pendingPeriod} store={store} today={model.today} />}
 
       {askCycle && v.mode === 'cycle' && (
         <section class="card" aria-label="Pergunta sobre o ciclo">
@@ -177,7 +193,11 @@ export function Today({ model, store, nav, askCycle }) {
         <div class="alert warn" role="alert">
           <strong style={{ display: 'flex', gap: 8, alignItems: 'center' }}><Icon name="warn" width={2} />{v.pds.title}</strong>
           <div>{v.pds.body}</div>
-          <div class="row"><button class="btn" onClick={() => store.dismiss('pds', v.pds.context)}>Ok</button></div>
+          <div class="row">
+            <button class="btn" style={{ background: 'var(--warn-ink)', color: '#fff', border: 0 }}
+              onClick={() => { store.dismiss('pds', v.pds.context); nav.ask('Quantas vezes tomei a pílula do dia seguinte neste ano?'); }}>Entender melhor</button>
+            <button class="btn" onClick={() => store.dismiss('pds', v.pds.context)}>Ok</button>
+          </div>
         </div>
       )}
 

@@ -144,6 +144,13 @@ export function createStore(repo, { today = localToday } = {}) {
       return shouldAskAtPeriodEnd(period, 'cramps', model.codesOn, model.answers[open.start]?.cramps) ? open.start : null;
     }),
 
+    /** RF01.4: confirma (ou corrige) o fim de uma menstruação fechada automaticamente pela média. */
+    confirmPeriodEnd: act(async (periodId, end) => {
+      const p = model.periods.find((x) => x.id === periodId);
+      if (!p || end < p.start || end > model.today) return;
+      await repo.put('periods', { id: p.id, start: p.start, end, source: 'user', confirmed: true });
+    }),
+
     answerCycle: act(async (cycleStart, code, answer) => {
       if (answer !== 'yes' && answer !== 'no') return; // "Não lembro" não é gravado
       await repo.put('cycleAnswers', { id: cycleAnswerId(cycleStart, code), cycleStart, code, answer });

@@ -71,6 +71,11 @@ export function todayView(model) {
     view.postpartum = { since: `Desde ${fmt(model.postpartum.start)} · ${plural(Math.floor(diffDays(model.postpartum.start, today) / 7), 'semana', 'semanas')}` };
   }
   if (mode === 'cycle' && lastPeriodStart(model)) view.ring = ringView(model);
+  // RF01.4: menstruação aberta há 10+ dias foi fechada pela média; pede confirmação.
+  const pending = ctx?.pendingConfirmation.at(-1);
+  if (pending && mode === 'cycle') {
+    view.pendingPeriod = { id: pending.id, start: pending.start, end: pending.end, startText: fmt(pending.start), endText: fmt(pending.end) };
+  }
 
   const sexDone = codes.has('sex_vaginal');
   const hasCondom = codes.has('protection_condom');
