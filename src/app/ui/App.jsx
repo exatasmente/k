@@ -64,17 +64,17 @@ export function App({ store }) {
         {screen === 'stats' && <Stats model={model} />}
       </main>
 
-      {!sheet && (
-        <button class="fab" aria-label="Abrir assistente" onClick={nav.openChat}><Icon name="spark" size={26} /></button>
-      )}
-
       <nav class="tabbar" aria-label="Navegação principal">
         {TABS.map(([id, label, icon]) => (
-          <button key={id} aria-current={screen === id ? 'page' : undefined} onClick={() => { setSheet(null); setScreen(id); }}>
+          <button key={id} aria-current={screen === id && sheet?.type !== 'chat' ? 'page' : undefined} onClick={() => { setSheet(null); setScreen(id); }}>
             <Icon name={icon} size={24} width={1.9} />
             {label}
           </button>
         ))}
+        <button aria-current={sheet?.type === 'chat' ? 'page' : undefined} onClick={nav.openChat}>
+          <Icon name="spark" size={24} width={1.9} />
+          Assistente
+        </button>
       </nav>
 
       {sheet?.type === 'log' && <LogSheet model={model} store={store} nav={nav} date={sheet.date} />}

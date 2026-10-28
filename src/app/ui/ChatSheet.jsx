@@ -39,7 +39,7 @@ export function ChatSheet({ model, nav, messages, ask }) {
         <form class="row" style={{ flexWrap: 'nowrap' }} onSubmit={send}>
           <input class="field" style={{ borderRadius: 23, height: 46 }} aria-label="Escreva sua pergunta" placeholder="Pergunte sobre seu ciclo"
             value={draft} onInput={(e) => setDraft(e.currentTarget.value)} />
-          <button type="submit" class="icon-btn" aria-label="Enviar" style={{ background: 'var(--indigo)', color: '#fff', border: 0 }}>
+          <button type="submit" class="icon-btn" aria-label="Enviar" style={{ background: 'var(--indigo)', color: 'var(--on-accent)', border: 0 }}>
             <Icon name="next" size={20} width={2.2} />
           </button>
         </form>

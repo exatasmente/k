@@ -52,3 +52,29 @@ test('gestação: guardrail de remédio e de sinal de alerta', async () => {
   assert.match(answer(m, 'Com quantas semanas estou?'), /6 semanas e 3 dias/);
   assert.match(answer(m, 'Quando é a data provável do parto?'), /de 2027/);
 });
+
+test('menstruação atrasada: sem janela fértil do passado, e responde "estou grávida?"', async () => {
+  const { store, clock } = await seeded();
+  clock.today = '2026-10-20'; // janela prevista ~9–13/10 já passou
+  store.refresh();
+  const m = store.getModel();
+  assert.equal(m.prediction.status, 'late');
+  assert.match(answer(m, 'Estou na janela fértil?'), /atrasada não dá para estimar/);
+  assert.match(answer(m, 'Quando vem a próxima menstruação?'), /já passou há/);
+  assert.match(answer(m, 'Será que estou grávida?'), /teste de gravidez/);
+});
+
+test('janela fértil sugerida é sempre a próxima, nunca uma que já passou', async () => {
+  const { store, clock } = await seeded();
+  clock.today = '2026-09-30'; // dia 18: a janela deste ciclo acabou
+  store.refresh();
+  const a = answer(store.getModel(), 'Estou na janela fértil?');
+  assert.match(a, /Hoje não\. A próxima janela fértil estimada vai de \d+ out/);
+});
+
+test('muito tempo sem menstruação: não arrisca previsão', async () => {
+  const { store, clock } = await seeded();
+  clock.today = '2027-01-05';
+  store.refresh();
+  assert.match(answer(store.getModel(), 'Quando vem a próxima menstruação?'), /não dá para prever a próxima/);
+});

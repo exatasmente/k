@@ -121,9 +121,9 @@ function ringView(model) {
   const phase = phaseOn(ctx, today);
   const tracks = tracksOvulation(model.method);
   const ovCd = L - 13;
-  const status = phase.phase === 'menstrual' ? 'period' : prediction.status === 'late' ? 'late'
-    : prediction.status === 'expected' ? 'window' : 'before';
-  const big = { period: 'Menstruação', late: 'Atrasada', window: 'Pode começar' }[status]
+  const status = phase.phase === 'menstrual' ? 'period' : prediction.status === 'long_absence' ? 'absence'
+    : prediction.status === 'late' ? 'late' : prediction.status === 'expected' ? 'window' : 'before';
+  const big = { period: 'Menstruação', late: 'Atrasada', window: 'Pode começar', absence: 'Sem menstruação' }[status]
     ?? (tracks ? PHASE_LABEL[phase.phase].replace('Fase ', '') : `Dia ${cd}`);
   const untilWindow = prediction.daysUntilWindow;
   return {
@@ -133,13 +133,16 @@ function ringView(model) {
     markerFrac: (Math.min(cd, L) - 0.5) / L,
     top: tracks ? `Dia ${cd} do ciclo` : METHODS[model.method].label,
     big,
-    tone: status === 'period' || status === 'window' ? 'period' : status === 'late' ? 'late' : phase.phase === 'ovulatory' ? 'fertile' : 'neutral',
+    tone: status === 'period' || status === 'window' ? 'period' : status === 'late' || status === 'absence' ? 'late' : phase.phase === 'ovulatory' ? 'fertile' : 'neutral',
     bottom: status === 'period' ? `Dia ${cd} da menstruação`
+      : status === 'absence' ? `há ${plural(cd - 1, 'dia', 'dias')} desde a última`
       : status === 'late' ? `há ${plural(prediction.daysLate, 'dia', 'dias')} além da janela prevista`
         : status === 'window' ? `a qualquer dia até ${fmtShort(prediction.window.to)}`
           : `Menstruação em ${plural(untilWindow, 'dia', 'dias')}`,
     window: status === 'before' || status === 'window' ? `Previsão: entre ${fmtShort(prediction.window.from)} e ${fmtShort(prediction.window.to)}` : null,
     hormonalNote: tracks ? null : `Sem janela fértil com ${METHODS[model.method].label.toLowerCase()}. O foco aqui é como você se sente.`,
+    // Métodos hormonais podem suspender a menstruação de propósito: aí não é sinal de alerta.
+    absenceNote: status === 'absence' && tracks ? COPY.longAbsence : null,
   };
 }
 
@@ -183,6 +186,7 @@ export function logView(model, date) {
     sections,
     suggest: { label: sug.label, items: sug.codes.filter((c) => !model.hidden.has(getItem(c).cat)).map((c) => ({ code: c, label: getItem(c).label, cat: getItem(c).cat, pressed: codes.has(c) })) },
     calmPressed: codes.has('no_symptoms'),
+    calmVisible: !model.hidden.has('symptom'),
     redFlag: red.triggered ? `Você marcou: ${red.codes.map((c) => getItem(c).label.toLowerCase()).join(', ')}. ${COPY.pregnancyUrgent}` : null,
     pds,
     editRows: CATEGORIES.filter((c) => isVisible(c, vis)).map((c) => ({
@@ -252,8 +256,11 @@ function symptomCycle(model, item, cat) {
   // Contagens por janela e distribuição por fase (últimos 12 meses).
   const cuts = [-91, -182, -365].map((n) => addDays(today, n));
   const counts = [0, 0, 0];
-  const keys = tracks ? ['menstrual', 'follicular', 'ovulatory', 'luteal'] : ['menstrual', 'not_tracked'];
-  const byPhase = Object.fromEntries(keys.map((k) => [k, []]));
+  // Cada dia é classificado com o método vigente nele; depois de trocar de método,
+  // dias antigos podem cair em fases que o método atual não usa.
+  const ALL = ['menstrual', 'follicular', 'ovulatory', 'luteal', 'not_tracked'];
+  const base = tracks ? ['menstrual', 'follicular', 'ovulatory', 'luteal'] : ['menstrual', 'not_tracked'];
+  const byPhase = Object.fromEntries(ALL.map((k) => [k, []]));
   for (const [d, codes] of model.byDate) {
     if (!codes.has(code) || d > today) continue;
     cuts.forEach((k, i) => { if (d > k) counts[i]++; });
@@ -262,6 +269,7 @@ function symptomCycle(model, item, cat) {
     const key = statPhase(ph.phase);
     if (byPhase[key]) byPhase[key].push(ph.cycleDay);
   }
+  const keys = ALL.filter((k) => base.includes(k) || byPhase[k].length > 0);
   const total = keys.reduce((s, k) => s + byPhase[k].length, 0);
   const phases = keys.map((k) => ({ key: k, label: PHASE_LABEL[k], pct: total ? Math.round((byPhase[k].length / total) * 100) : 0 }));
   const top = [...phases].sort((a, b) => b.pct - a.pct)[0];

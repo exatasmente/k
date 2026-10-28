@@ -4,6 +4,7 @@ import { IDBFactory } from 'fake-indexeddb';
 import { openRepository } from '../src/data/repository.js';
 import { createStore } from '../src/app/store.js';
 import { calendarView, logView, statsView, symptomView, todayView } from '../src/app/views.js';
+import { COPY } from '../src/domain/rules.js';
 import { addDays } from '../src/domain/dates.js';
 
 /** Histórico: 6 ciclos de 27/28 dias com cólica nos dias 1-2 e um ciclo só com relação. */
@@ -82,4 +83,37 @@ test('Gestação: Home, registro com alerta, calendário e resumo', async () => 
   assert.equal(log.suggest.label, '1º trimestre');
   assert.match(calendarView(m, '2026-10', '2026-10-28').selected.phase, /^6s 3d · 1º trimestre/);
   assert.equal(statsView(m).flags.length, 1);
+});
+
+test('Ficha: depois de trocar para método hormonal, as fases antigas continuam na conta', async () => {
+  const { store } = await seeded();
+  await store.setMethod('pill');
+  const v = symptomView(store.getModel(), 'cramps');
+  const keys = v.phases.map((p) => p.key);
+  assert.ok(keys.includes('not_tracked'));
+  assert.ok(keys.includes('menstrual'));
+  const sum = v.phases.reduce((s, p) => s + p.pct, 0);
+  assert.ok(sum >= 98 && sum <= 102, `as porcentagens fecham ~100% (${sum})`);
+});
+
+test('Registro: esconder Sintomas esconde também o "Sem sintomas hoje"', async () => {
+  const { store, lastStart } = await seeded();
+  assert.equal(logView(store.getModel(), lastStart).calmVisible, true);
+  await store.toggleCategory('symptom');
+  const v = logView(store.getModel(), lastStart);
+  assert.equal(v.calmVisible, false);
+  assert.ok(!v.sections.some((s) => s.id === 'symptom'));
+});
+
+test('Hoje: muito tempo sem menstruação muda o anel e só alerta quem ovula', async () => {
+  const { store, clock } = await seeded();
+  clock.today = '2027-01-05'; // 3+ meses depois do último início (2026-09-13)
+  store.refresh();
+  const v = todayView(store.getModel());
+  assert.equal(v.ring.status, 'absence');
+  assert.equal(v.ring.big, 'Sem menstruação');
+  assert.equal(v.ring.window, null);
+  assert.equal(v.ring.absenceNote, COPY.longAbsence);
+  await store.setMethod('implant');
+  assert.equal(todayView(store.getModel()).ring.absenceNote, null, 'implante pode suspender a menstruação de propósito');
 });

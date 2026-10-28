@@ -118,8 +118,12 @@ function answerCycle(model, q) {
     if (!tracksOvulation(model.method)) {
       return `Com ${METHODS[model.method].label.toLowerCase()}, a ovulação costuma ficar suprimida, então o app não mostra janela fértil.`;
     }
+    if (prediction.status === 'late' || prediction.status === 'long_absence') {
+      return 'Com a menstruação atrasada não dá para estimar a janela fértil agora. A estimativa volta depois da próxima menstruação.';
+    }
     const ph = phaseOn(ctx, today);
-    const fw = ph.phase === 'ovulatory' ? ph.fertileWindow : (ph.fertileWindow && today < ph.fertileWindow.start ? ph.fertileWindow : prediction.upcoming[0]?.fertileWindow);
+    const fw = ph.phase === 'ovulatory' ? ph.fertileWindow
+      : [ph.fertileWindow, ...prediction.upcoming.map((u) => u.fertileWindow)].find((w) => w && w.start > today);
     if (!fw) return 'Ainda não consigo estimar a janela fértil com os dados registrados.';
     const range = `de ${fmtShort(fw.start)} a ${fmtShort(fw.end)}`;
     return `${ph.phase === 'ovulatory' ? `Sim. Pela estimativa, sua janela fértil vai ${range}.` : `Hoje não. A próxima janela fértil estimada vai ${range}.`}\n\nÉ uma estimativa e não funciona como método contraceptivo.`;
@@ -129,9 +133,13 @@ function answerCycle(model, q) {
     const dur = last.end ? ` e durou ${plural(diffDays(last.start, last.end) + 1, 'dia', 'dias')}` : ', e ainda está em andamento';
     return `Sua última menstruação começou em ${fmt(last.start)} (há ${plural(diffDays(last.start, today), 'dia', 'dias')})${dur}.`;
   }
+  if (q.includes('grávida') || q.includes('gravida')) {
+    return 'O app não consegue saber se você está grávida. Se a menstruação atrasou, um teste de gravidez (de farmácia ou de sangue) responde. Se der positivo, registre em "Teste de gravidez" para ativar o modo gestação.';
+  }
   if (q.includes('próxima') || q.includes('proxima')) {
     if (prediction.mode === 'awaiting_period') return 'Depois da gestação, as previsões voltam a partir da próxima menstruação.';
     if (!prediction.window) return 'Ainda não há dados para prever.';
+    if (prediction.status === 'long_absence') return `Faz ${prediction.daysSinceStart} dias desde a última menstruação registrada, então não dá para prever a próxima. ${COPY.longAbsence}`;
     const w = `entre ${fmtShort(prediction.window.from)} e ${fmtShort(prediction.window.to)}`;
     if (prediction.status === 'late') return `A janela prevista (${w}) já passou há ${plural(prediction.daysLate, 'dia', 'dias')}. Fatores como estresse, doença ou viagem podem atrasar o ciclo.`;
     if (prediction.status === 'expected') return `Pode começar a qualquer dia: a previsão vai ${w}.`;

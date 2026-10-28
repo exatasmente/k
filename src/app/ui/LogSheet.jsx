@@ -132,9 +132,11 @@ export function LogSheet({ model, store, nav, date }) {
           <div class="tiles">
             {v.suggest.items.map((it) => <Item key={it.code} it={it} tile onTap={() => tap(it.code)} onLong={() => open(it.code)} />)}
           </div>
-          <button class="calm" aria-pressed={v.calmPressed ? 'true' : 'false'} onClick={() => tap('no_symptoms')}>
-            <Icon name="check" size={20} width={2} /> Dia tranquilo · sem sintomas
-          </button>
+          {v.calmVisible && (
+            <button class="calm" aria-pressed={v.calmPressed ? 'true' : 'false'} onClick={() => tap('no_symptoms')}>
+              <Icon name="check" size={20} width={2} /> Dia tranquilo · sem sintomas
+            </button>
+          )}
         </section>
 
         {v.sections.map((s) => (

@@ -2,7 +2,7 @@ import { addDays, today as localToday } from '../domain/dates.js';
 import { applyTap, FLOW_CODES, getItem } from '../domain/catalog.js';
 import { METHODS, methodOn, quickSexCodes } from '../domain/contraception.js';
 import {
-  buildCycleContext, endPeriod, periodFromOnboarding, predict, registerFlowDay, unregisterFlowDay,
+  buildCycleContext, endPeriod, periodFromOnboarding, predict, registerFlowDay, startPeriodOn, unregisterFlowDay,
 } from '../domain/cycles.js';
 import { shouldAskAtPeriodEnd } from '../domain/observation.js';
 import { activePregnancy, datePregnancy, endPostpartum, endPregnancy, gestationalAge } from '../domain/stages.js';
@@ -39,7 +39,8 @@ export function buildModel(repo, today) {
 
   return {
     today, profile, onboarded: !!profile, byDate, codesOn, periods, methods, stages, answers, dismissed,
-    ctx, prediction: ctx ? predict(ctx) : null,
+    // 6 ciclos de previsão: o calendário cobre uns 6 meses à frente.
+    ctx, prediction: ctx ? predict(ctx, 6) : null,
     pregnancy, ga, postpartum,
     stage: pregnancy ? 'pregnancy' : 'cycle',
     method: methodOn(methods, today),
@@ -94,10 +95,20 @@ export function createStore(repo, { today = localToday } = {}) {
     await repo.put('profile', { ...model.profile, ...patch, id: 'me' });
   }
 
-  const act = (fn) => async (...args) => {
-    const result = await fn(...args);
-    refresh();
-    return result;
+  // Ações em fila: cada uma lê o modelo já atualizado pela anterior. Sem isso, dois
+  // toques rápidos (ex.: "Cólica" e logo "Dia tranquilo") partem do mesmo estado
+  // antigo e um desfaz o efeito do outro.
+  let queue = Promise.resolve();
+  const act = (fn) => (...args) => {
+    const run = queue.then(async () => {
+      // App aberto virando a meia-noite: "hoje" das ações é o dia de agora.
+      if (today() !== model.today) refresh();
+      const result = await fn(...args);
+      refresh();
+      return result;
+    });
+    queue = run.catch(() => {});
+    return run;
   };
 
   return {
@@ -127,12 +138,18 @@ export function createStore(repo, { today = localToday } = {}) {
     startPeriod: act(async () => {
       const t = model.today;
       if (model.postpartum) {
-        const changed = endPostpartum(model.stages, t).filter((s, i) => s.end !== model.stages[i].end);
+        const next = endPostpartum(model.stages, t);
+        const changed = next.filter((s) => s.end !== model.stages.find((o) => o.id === s.id)?.end);
+        const removed = model.stages.filter((o) => !next.some((s) => s.id === o.id));
         if (changed.length) await repo.put('stages', ...changed);
+        if (removed.length) await repo.remove('stages', ...removed.map((s) => s.id));
       }
-      const codes = applyTap(model.codesOn(t), 'flow_medium');
-      if (!codes.has('flow_medium')) codes.add('flow_medium');
-      await setCodes(t, codes);
+      // Início explícito: menstruação nova (ou reaberta), sem emendar na anterior.
+      await savePeriods(startPeriodOn(model.periods, t));
+      // Fluxo do dia é só anotação; grava direto, sem mexer de novo nas menstruações.
+      if (![...model.codesOn(t)].some((c) => FLOW_CODES.includes(c))) {
+        await repo.put('entries', { id: entryId(t, 'flow_medium'), date: t, code: 'flow_medium', source: 'user' });
+      }
     }),
 
     /** "Terminou": fecha a menstruação. Devolve o início do ciclo se for para perguntar pela cólica. */

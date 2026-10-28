@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { addDays } from '../src/domain/dates.js';
 import {
-  buildCycleContext, endPeriod, periodFromOnboarding, phaseOn, predict, registerFlowDay, unregisterFlowDay,
+  buildCycleContext, endPeriod, LONG_ABSENCE_DAYS, periodFromOnboarding, phaseOn, predict, registerFlowDay, startPeriodOn, unregisterFlowDay,
 } from '../src/domain/cycles.js';
 
 const onboarding = { lastPeriodStart: '2026-10-17', periodLength: 5, cycleLength: 28, birthDate: '1996-05-12' };
@@ -94,4 +94,37 @@ test('gestação suspende previsões e ciclos que a cruzam saem das médias', ()
   const ctx3 = buildCycleContext({ periods: periodsAt(...starts, back), stages: [ended], onboarding, today: addDays(back, 3) });
   assert.ok(ctx3.cycles.every((c) => c.length === 28));
   assert.equal(predict(ctx3).mode, 'cycle');
+});
+
+test('"Menstruei" abre uma menstruação nova mesmo colada na anterior, e reabre a de hoje', () => {
+  const prev = periodsAt('2026-10-17');
+  const next = startPeriodOn(prev, '2026-10-24');
+  assert.equal(next.length, 2, 'não emenda na anterior (registrar fluxo emendaria)');
+  assert.deepEqual(next.at(-1), { start: '2026-10-24', end: null, source: 'user' });
+  assert.equal(next[0].end, '2026-10-21', 'a anterior fica como estava');
+
+  const closedToday = [{ start: '2026-10-24', end: '2026-10-28', source: 'user' }];
+  const reopened = startPeriodOn(closedToday, '2026-10-28');
+  assert.equal(reopened.length, 1);
+  assert.equal(reopened[0].end, null, '"Terminou" e "Menstruei" no mesmo dia: reabre');
+});
+
+test('mais de 3 meses sem menstruação: sem previsão de atraso, status próprio', () => {
+  const start = addDays('2026-10-28', -(LONG_ABSENCE_DAYS + 10));
+  const ob = { ...onboarding, lastPeriodStart: start };
+  const ctx = buildCycleContext({ periods: [periodFromOnboarding(ob)], onboarding: ob, today: '2026-10-28' });
+  const p = predict(ctx);
+  assert.equal(p.status, 'long_absence');
+  assert.equal(p.daysSinceStart, LONG_ABSENCE_DAYS + 10);
+  assert.ok(p.upcoming[0].start > '2026-10-28', 'as próximas previsões partem de amanhã, não do passado');
+
+  const late = buildCycleContext({ periods: [periodFromOnboarding({ ...onboarding, lastPeriodStart: '2026-09-20' })], onboarding, today: '2026-10-28' });
+  assert.equal(predict(late).status, 'late', '38 dias ainda é atraso comum');
+});
+
+test('previsão pedida para 6 ciclos devolve 6', () => {
+  const ctx = buildCycleContext({ periods: [periodFromOnboarding(onboarding)], onboarding, today: '2026-10-28' });
+  const p = predict(ctx, 6);
+  assert.equal(p.upcoming.length, 6);
+  for (let i = 1; i < 6; i++) assert.ok(p.upcoming[i].start > p.upcoming[i - 1].start);
 });

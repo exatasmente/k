@@ -79,6 +79,7 @@ test('gestação: ativa pela ultrassonografia, encerra para o pós-parto sem gua
 
   await store.startPeriod();
   assert.equal(store.getModel().postpartum, null, 'menstruação voltou: fim do pós-parto');
+  assert.equal(store.getModel().prediction.mode, 'cycle', 'mesmo no dia em que o pós-parto começou');
 });
 
 test('apagar tudo devolve só o registro anônimo e zera o banco', async () => {
@@ -117,4 +118,44 @@ test('RF01.4: menstruação aberta há 10+ dias pede confirmação do fim', asyn
   const m = store.getModel();
   assert.equal(m.ctx.pendingConfirmation.length, 0);
   assert.equal(m.periods.find((p) => p.start === '2026-10-10').end, '2026-10-15');
+});
+
+test('toques rápidos seguidos não se atropelam', async () => {
+  const { store } = await setup();
+  // Sem await entre eles, como dois toques rápidos na tela.
+  const a = store.tap('2026-10-28', 'cramps');
+  const b = store.tap('2026-10-28', 'no_symptoms');
+  const c = store.tap('2026-10-28', 'headache');
+  await Promise.all([a, b, c]);
+  assert.deepEqual([...store.getModel().codesOn('2026-10-28')].sort(), ['headache']);
+});
+
+test('"Menstruei" 3 dias depois do fim da anterior começa um ciclo novo', async () => {
+  const { store, clock } = await setup('2026-10-24');
+  await store.startPeriod();
+  const m = store.getModel();
+  assert.equal(m.openPeriod.start, '2026-10-24', 'antes emendava em 17/10 e o botão parecia não fazer nada');
+  assert.equal(m.periods.length, 2);
+  assert.ok(m.codesOn('2026-10-24').has('flow_medium'));
+  clock.today = '2026-10-26';
+  await store.endPeriod();
+  await store.startPeriod();
+  assert.equal(store.getModel().openPeriod.start, '2026-10-24', 'no mesmo dia do "Terminou": reabre');
+  assert.equal(store.getModel().periods.length, 2);
+});
+
+test('"Menstruei" com fluxo já marcado não duplica o registro do dia', async () => {
+  const { store } = await setup('2026-11-14');
+  await store.tap('2026-11-14', 'flow_heavy');
+  await store.startPeriod();
+  const codes = store.getModel().codesOn('2026-11-14');
+  assert.ok(codes.has('flow_heavy'));
+  assert.ok(!codes.has('flow_medium'));
+});
+
+test('app aberto virando a meia-noite: a ação usa o dia novo', async () => {
+  const { store, clock } = await setup('2026-11-13');
+  clock.today = '2026-11-14'; // sem refresh: a tela ficou aberta
+  await store.startPeriod();
+  assert.equal(store.getModel().openPeriod.start, '2026-11-14');
 });

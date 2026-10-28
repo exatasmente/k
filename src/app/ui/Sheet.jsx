@@ -5,11 +5,18 @@ import { Icon } from './icons.jsx';
 export function Sheet({ label, onClose, children, head }) {
   const ref = useRef(null);
   useEffect(() => { ref.current?.focus(); }, []);
-  const onKeyDown = (e) => { if (e.key === 'Escape') onClose(); };
+  // No documento, não só na folha: o foco pode ainda estar no botão que a abriu.
+  const close = useRef(onClose);
+  close.current = onClose;
+  useEffect(() => {
+    const onKeyDown = (e) => { if (e.key === 'Escape') close.current(); };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, []);
   return (
     <>
       <button class="scrim" aria-label="Fechar" onClick={onClose} />
-      <div class="sheet" role="dialog" aria-modal="true" aria-label={label} tabIndex={-1} ref={ref} onKeyDown={onKeyDown}>
+      <div class="sheet" role="dialog" aria-modal="true" aria-label={label} tabIndex={-1} ref={ref}>
         <div class="sheet-head">
           <div class="grabber" />
           {head}

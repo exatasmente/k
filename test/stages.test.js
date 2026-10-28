@@ -29,10 +29,11 @@ test('datação pela DPP da ultrassonografia', () => {
 test('encerrar guarda só a data, sem desfecho, e segue para pós-parto ou ciclo', () => {
   const stages = [{ stage: 'pregnancy', start: '2026-02-01', end: null, dating: 'lmp', dueDate: '2026-11-08' }];
   const pp = endPregnancy(stages, '2026-10-28', 'postpartum');
-  assert.equal(pp[0].end, '2026-10-28');
+  assert.equal(pp[0].end, '2026-10-27', 'gestação termina na véspera; hoje já é pós-parto');
   assert.ok(!('outcome' in pp[0]));
   assert.deepEqual(pp[1], { stage: 'postpartum', start: '2026-10-28', end: null });
   assert.equal(activePregnancy(pp), null);
   assert.equal(endPregnancy(stages, '2026-10-28', 'cycle').length, 1);
   assert.equal(endPostpartum(pp, '2027-01-15')[1].end, '2027-01-14');
+  assert.equal(endPostpartum(pp, '2026-10-28').length, 1, 'menstruação no mesmo dia: pós-parto não chega a existir');
 });

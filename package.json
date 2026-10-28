@@ -11,13 +11,15 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node --test"
+    "test": "node --test",
+    "test:e2e": "vite build && node --test --test-concurrency=1 e2e/*.e2e.js"
   },
   "dependencies": {
     "preact": "10.29.8"
   },
   "devDependencies": {
     "fake-indexeddb": "6.2.5",
+    "playwright": "1.63.0",
     "vite": "6.4.4"
   }
 }

@@ -10,6 +10,8 @@ export const AUTO_CLOSE_AFTER_DAYS = 10;
 export const LUTEAL_DAYS = 14;
 export const FERTILE_DAYS_BEFORE_OVULATION = 5;
 export const AVERAGE_WINDOW = 6;
+// Mais que isso sem menstruar não é "atraso": é ausência prolongada (pede avaliação).
+export const LONG_ABSENCE_DAYS = 90;
 export const MIN_CYCLES_WITHOUT_PRIOR = 3;
 // Ciclos fora disso são tratados como registro faltando, não como ciclo real.
 export const PLAUSIBLE_CYCLE = Object.freeze({ min: 15, max: 90 });
@@ -85,6 +87,21 @@ export function unregisterFlowDay(periods, date) {
     else out.push(p);
   }
   return out;
+}
+
+/**
+ * "Menstruei" (início explícito): abre uma menstruação nova em `date`, sem emendar
+ * na anterior mesmo que ela tenha acabado há poucos dias. Se `date` já está dentro
+ * de uma menstruação (ex.: tocou "Terminou" por engano), reabre essa.
+ */
+export function startPeriodOn(periods, date) {
+  const sorted = [...periods].sort(byStart);
+  const i = sorted.findIndex((p) => p.start <= date && (p.end == null || p.end >= date));
+  if (i >= 0) {
+    sorted[i] = { ...sorted[i], end: null };
+    return sorted;
+  }
+  return [...sorted, { start: date, end: null, source: 'user' }].sort(byStart);
 }
 
 /** "Minha menstruação terminou" — fecha o período em aberto que contém `date`. */
@@ -221,6 +238,7 @@ export function phaseOn(ctx, date) {
  * menstruações e, quando o método permite, ovulação e janela fértil de cada uma.
  * Modos: cycle | pregnancy | postpartum | awaiting_period (gestação encerrada,
  * menstruação ainda não voltou: sem previsões).
+ * Status (modo cycle): before | expected | late | long_absence (mais de 90 dias).
  */
 export function predict(ctx, count = 3) {
   const stage = stageOn(ctx.stages, ctx.today);
@@ -232,11 +250,13 @@ export function predict(ctx, count = 3) {
 
   const windowFrom = addDays(last.start, ctx.window.from);
   const windowTo = addDays(last.start, ctx.window.to);
-  const status = ctx.today > windowTo ? 'late' : ctx.today >= windowFrom ? 'expected' : 'before';
+  const sinceStart = diffDays(last.start, ctx.today);
+  const status = sinceStart > LONG_ABSENCE_DAYS ? 'long_absence'
+    : ctx.today > windowTo ? 'late' : ctx.today >= windowFrom ? 'expected' : 'before';
   const showFertility = tracksOvulation(methodOn(ctx.methods, ctx.today));
   // Depois que a janela passa, a próxima previsão parte de amanhã, não de uma data vencida.
   let firstNext = addDays(last.start, ctx.avgCycleLength);
-  if (status === 'late') firstNext = addDays(ctx.today, 1);
+  if (status === 'late' || status === 'long_absence') firstNext = addDays(ctx.today, 1);
   const upcoming = [];
   for (let i = 0; i < count; i++) {
     const start = addDays(firstNext, i * ctx.avgCycleLength);
@@ -247,6 +267,7 @@ export function predict(ctx, count = 3) {
     mode: 'cycle', status, window: { from: windowFrom, to: windowTo }, upcoming,
     daysUntilWindow: Math.max(0, diffDays(ctx.today, windowFrom)),
     daysLate: status === 'late' ? diffDays(windowTo, ctx.today) : 0,
+    daysSinceStart: sinceStart,
   };
 }
 

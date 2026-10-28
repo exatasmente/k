@@ -73,6 +73,9 @@ export const COPY = Object.freeze({
   pregnancyUrgent:
     'Isso precisa de avaliação. Procure atendimento hoje e avise sua equipe do pré-natal. ' +
     'Se for intenso ou piorar, vá ao pronto-socorro ou ligue 192 (SAMU).',
+  longAbsence:
+    'Faz mais de 3 meses sem menstruação registrada. Se você não está grávida nem amamentando, ' +
+    'vale conversar com sua ginecologista.',
   // Aparece na tela de bloqueio: não pode revelar do que se trata.
   periodConfirmationNotification: 'Tem um registro esperando sua confirmação.',
 });

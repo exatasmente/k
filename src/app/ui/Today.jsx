@@ -153,6 +153,7 @@ export function Today({ model, store, nav, askCycle }) {
             </div>
           )}
           {v.ring.hormonalNote && <div class="small muted">{v.ring.hormonalNote}</div>}
+          {v.ring.absenceNote && <div class="pill-note" style={{ background: 'var(--warn-tint)', color: 'var(--warn-ink)' }}>{v.ring.absenceNote}</div>}
           {v.ring.window && <div class="pill-note">{v.ring.window}</div>}
         </section>
       )}
@@ -194,7 +195,7 @@ export function Today({ model, store, nav, askCycle }) {
           <strong style={{ display: 'flex', gap: 8, alignItems: 'center' }}><Icon name="warn" width={2} />{v.pds.title}</strong>
           <div>{v.pds.body}</div>
           <div class="row">
-            <button class="btn" style={{ background: 'var(--warn-ink)', color: '#fff', border: 0 }}
+            <button class="btn" style={{ background: 'var(--warn-ink)', color: 'var(--on-accent)', border: 0 }}
               onClick={() => { store.dismiss('pds', v.pds.context); nav.ask('Quantas vezes tomei a pílula do dia seguinte neste ano?'); }}>Entender melhor</button>
             <button class="btn" onClick={() => store.dismiss('pds', v.pds.context)}>Ok</button>
           </div>
