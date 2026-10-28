@@ -62,7 +62,11 @@ export function endPregnancy(stages, today, next) {
 
 /** Fecha o pós-parto quando a menstruação volta. */
 export function endPostpartum(stages, periodStart) {
-  return stages.map((s) => (s.stage === 'postpartum' && s.end == null ? { ...s, end: addDays(periodStart, -1) } : s));
+  return stages.map((s) => {
+    if (s.stage !== 'postpartum' || s.end != null) return s;
+    const end = addDays(periodStart, -1);
+    return { ...s, end: end < s.start ? s.start : end };
+  });
 }
 
 /** Gestação em andamento, se houver. */
