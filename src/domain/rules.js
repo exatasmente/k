@@ -1,27 +1,24 @@
 import { addMonths } from './dates.js';
+import { getItem, isKnownCode } from './catalog.js';
+import { classifyRegularity } from './regularity.js';
 
 // Regras determinísticas de alerta. Rodam localmente, sem IA: a IA pode
 // explicar um alerta, mas nunca é ela quem decide se ele existe.
 
-export const IRREGULAR_RANGE_DAYS = 8;
-export const IRREGULAR_WINDOW = 6;
-export const IRREGULAR_MIN_CYCLES = 3;
 export const EC_MAX_PER_CYCLE = 1;
 export const EC_MAX_PER_12_MONTHS = 3;
 
 /**
- * RN03: irregular se (maior − menor) dos últimos 6 ciclos completos passar de 8 dias.
- * O onboarding não informa variação, então precisa de ao menos 3 ciclos registrados.
+ * RN03 em dois tons (ver regularity.js). Depois de uma gestação os primeiros
+ * ciclos costumam ser irregulares: o aviso fica pausado até haver 3 ciclos novos.
+ * @param {{cycles: {start: string, length: number}[], stages: {end: string|null}[]}} ctx
  */
 export function irregularity(ctx) {
-  const lengths = ctx.cycles.slice(-IRREGULAR_WINDOW).map((c) => c.length);
-  if (lengths.length < IRREGULAR_MIN_CYCLES) {
-    return { status: 'insufficient_data', cyclesNeeded: IRREGULAR_MIN_CYCLES - lengths.length };
-  }
-  const shortest = Math.min(...lengths);
-  const longest = Math.max(...lengths);
-  const range = longest - shortest;
-  return { status: range > IRREGULAR_RANGE_DAYS ? 'irregular' : 'regular', shortest, longest, range };
+  const lastStageEnd = ctx.stages.reduce((max, s) => (s.end && s.end > max ? s.end : max), '');
+  const ongoingStage = ctx.stages.some((s) => s.end == null);
+  const cycles = lastStageEnd ? ctx.cycles.filter((c) => c.start >= lastStageEnd) : ctx.cycles;
+  if (ongoingStage || (lastStageEnd && cycles.length < 3)) return { kind: 'paused', last: [] };
+  return classifyRegularity(cycles.map((c) => c.length));
 }
 
 /**
@@ -46,14 +43,36 @@ export function emergencyContraceptionAlert(ctx, ecDates, onDate = ctx.today) {
   return { triggered: reasons.length > 0, priority: 'high', reasons, inCycle, in12Months };
 }
 
+/**
+ * Sinais de alerta da gestação marcados num dia: viram "Procure atendimento"
+ * na Home e no registro. Fora da gestação nunca dispara.
+ * @param {Iterable<string>} dayCodes
+ * @param {'cycle'|'pregnancy'} stage
+ */
+export function pregnancyAlert(dayCodes, stage) {
+  if (stage !== 'pregnancy') return { triggered: false, codes: [] };
+  const codes = [...dayCodes].filter((c) => isKnownCode(c) && getItem(c).alert);
+  return { triggered: codes.length > 0, priority: 'urgent', codes };
+}
+
 // Textos ficam aqui para que app e IA mostrem exatamente a mesma mensagem.
+// PENDENTE de revisão por profissional de saúde antes de abrir para terceiras.
 export const COPY = Object.freeze({
   irregular:
     'Seus últimos ciclos variaram mais de 8 dias entre o mais curto e o mais longo. ' +
     'Vale compartilhar esse histórico com sua ginecologista.',
+  outlier:
+    'Um ciclo saiu do padrão, mas os outros ficaram próximos. Isso pode acontecer de vez em quando; ' +
+    'se repetir, vale mostrar este histórico à sua ginecologista.',
+  paused:
+    'Depois de uma gestação, principalmente amamentando, a menstruação pode demorar a voltar e vir irregular. ' +
+    'Voltamos a avaliar quando houver 3 ciclos novos.',
   emergencyContraception:
     'Você registrou a pílula do dia seguinte várias vezes em pouco tempo. Ela tem alta carga hormonal ' +
     'e não é feita para uso frequente. Uma consulta pode ajudar a encontrar um método que funcione melhor para você.',
+  pregnancyUrgent:
+    'Isso precisa de avaliação. Procure atendimento hoje e avise sua equipe do pré-natal. ' +
+    'Se for intenso ou piorar, vá ao pronto-socorro ou ligue 192 (SAMU).',
   // Aparece na tela de bloqueio: não pode revelar do que se trata.
   periodConfirmationNotification: 'Tem um registro esperando sua confirmação.',
 });

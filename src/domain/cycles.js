@@ -1,8 +1,9 @@
 import { addDays, diffDays, isWithin } from './dates.js';
 import { methodOn, tracksOvulation } from './contraception.js';
+import { lengthsForAverage } from './regularity.js';
 
-// Motor de ciclo: períodos menstruais, médias (RN02), previsão, fase do dia e
-// fechamento automático de menstruação sem fim registrado (RF01.4).
+// Motor de ciclo: períodos menstruais, médias (RN02), previsão em janela, fase do
+// dia e fechamento automático de menstruação sem fim registrado (RF01.4).
 
 export const DEFAULTS = Object.freeze({ cycleLength: 28, periodLength: 5 });
 export const AUTO_CLOSE_AFTER_DAYS = 10;
@@ -97,7 +98,8 @@ export function stageOn(stages, date) {
   return match ? match.stage : 'cycle';
 }
 
-function overlapsStage(stages, start, endExclusive) {
+/** Intervalo [start, endExclusive) cruza alguma gestação ou pós-parto? */
+export function overlapsStage(stages, start, endExclusive) {
   return stages.some((s) => s.start < endExclusive && (s.end == null || s.end >= start));
 }
 
@@ -151,9 +153,21 @@ export function buildCycleContext({ periods, stages = [], methods = [], onboardi
     if (overlapsStage(stages, start, next)) continue;
     cycles.push({ start, length });
   }
-  const avgCycleLength = blendedAverage(cycles.map((c) => c.length), priorCycle);
+  const lengths = cycles.map((c) => c.length);
+  // Um ciclo fora do padrão não puxa a média (ver regularity.js).
+  const avgCycleLength = blendedAverage(lengthsForAverage(lengths), priorCycle);
+  const window = predictionWindow(lengthsForAverage(lengths).slice(-AVERAGE_WINDOW), avgCycleLength);
 
-  return { today, periods: effective, stages, methods, cycles, avgCycleLength, avgPeriodLength, pendingConfirmation };
+  return { today, periods: effective, stages, methods, cycles, avgCycleLength, avgPeriodLength, window, pendingConfirmation };
+}
+
+/**
+ * Janela da próxima menstruação, em dias desde o início do ciclo: do ciclo recente
+ * mais curto ao mais longo, nunca mais estreita que média ± 1. Sem histórico, média ± 2.
+ */
+export function predictionWindow(recentLengths, avg) {
+  if (recentLengths.length < 2) return { from: avg - 2, to: avg + 2 };
+  return { from: Math.min(Math.min(...recentLengths), avg - 1), to: Math.max(Math.max(...recentLengths), avg + 1) };
 }
 
 function ovulationFor(nextStart) {
@@ -167,7 +181,8 @@ function ovulationFor(nextStart) {
 /**
  * Fase de qualquer dia (presente ou passado). Usado no anel da tela Hoje,
  * no calendário e na correlação sintoma × fase (RF06).
- * Fases: menstrual | follicular | ovulatory | luteal | late | not_tracked | pregnancy | postpartum | unknown.
+ * Fases: menstrual | follicular | ovulatory | luteal | expected | late | not_tracked | pregnancy | postpartum | unknown.
+ * `expected` = dentro da janela prevista, a menstruação pode começar a qualquer dia.
  * `not_tracked` = método que suprime ovulação: só existe menstrual ou fora dela.
  */
 export function phaseOn(ctx, date) {
@@ -186,8 +201,11 @@ export function phaseOn(ctx, date) {
   const projectedEnd = addDays(period.start, ctx.avgPeriodLength - 1);
   const periodEnd = period.end ?? (projectedEnd > ctx.today ? projectedEnd : ctx.today);
   if (date <= periodEnd) return { ...base, phase: 'menstrual' };
-  if (!nextActual && date >= nextStart) {
-    return { ...base, phase: 'late', daysLate: diffDays(nextStart, date) };
+  // Previsão é janela: dentro dela "pode começar"; "atrasada" só depois que ela passa.
+  if (!nextActual) {
+    const windowEnd = addDays(period.start, ctx.window.to);
+    if (date > windowEnd) return { ...base, phase: 'late', daysLate: diffDays(windowEnd, date) };
+    if (date >= addDays(period.start, ctx.window.from)) return { ...base, phase: 'expected' };
   }
   if (!tracksOvulation(methodOn(ctx.methods, date))) return { ...base, phase: 'not_tracked' };
 
@@ -199,25 +217,37 @@ export function phaseOn(ctx, date) {
 }
 
 /**
- * Previsão para a tela Hoje e o calendário: próximas menstruações e, quando o
- * método permite, ovulação e janela fértil de cada uma.
+ * Previsão para a tela Hoje e o calendário: janela da próxima menstruação, próximas
+ * menstruações e, quando o método permite, ovulação e janela fértil de cada uma.
+ * Modos: cycle | pregnancy | postpartum | awaiting_period (gestação encerrada,
+ * menstruação ainda não voltou: sem previsões).
  */
 export function predict(ctx, count = 3) {
   const stage = stageOn(ctx.stages, ctx.today);
   if (stage !== 'cycle') return { mode: stage, upcoming: [] };
   const last = findLast(ctx.periods, (p) => p.start <= ctx.today);
   if (!last) return { mode: 'cycle', upcoming: [] };
+  const lastStageEnd = ctx.stages.reduce((max, s) => (s.end && s.end <= ctx.today && s.end > max ? s.end : max), '');
+  if (lastStageEnd && last.start < lastStageEnd) return { mode: 'awaiting_period', upcoming: [] };
 
+  const windowFrom = addDays(last.start, ctx.window.from);
+  const windowTo = addDays(last.start, ctx.window.to);
+  const status = ctx.today > windowTo ? 'late' : ctx.today >= windowFrom ? 'expected' : 'before';
   const showFertility = tracksOvulation(methodOn(ctx.methods, ctx.today));
-  const firstNext = addDays(last.start, ctx.avgCycleLength);
+  // Depois que a janela passa, a próxima previsão parte de amanhã, não de uma data vencida.
+  let firstNext = addDays(last.start, ctx.avgCycleLength);
+  if (status === 'late') firstNext = addDays(ctx.today, 1);
   const upcoming = [];
   for (let i = 0; i < count; i++) {
     const start = addDays(firstNext, i * ctx.avgCycleLength);
     const entry = { start, end: addDays(start, ctx.avgPeriodLength - 1), ovulation: null, fertileWindow: null };
     upcoming.push(showFertility ? { ...entry, ...ovulationFor(start) } : entry);
   }
-  const daysUntilNext = diffDays(ctx.today, firstNext);
-  return { mode: 'cycle', upcoming, daysUntilNext, daysLate: daysUntilNext < 0 ? -daysUntilNext : 0 };
+  return {
+    mode: 'cycle', status, window: { from: windowFrom, to: windowTo }, upcoming,
+    daysUntilWindow: Math.max(0, diffDays(ctx.today, windowFrom)),
+    daysLate: status === 'late' ? diffDays(windowTo, ctx.today) : 0,
+  };
 }
 
 function findLastIndex(list, fn) {
