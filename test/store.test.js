@@ -173,8 +173,8 @@ test('esqueceu o "Terminou": depois de 10 dias o atalho volta a "Menstruei" e ab
   assert.deepEqual(store.getModel().ctx.cycles.at(-1), { start: '2026-11-14', length: 28 });
 });
 
-test('RF01.4 fecha pela média dela, não pelo padrão de 5 dias', async () => {
-  const { store, clock } = await setup('2026-11-14');
+test('RF01.4 fecha pela duração que ela informou, mesmo com registros diferentes; ela pode mudar nos Ajustes', async () => {
+  const { store, clock } = await setup('2026-11-14'); // cadastro: 5 dias
   for (const [start, end] of [['2026-11-14', '2026-11-20'], ['2026-12-12', '2026-12-18']]) {
     clock.today = start;
     await store.startPeriod();
@@ -185,8 +185,14 @@ test('RF01.4 fecha pela média dela, não pelo padrão de 5 dias', async () => {
   await store.startPeriod();
   clock.today = '2027-01-25';
   await store.syncReminders();
-  const pending = store.getModel().ctx.pendingConfirmation.at(-1);
-  assert.equal(pending.end, '2027-01-14', 'menstruações de 5, 7 e 7 dias: média 6, de 09 a 14/01');
+  let m = store.getModel();
+  assert.equal(m.ctx.pendingConfirmation.at(-1).end, '2027-01-13', 'fecha com os 5 dias informados, não com a média registrada');
+  assert.equal(m.ctx.recordedPeriodLength, 6, 'a registrada (5, 7 e 7) fica só como informação');
+  await store.setPeriodLength(7);
+  m = store.getModel();
+  assert.equal(m.ctx.pendingConfirmation.at(-1).end, '2027-01-15');
+  assert.equal(m.profile.onboarding.periodLength, 7);
+  await assert.rejects(store.setPeriodLength(20), RangeError);
 });
 
 test('restaurar backup substitui os dados do aparelho em vez de somar', async () => {

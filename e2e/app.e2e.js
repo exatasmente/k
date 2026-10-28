@@ -76,7 +76,7 @@ test('RF01.4: menstruação aberta há 10+ dias pede confirmação do fim', asyn
   assert.deepEqual(errors, []);
 });
 
-test('relação em 1 toque, sem preservativo e PDS duas vezes no ciclo dispara alerta', async () => {
+test('relação em 1 toque, sem preservativo e PDS duas vezes no ciclo mostra informação com fonte', async () => {
   const { page, setToday, errors } = await openApp({ today: '2026-10-20' });
   await pickDate(page, '2026-10-17');
   await onboard(page);
@@ -85,11 +85,15 @@ test('relação em 1 toque, sem preservativo e PDS duas vezes no ciclo dispara a
   await page.locator('.alert.warn', { hasText: 'sem preservativo' }).waitFor(); // sem proteção destaca a faixa
   await page.getByRole('button', { name: 'Tomei a pílula do dia seguinte' }).click();
   await page.getByRole('button', { name: 'Pílula do dia seguinte registrada' }).waitFor();
-  assert.equal(await page.getByRole('alert').filter({ hasText: 'pílula do dia seguinte' }).count(), 0, 'uma vez não dispara');
+  const pdsCard = page.getByRole('region', { name: 'Sobre a pílula do dia seguinte' });
+  assert.equal(await pdsCard.count(), 0, 'uma vez não aparece');
   await setToday('2026-10-28');
   await page.locator('.quick.sex').click();
   await page.getByRole('button', { name: 'Tomei a pílula do dia seguinte' }).click();
-  await page.getByText('Esta é a 2ª vez neste ciclo').waitFor();
+  await pdsCard.waitFor();
+  assert.match(await pdsCard.innerText(), /2ª vez neste ciclo/);
+  assert.match(await pdsCard.innerText(), /Pode tomar de novo quando precisar/, 'informa, sem tratar como perigo');
+  await pdsCard.getByRole('link', { name: 'ICEC 2015 (uso repetido)' }).waitFor();
   await page.getByRole('button', { name: 'Entender melhor' }).click();
   await page.locator('.bubble.ai').nth(1).waitFor();
   assert.match(await page.locator('.bubble.ai').last().innerText(), /2 vezes em 2026/);
@@ -97,7 +101,7 @@ test('relação em 1 toque, sem preservativo e PDS duas vezes no ciclo dispara a
   await page.keyboard.press('Escape');
   await page.reload();
   await page.getByRole('button', { name: 'Pílula do dia seguinte registrada' }).waitFor();
-  assert.equal(await page.getByText('Esta é a 2ª vez neste ciclo').count(), 0);
+  assert.equal(await pdsCard.count(), 0);
   assert.deepEqual(errors, []);
 });
 
@@ -516,5 +520,20 @@ test('alertas mostram a fonte: menstruação com mais de 8 dias (FIGO) e lista d
   await page.getByText('Fontes clínicas dos alertas').click();
   await page.getByRole('link', { name: /Caderneta Brasileira da Gestante/ }).waitFor();
   assert.ok(await page.getByRole('link', { name: /Family Planning: A Global Handbook/ }).count());
+  assert.deepEqual(errors, []);
+});
+
+test('duração da menstruação: ela escolhe nos Ajustes e o Resumo mostra a informada', async () => {
+  const { page, errors } = await openApp();
+  await onboard(page);
+  await page.getByRole('button', { name: 'Ajustes e privacidade' }).click();
+  const setting = page.getByRole('region', { name: 'Duração da menstruação' });
+  for (let i = 0; i < 4; i++) await setting.getByRole('button', { name: 'Aumentar duração da menstruação' }).click();
+  await setting.getByText('9 dias').waitFor();
+  await page.getByText('Menstruação com mais de 8 dias merece avaliação.', { exact: false }).waitFor();
+  await page.keyboard.press('Escape');
+  await page.getByRole('button', { name: 'Resumo', exact: true }).click();
+  await page.getByText('a que você informou').waitFor();
+  assert.match(await page.locator('.card', { hasText: 'Menstruação média' }).innerText(), /9 dias/);
   assert.deepEqual(errors, []);
 });

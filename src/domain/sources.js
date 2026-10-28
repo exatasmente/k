@@ -34,6 +34,26 @@ export const SOURCES = Object.freeze({
     title: 'World Health Organization. Emergency contraception (fact sheet).',
     url: 'https://www.who.int/news-room/fact-sheets/detail/emergency-contraception',
   },
+  icec_2015: {
+    short: 'ICEC 2015 (uso repetido)',
+    title: 'International Consortium for Emergency Contraception. Repeated use of emergency contraceptive pills: the facts. 2015.',
+    url: 'https://www.ec-ec.org/wp-content/uploads/2016/11/ICEC_Repeat-Use_Oct-2015.pdf',
+  },
+  who_mec_2025: {
+    short: 'OMS: critérios de elegibilidade (2025)',
+    title: 'World Health Organization. Medical eligibility criteria for contraceptive use, 6th ed. 2025.',
+    url: 'https://www.who.int/publications/i/item/9789240115583',
+  },
+  jackson_2011: {
+    short: 'Jackson e Glasier, 2011',
+    title: 'Jackson E, Glasier A. Return of ovulation and menses in postpartum nonlactating women: a systematic review. Obstet Gynecol. 2011;117(3):657-62.',
+    url: 'https://pubmed.ncbi.nlm.nih.gov/21343770/',
+  },
+  cochrane_lam_2015: {
+    short: 'Cochrane 2015 (amamentação)',
+    title: 'Van der Wijden C, Manion C. Lactational amenorrhoea method for family planning. Cochrane Database Syst Rev. 2015;CD001329.',
+    url: 'https://pubmed.ncbi.nlm.nih.gov/26457821/',
+  },
   who_fp_handbook_2022: {
     short: 'OMS: Manual de Planejamento Familiar (2022)',
     title: 'WHO/Johns Hopkins CCP. Family Planning: A Global Handbook for Providers. 2022.',

@@ -123,7 +123,7 @@ export function todayView(model) {
     if (alert.triggered && !model.dismissed.has(`pds|${context}`)) {
       view.pds = {
         context,
-        title: alert.inCycle >= 2 ? `Esta é a ${alert.inCycle}ª vez neste ciclo` : `Foram ${alert.in12Months} vezes em 12 meses`,
+        title: alert.inCycle >= 2 ? `Pílula do dia seguinte: ${alert.inCycle}ª vez neste ciclo` : `Pílula do dia seguinte: ${alert.in12Months} vezes em 12 meses`,
         ...copyOf('emergencyContraception'),
       };
     }
@@ -540,6 +540,8 @@ export function statsView(model) {
     avgCycleSub: reg.kind === 'outlier' ? 'sem contar o ciclo fora do padrão'
       : ctx.cycles.length ? `últimos ${plural(Math.min(6, ctx.cycles.length), 'ciclo', 'ciclos')}` : 'pelo seu cadastro, até o primeiro ciclo completo',
     avgPeriod: ctx.avgPeriodLength,
+    avgPeriodSub: ctx.recordedPeriodLength == null ? 'a que você informou'
+      : `a que você informou · registrada: ${plural(ctx.recordedPeriodLength, 'dia', 'dias')}`,
     regularity: {
       title: regText[0], tone: regText[1], text: regText[2],
       sources: sourcesFor(COPY_SOURCES[{ irregular: 'irregular', outlier: 'outlier', paused: 'paused', method: 'methodBleeding' }[reg.kind] ?? 'outlier']),

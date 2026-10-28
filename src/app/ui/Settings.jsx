@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { METHODS } from '../../domain/contraception.js';
 import { buildICS, calendarPredictions, reminderPrefs } from '../reminders.js';
+import { copyOf, PROLONGED_AFTER_DAYS } from '../views.js';
+import { Sourced } from './Sources.jsx';
 import { disableBackground, notificationSupport, registerBackground, requestNotifications, SUPPORT_TEXT } from '../notify.js';
 import { SOURCES } from '../../domain/sources.js';
 import { CloseButton, Sheet, Switch } from './Sheet.jsx';
@@ -123,6 +125,7 @@ export function SettingsSheet({ model, store, nav }) {
   const [deleted, setDeleted] = useState(false);
   const [message, setMessage] = useState('');
   const fileInput = useRef(null);
+  const periodLength = model.profile.onboarding.periodLength;
 
   const exportBackup = () => {
     downloadJSON(store.exportBackup(), `ciclo-backup-${model.today}.json`);
@@ -186,6 +189,16 @@ export function SettingsSheet({ model, store, nav }) {
           <div><strong>Assistente de IA (em breve)</strong><div class="small muted">Vai receber só datas e eventos, nunca nome ou e-mail.</div></div>
           <Switch on={!!model.profile.aiEnabled} label="Assistente de IA" onToggle={() => store.setAiEnabled(!model.profile.aiEnabled)} />
         </section>
+
+        <section class="card setting" aria-label="Duração da menstruação">
+          <div><strong>Duração da sua menstruação</strong><div class="small muted">Usada nas previsões e para fechar uma menstruação esquecida.</div></div>
+          <div class="stepper">
+            <button class="icon-btn" aria-label="Diminuir duração da menstruação" onClick={() => store.setPeriodLength(Math.max(1, periodLength - 1))}>−</button>
+            <output aria-live="polite">{periodLength} {periodLength === 1 ? 'dia' : 'dias'}</output>
+            <button class="icon-btn" aria-label="Aumentar duração da menstruação" onClick={() => store.setPeriodLength(Math.min(15, periodLength + 1))}>+</button>
+          </div>
+        </section>
+        {periodLength > PROLONGED_AFTER_DAYS && <Sourced class="small muted" copy={copyOf('prolongedDeclared')} />}
 
         <section class="card">
           <strong>Método contraceptivo</strong>

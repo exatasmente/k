@@ -159,7 +159,11 @@ export function buildCycleContext({ periods, stages = [], methods = [], onboardi
     .sort(byStart)
     .map((p) => diffDays(p.start, p.end) + 1)
     .filter((n) => n >= PLAUSIBLE_PERIOD.min && n <= PLAUSIBLE_PERIOD.max);
-  const avgPeriodLength = blendedAverage(closedLengths, priorPeriod);
+  // A duração da menstruação é a que ela informa (cadastro ou Ajustes), não a calculada:
+  // vale para fechar uma menstruação esquecida (RF01.4) e para as menstruações previstas.
+  // A média registrada fica só como informação.
+  const avgPeriodLength = priorPeriod;
+  const recordedPeriodLength = closedLengths.length ? average(closedLengths.slice(-AVERAGE_WINDOW)) : null;
 
   // RF01.4: menstruação aberta há 10+ dias é fechada pela média e pede confirmação.
   const pendingConfirmation = [];
@@ -195,7 +199,7 @@ export function buildCycleContext({ periods, stages = [], methods = [], onboardi
   const fertileUnreliable = longest - shortest >= UNRELIABLE_RANGE_DAYS;
 
   return {
-    today, periods: effective, stages, methods, cycles, avgCycleLength, avgPeriodLength, window, pendingConfirmation,
+    today, periods: effective, stages, methods, cycles, avgCycleLength, avgPeriodLength, recordedPeriodLength, window, pendingConfirmation,
     fertileDays, fertileUnreliable,
   };
 }

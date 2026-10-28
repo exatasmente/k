@@ -27,6 +27,9 @@ export function irregularity(ctx, { age = null, method } = {}) {
 
 /**
  * RN04: pílula do dia seguinte 2+ vezes no mesmo ciclo ou mais de 3 vezes em 12 meses.
+ * Não é limite de segurança: as fontes dizem que não há base para limitar o uso, nem no
+ * mesmo ciclo (ICEC 2015; OMS, MEC 2025, categoria 1). É o momento de informar: protege por
+ * pouco tempo, o uso frequente bagunça o ciclo e um método contínuo protege mais (MS 2011).
  * Avaliada no ciclo de `onDate` (o dia do registro que acabou de ser feito).
  * @param {string[]} ecDates datas com `emergency_contraception`
  */
@@ -76,9 +79,11 @@ export const COPY = Object.freeze({
     'Com métodos hormonais a menstruação pode mudar, ficar irregular ou parar, e isso costuma ser efeito do método, ' +
     'não um problema. Por isso o app não avalia a regularidade.',
   emergencyContraception:
-    'Você usou a pílula do dia seguinte algumas vezes em pouco tempo. Ela é segura e pode ser usada de novo quando precisar. ' +
-    'Mas usar com frequência costuma bagunçar a menstruação, deixa as previsões menos precisas e protege menos do que ' +
-    'um método de uso contínuo. Se quiser, uma consulta pode ajudar a escolher um método que combine com a sua rotina.',
+    'Pode tomar de novo quando precisar, até no mesmo ciclo: as pesquisas não dão base para limitar quantas vezes. ' +
+    'Ela protege só por pouco tempo, então uma nova relação sem proteção ainda pode levar a uma gravidez neste ciclo. ' +
+    'Usar com frequência costuma bagunçar a menstruação e protege menos do que um método de uso contínuo. ' +
+    'Se quiser, uma consulta ajuda a escolher um método que combine com a sua rotina. Se você tem alguma condição ' +
+    'de saúde que impede métodos hormonais, converse com sua ginecologista sobre o uso frequente.',
   emergencyContraceptionTiming:
     'Quanto antes, melhor ela funciona. A bula indica até 72 horas; a OMS considera até 5 dias, com eficácia menor. ' +
     'Se a menstruação atrasar mais de 7 dias, faça um teste de gravidez.',
@@ -101,6 +106,8 @@ export const COPY = Object.freeze({
   prolonged:
     'Sua menstruação passou de 8 dias. Menstruação mais longa que isso merece avaliação: vale conversar com sua ginecologista. ' +
     'Se ela já parou, toque em "Terminou".',
+  prolongedDeclared:
+    'Menstruação com mais de 8 dias merece avaliação. Se a sua costuma durar isso, vale conversar com sua ginecologista.',
   prolongedPast:
     'Sua última menstruação durou mais de 8 dias. Menstruação mais longa que isso merece avaliação: vale conversar com sua ginecologista.',
   intermenstrual:
@@ -142,9 +149,9 @@ export const COPY = Object.freeze({
 export const COPY_SOURCES = Object.freeze({
   irregular: ['figo_2018', 'acog_aub'],
   outlier: ['figo_2018'],
-  paused: ['nhs_after_birth', 'ms_caderneta_2026'],
+  paused: ['nhs_after_birth', 'jackson_2011', 'cochrane_lam_2015'],
   methodBleeding: ['cdc_spr_2024', 'who_fp_handbook_2022'],
-  emergencyContraception: ['who_ec', 'who_fp_handbook_2022', 'ms_ae_2011'],
+  emergencyContraception: ['icec_2015', 'who_mec_2025', 'who_ec', 'ms_ae_2011'],
   emergencyContraceptionTiming: ['who_ec', 'ms_ae_2011', 'who_fp_handbook_2022'],
   pregnancyUrgent: ['ms_caderneta_2026', 'ms_cab32_2012', 'cdc_hear_her'],
   postpartumWarning: ['ms_caderneta_2026', 'cdc_hear_her'],
@@ -153,6 +160,7 @@ export const COPY_SOURCES = Object.freeze({
   longAbsence: ['aafp_amenorrhea_2019', 'nhs_missed_periods', 'ms_mulheres_2016'],
   prolonged: ['figo_2018', 'acog_hmb'],
   prolongedPast: ['figo_2018', 'acog_hmb'],
+  prolongedDeclared: ['figo_2018', 'acog_hmb'],
   intermenstrual: ['figo_2018', 'acog_aub', 'ms_mulheres_2016'],
   heavyFlow: ['acog_hmb', 'figo_2018', 'ms_mulheres_2016'],
   pain: ['nice_ng73', 'acog_dysmenorrhea'],

@@ -213,15 +213,15 @@ export function Today({ model, store, nav, askCycle }) {
       )}
 
       {v.pds && (
-        <div class="alert warn" role="alert">
-          <strong style={{ display: 'flex', gap: 8, alignItems: 'center' }}><Icon name="warn" width={2} />{v.pds.title}</strong>
+        <section class="alert info" aria-label="Sobre a pílula do dia seguinte">
+          <strong style={{ display: 'flex', gap: 8, alignItems: 'center' }}><Icon name="pill" width={2} />{v.pds.title}</strong>
           <Sourced copy={v.pds} />
           <div class="row">
-            <button class="btn" style={{ background: 'var(--warn-ink)', color: 'var(--on-accent)', border: 0 }}
+            <button class="btn" style={{ background: 'var(--indigo)', color: 'var(--on-accent)', border: 0 }}
               onClick={() => { store.dismiss('pds', v.pds.context); nav.ask('Quantas vezes tomei a pílula do dia seguinte neste ano?'); }}>Entender melhor</button>
             <button class="btn" onClick={() => store.dismiss('pds', v.pds.context)}>Ok</button>
           </div>
-        </div>
+        </section>
       )}
 
       {v.irregular && (

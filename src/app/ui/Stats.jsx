@@ -50,6 +50,7 @@ export function Stats({ model }) {
         <section class="card">
           <div class="small muted" style={{ fontWeight: 600 }}>Menstruação média</div>
           <div class="display" style={{ fontSize: 30 }}>{v.avgPeriod} dias</div>
+          <div class="small muted">{v.avgPeriodSub}</div>
         </section>
       </div>
       <section class="card">

@@ -143,7 +143,7 @@ export function LogSheet({ model, store, nav, date }) {
         {v.sections.map((s) => (
           <section key={s.id} data-sec={s.id} style={{ ...catStyle(s.id), display: 'flex', flexDirection: 'column', gap: 10 }}>
             <div class="sec-head"><h3>{s.label}</h3><span class="small muted">{s.hint}</span></div>
-            {s.id === 'sex' && v.pds && <div class="alert warn" role="alert"><strong>Atenção</strong><Sourced copy={v.pds} /></div>}
+            {s.id === 'sex' && v.pds && <div class="alert info" role="status"><strong>Para saber</strong><Sourced copy={v.pds} /></div>}
             {s.id === 'test' && pregPrompt && (
               <div class="alert" role="status" style={{ background: 'var(--indigo-tint)', border: '1.5px solid var(--indigo)' }}>
                 <strong style={{ color: 'var(--indigo-ink)' }}>Teste positivo registrado</strong>

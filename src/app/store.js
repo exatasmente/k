@@ -237,6 +237,12 @@ export function createStore(repo, { today = localToday } = {}) {
 
     setAiEnabled: act((on) => updateProfile({ aiEnabled: on })),
 
+    /** Duração da menstruação que ela informa (1 a 15 dias). */
+    setPeriodLength: act((days) => {
+      if (!Number.isInteger(days) || days < 1 || days > 15) throw new RangeError('Duração da menstruação entre 1 e 15 dias');
+      return updateProfile({ onboarding: { ...model.profile.onboarding, periodLength: days } });
+    }),
+
     /** Preferências de lembrete: {enabled, details, daysBefore}. */
     setReminders: act((patch) => updateProfile({ reminders: { ...reminderPrefs(model), ...patch } })),
 
