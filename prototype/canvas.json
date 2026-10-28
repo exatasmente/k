@@ -1,0 +1,31 @@
+{
+  "v": 3,
+  "createdOnFiles": { "v": 1, "at": "2026-10-28T12:00:00Z" },
+  "title": "Protótipo Ciclo — MVP",
+  "launch": { "view": "canvas" },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": { "x": 0, "y": 0, "w": 390, "h": 844, "title": "Protótipo navegável (comece aqui)", "is_interactive": true, "radius": 40 },
+    "Hoje.dc.html": { "x": 470, "y": 0, "w": 390, "h": 844, "title": "Hoje", "is_interactive": true, "radius": 40 },
+    "Registro.dc.html": { "x": 940, "y": 0, "w": 390, "h": 844, "title": "Registro por ícones", "is_interactive": true, "radius": 40 },
+    "Ficha.dc.html": { "x": 1410, "y": 0, "w": 390, "h": 844, "title": "Ficha do sintoma (long-press)", "is_interactive": true, "radius": 40 },
+    "Calendario.dc.html": { "x": 1880, "y": 0, "w": 390, "h": 844, "title": "Calendário", "is_interactive": true, "radius": 40 },
+    "Chat.dc.html": { "x": 2350, "y": 0, "w": 390, "h": 844, "title": "Assistente IA", "is_interactive": true, "radius": 40 },
+    "Hormonal.dc.html": { "x": 2820, "y": 0, "w": 390, "h": 844, "title": "Hoje com pílula contínua (sem janela fértil)", "is_interactive": true, "radius": 40 },
+    "Privacidade.dc.html": { "x": 3290, "y": 0, "w": 390, "h": 844, "title": "Ajustes & privacidade", "is_interactive": true, "radius": 40 }
+  },
+  "order": [
+    "Main.dc.html",
+    "Hoje.dc.html",
+    "Registro.dc.html",
+    "Ficha.dc.html",
+    "Calendario.dc.html",
+    "Chat.dc.html",
+    "Hormonal.dc.html",
+    "Privacidade.dc.html"
+  ],
+  "notes": {
+    "titulo": { "x": 0, "y": -300, "text": "Ciclo · protótipo do MVP — toque nos ícones para marcar, segure para ver o histórico", "kind": "title1", "maxW": 3680 }
+  },
+  "designSystems": []
+}
