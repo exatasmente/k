@@ -307,7 +307,9 @@ test('tela pequena (320 px) sem rolagem horizontal e Esc fecha a folha', async (
   }
   await page.getByRole('button', { name: 'Hoje', exact: true }).click();
   await page.getByRole('button', { name: /Registrar sintomas/ }).click();
-  await page.keyboard.press('Escape'); // logo depois de abrir, com o foco ainda no botão
+  await page.getByRole('dialog').waitFor();
+  await page.evaluate(() => document.activeElement?.blur()); // foco fora da folha: o Esc vale mesmo assim
+  await page.keyboard.press('Escape');
   await page.getByRole('dialog').waitFor({ state: 'detached', timeout: 3000 });
 });
 

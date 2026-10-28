@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'preact/hooks';
+import { useEffect, useLayoutEffect, useRef } from 'preact/hooks';
 import { Icon } from './icons.jsx';
 
 /** Folha inferior com fundo escurecido. Esc fecha; o foco entra na folha ao abrir. */
@@ -6,9 +6,10 @@ export function Sheet({ label, onClose, children, head }) {
   const ref = useRef(null);
   useEffect(() => { ref.current?.focus(); }, []);
   // No documento, não só na folha: o foco pode ainda estar no botão que a abriu.
+  // Layout effect: o Esc vale assim que a folha aparece, sem esperar o próximo quadro.
   const close = useRef(onClose);
   close.current = onClose;
-  useEffect(() => {
+  useLayoutEffect(() => {
     const onKeyDown = (e) => { if (e.key === 'Escape') close.current(); };
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
