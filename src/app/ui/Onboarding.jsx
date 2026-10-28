@@ -7,6 +7,10 @@ import { MonthPicker } from './MonthPicker.jsx';
 import { copyOf, PROLONGED_AFTER_DAYS } from '../views.js';
 import { Sourced } from './Sources.jsx';
 
+// Faixa de idade aceita no cadastro (menarca costuma vir a partir dos 9 anos).
+const MIN_AGE = 9;
+const MAX_AGE = 60;
+
 function Stepper({ label, hint, value, min, max, onChange }) {
   return (
     <div class="card setting">
@@ -32,6 +36,10 @@ export function Onboarding({ store }) {
   const [saving, setSaving] = useState(false);
 
   const daysAgo = diffDays(lastPeriodStart, today);
+  // No iPhone, tocar no campo já preenche a data de hoje ("0 anos"): limita e avisa.
+  const birthMin = addMonths(today, -12 * MAX_AGE);
+  const birthMax = addMonths(today, -12 * MIN_AGE);
+  const birthInvalid = !!birthDate && (birthDate < birthMin || birthDate > birthMax);
   const hormonal = !tracksOvulation(method);
 
   const finish = async () => {
@@ -70,8 +78,13 @@ export function Onboarding({ store }) {
           {periodLength > PROLONGED_AFTER_DAYS && <Sourced class="small muted" copy={copyOf('prolongedDeclared')} />}
           <div class="card">
             <label for="birth" style={{ fontWeight: 700 }}>Data de nascimento</label>
-            <input id="birth" class="field" type="date" max={today} value={birthDate} onChange={(e) => setBirth(e.currentTarget.value)} />
-            <div class="small muted">{birthDate ? `${ageOn(birthDate, today)} anos` : 'Usamos só para calcular sua idade.'}</div>
+            <input id="birth" class="field" type="date" min={birthMin} max={birthMax} value={birthDate}
+              aria-invalid={birthInvalid ? 'true' : 'false'} aria-describedby="birth-hint" onChange={(e) => setBirth(e.currentTarget.value)} />
+            <div id="birth-hint" class={birthInvalid ? 'small' : 'small muted'} role={birthInvalid ? 'alert' : undefined}
+              style={birthInvalid ? { color: 'var(--danger-ink)', fontWeight: 600 } : undefined}>
+              {birthInvalid ? `Confira a data: ${ageOn(birthDate, today)} anos não parece certo. A idade precisa estar entre ${MIN_AGE} e ${MAX_AGE} anos.`
+                : birthDate ? `${ageOn(birthDate, today)} anos` : 'Opcional. Usamos só para calcular sua idade.'}
+            </div>
           </div>
         </>
       )}
@@ -108,7 +121,7 @@ export function Onboarding({ store }) {
       )}
 
       <div style={{ marginTop: 'auto' }}>
-        <button class="btn primary block" disabled={saving} onClick={step < 3 ? () => setStep(step + 1) : finish}>
+        <button class="btn primary block" disabled={saving || (step === 1 && birthInvalid)} onClick={step < 3 ? () => setStep(step + 1) : finish}>
           {step < 3 ? 'Continuar' : 'Começar'}
         </button>
       </div>

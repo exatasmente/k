@@ -540,3 +540,45 @@ test('duração da menstruação: ela escolhe nos Ajustes e o Resumo mostra a in
   assert.match(await page.locator('.card', { hasText: 'Menstruação média' }).innerText(), /9 dias/);
   assert.deepEqual(errors, []);
 });
+
+test('cadastro: data de nascimento de hoje ("0 anos") é recusada, e o campo cabe no cartão em tela pequena', async () => {
+  const { page, errors } = await openApp({ width: 320, height: 640 });
+  await pickDate(page, '2026-10-20');
+  await page.getByRole('button', { name: 'Continuar' }).click();
+  const birth = page.locator('#birth');
+  const fits = await birth.evaluate((el) => {
+    const card = el.closest('.card').getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+    return r.left >= card.left && r.right <= card.right;
+  });
+  assert.equal(fits, true, 'o campo de data não passa da borda do cartão');
+  await page.fill('#birth', '2026-10-28'); // o iPhone preenche hoje ao tocar
+  await page.getByRole('alert').filter({ hasText: 'idade precisa estar entre 9 e 60 anos' }).waitFor();
+  assert.equal(await page.getByRole('button', { name: 'Continuar' }).isDisabled(), true);
+  await page.fill('#birth', '1996-05-12');
+  await page.getByText('30 anos').waitFor();
+  assert.equal(await page.getByRole('button', { name: 'Continuar' }).isDisabled(), false);
+  assert.deepEqual(errors, []);
+});
+
+test('importar histórico de outro app acrescenta ciclos antigos sem apagar o cadastro', async () => {
+  const { page, errors } = await openApp();
+  await pickDate(page, '2026-10-17');
+  await onboard(page);
+  const file = join(tmpdir(), `historico-${Date.now()}.json`);
+  await writeFile(file, JSON.stringify({
+    format: 'ciclo-historico', version: 1,
+    periods: [{ start: '2026-08-22', end: '2026-08-26' }, { start: '2026-09-19', end: '2026-09-23' }],
+    entries: [{ date: '2026-09-19', code: 'cramps' }],
+  }));
+  await page.getByRole('button', { name: 'Ajustes e privacidade' }).click();
+  await page.getByLabel('Arquivo de histórico').setInputFiles(file);
+  await page.getByText('Histórico importado: 2 menstruações e 1 registro.').waitFor();
+  await page.keyboard.press('Escape');
+  await page.getByRole('button', { name: 'Calendário', exact: true }).click();
+  await page.getByRole('button', { name: 'Mês anterior' }).click();
+  await page.getByRole('button', { name: /^19, menstruação/ }).waitFor();
+  await page.getByRole('button', { name: 'Resumo', exact: true }).click();
+  assert.match(await page.locator('.card', { hasText: 'Ciclo médio' }).innerText(), /28 dias/);
+  assert.deepEqual(errors, []);
+});

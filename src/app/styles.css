@@ -253,7 +253,10 @@ h1, h2, h3 { margin: 0; }
 .picker .day:disabled { opacity: 0.3; }
 .stepper { display: flex; align-items: center; gap: 10px; flex: none; }
 .stepper output { min-width: 72px; text-align: center; font-family: var(--display); font-size: 20px; font-weight: 750; white-space: nowrap; }
-.field { height: 44px; border-radius: 12px; border: 1px solid var(--line); padding: 0 12px; background: var(--ground); width: 100%; }
+.field { height: 44px; border-radius: 12px; border: 1px solid var(--line); padding: 0 12px; background: var(--ground); width: 100%; min-width: 0; max-width: 100%; color: inherit; font: inherit; }
+/* Safari no iPhone dá largura própria ao campo de data e ele passa da borda do cartão. */
+input[type='date'].field { -webkit-appearance: none; appearance: none; display: block; line-height: 44px; }
+input[type='date'].field::-webkit-date-and-time-value { text-align: left; }
 .methods { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .methods button { min-height: 52px; border-radius: 16px; padding: 10px 12px; border: 1px solid var(--line); background: var(--card); font-weight: 600; text-align: left; }
 .methods button[aria-pressed='true'] { background: var(--ink); color: var(--ground); border-color: var(--ink); }

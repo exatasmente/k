@@ -244,3 +244,38 @@ test('gestação ida e volta ("voltar ao ciclo"): nada do histórico se perde', 
   assert.deepEqual(m.periods.map((p) => p.start), ['2026-10-17', '2026-11-14']);
   assert.deepEqual(m.ctx.cycles, [{ start: '2026-10-17', length: 28 }], 'o ciclo de antes da gestação continua nas médias');
 });
+
+test('importar histórico de outro app só acrescenta: cadastro, método e registros daqui continuam valendo', async () => {
+  const { store } = await setup(); // cadastro: menstruação em 17/10, preservativo
+  await store.tap('2026-09-21', 'headache');
+  const history = {
+    format: 'ciclo-historico', version: 1, source: 'teste',
+    periods: [
+      { start: '2026-08-24', end: '2026-08-28' },
+      { start: '2026-09-20', end: '2026-09-24' },
+      { start: '2026-10-17', end: '2026-10-21' }, // já existe pelo cadastro
+    ],
+    entries: [
+      { date: '2026-08-24', code: 'cramps' }, { date: '2026-09-21', code: 'cramps' },
+      { date: '2026-09-21', code: 'headache' }, // já registrado aqui
+    ],
+    cycleAnswers: [{ cycleStart: '2026-08-24', code: 'cramps', answer: 'yes' }],
+  };
+  const r = await store.importHistory(history);
+  assert.deepEqual(r, { periods: 2, entries: 3, skipped: 2 });
+  const m = store.getModel();
+  assert.deepEqual(m.periods.map((p) => p.start).sort(), ['2026-08-24', '2026-09-20', '2026-10-17']);
+  assert.equal(m.method, 'condom');
+  assert.equal(m.profile.onboarding.lastPeriodStart, '2026-10-17');
+  assert.ok(m.codesOn('2026-09-21').has('cramps') && m.codesOn('2026-09-21').has('headache'));
+  assert.deepEqual(m.ctx.cycles.map((c) => c.length), [27, 27], 'os ciclos importados entram nas médias');
+  assert.equal(m.answers['2026-08-24'].cramps, 'yes');
+});
+
+test('histórico com um registro inválido não grava nada', async () => {
+  const { store } = await setup();
+  const bad = { format: 'ciclo-historico', periods: [{ start: '2026-08-24', end: '2026-08-28' }], entries: [{ date: '2026-08-24', code: 'inventado' }] };
+  await assert.rejects(store.importHistory(bad), /código desconhecido/);
+  assert.equal(store.getModel().periods.length, 1);
+  await assert.rejects(store.importHistory({ format: 'outro' }), /não é um histórico/);
+});
