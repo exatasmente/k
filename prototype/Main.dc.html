@@ -763,7 +763,9 @@ var ICONS = {
   pin: 'M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11z M12 10a1.5 1.5 0 1 0 0 .01',
   glass: 'M7 3h10l-1 7a4 4 0 0 1-8 0L7 3z M12 14v6 M8 21h8',
   testPos: 'M3 10h18v4H3z M16 10v4 M6.5 12h3 M8 10.5v3',
-  testNeg: 'M3 10h18v4H3z M16 10v4 M6.5 12h3'
+  testNeg: 'M3 10h18v4H3z M16 10v4 M6.5 12h3',
+  testNone: 'M3 10h18v4H3z M16 10v4 M4 4l16 16',
+  noWorkout: 'M6 7v10 M18 7v10 M3 10v4 M21 10v4 M6 12h12 M4 4l16 16'
 };
 
 var CATS = [
@@ -791,7 +793,7 @@ var ITEMS = [
   { code: 'flow_heavy', label: 'Intenso', cat: 'flow', icon: 'drop3', group: 'flow' },
   { code: 'flow_dark', label: 'Escuro / borra', cat: 'flow', icon: 'dropDark', group: 'flow' },
   { code: 'spotting', label: 'Escape', cat: 'flow', icon: 'dots' },
-  { code: 'no_symptoms', label: 'Sem sintomas', cat: 'symptom', icon: 'check', special: true },
+  { code: 'no_symptoms', label: 'Sem sintomas', cat: 'symptom', icon: 'check', special: true, negates: true },
   { code: 'cramps', label: 'Cólica', cat: 'symptom', icon: 'bolt' },
   { code: 'abdominal_pain', label: 'Dor abdominal', cat: 'symptom', icon: 'belly' },
   { code: 'back_pain', label: 'Dor nas costas', cat: 'symptom', icon: 'spine' },
@@ -821,10 +823,12 @@ var ITEMS = [
   { code: 'illness', label: 'Doença', cat: 'factors', icon: 'bandage' },
   { code: 'travel', label: 'Viagem', cat: 'factors', icon: 'pin' },
   { code: 'alcohol', label: 'Álcool', cat: 'factors', icon: 'glass' },
+  { code: 'no_workout', label: 'Não me exercitei', cat: 'lifestyle', icon: 'noWorkout', negates: true },
   { code: 'workout_light', label: 'Treino leve', cat: 'lifestyle', icon: 'dumbbell' },
   { code: 'workout_intense', label: 'Treino intenso', cat: 'lifestyle', icon: 'flame' },
   { code: 'walk', label: 'Caminhada', cat: 'lifestyle', icon: 'walk' },
   { code: 'yoga', label: 'Yoga', cat: 'lifestyle', icon: 'lotus' },
+  { code: 'preg_test_none', label: 'Não fiz teste', cat: 'test', icon: 'testNone', group: 'preg_test' },
   { code: 'preg_test_positive', label: 'Teste positivo', cat: 'test', icon: 'testPos', group: 'preg_test' },
   { code: 'preg_test_negative', label: 'Teste negativo', cat: 'test', icon: 'testNeg', group: 'preg_test' }
 ];
@@ -947,9 +951,10 @@ class Component extends DCLogic {
     if (i >= 0) cur.splice(i, 1);
     else {
       if (item.group) cur = cur.filter(function (c) { return !ITEM_BY[c] || ITEM_BY[c].group !== item.group; });
-      // "Sem sintomas" e sintomas se excluem: o dia continua registrado, só muda o conteúdo.
-      if (code === 'no_symptoms') cur = cur.filter(function (c) { return !ITEM_BY[c] || ITEM_BY[c].cat !== 'symptom'; });
-      else if (item.cat === 'symptom') cur = cur.filter(function (c) { return c !== 'no_symptoms'; });
+      // Itens de negação ("Sem sintomas", "Não me exercitei") excluem o resto da categoria e vice-versa:
+      // o dia continua registrado, só muda o conteúdo.
+      if (item.negates) cur = cur.filter(function (c) { return !ITEM_BY[c] || ITEM_BY[c].cat !== item.cat; });
+      else cur = cur.filter(function (c) { return !(ITEM_BY[c] && ITEM_BY[c].negates && ITEM_BY[c].cat === item.cat); });
       cur.push(code);
     }
     var patch = {};
