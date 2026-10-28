@@ -1,4 +1,4 @@
-import { addDays, today as localToday } from '../domain/dates.js';
+import { addDays, ageOn, today as localToday } from '../domain/dates.js';
 import { applyTap, FLOW_CODES, getItem } from '../domain/catalog.js';
 import { METHODS, methodOn, quickSexCodes } from '../domain/contraception.js';
 import {
@@ -48,6 +48,7 @@ export function buildModel(repo, today) {
     pregnancy, ga, postpartum,
     stage: pregnancy ? 'pregnancy' : 'cycle',
     method: methodOn(methods, today),
+    age: profile?.birthDate ? ageOn(profile.birthDate, today) : null,
     consult: repo.get('appointments', PRENATAL_ID)?.date ?? '',
     livePeriods,
     openPeriod: livePeriods.find((p) => p.end == null && p.start <= today) ?? null,
@@ -250,7 +251,7 @@ export function createStore(repo, { today = localToday } = {}) {
 
     /** Ativa ou reajusta a gestação. `input`: {method:'lmp', lmp} ou {method:'ultrasound', dueDate}. */
     savePregnancy: act(async (input) => {
-      const r = datePregnancy(input, model.today);
+      const r = datePregnancy({ ...input, cycleLength: model.ctx?.avgCycleLength }, model.today);
       if (!r.valid) throw new Error(r.reason);
       const current = model.pregnancy;
       await repo.put('stages', { id: current?.id ?? uuid(), ...r.stage });

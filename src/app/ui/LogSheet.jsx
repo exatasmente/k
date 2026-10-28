@@ -1,6 +1,7 @@
 import { useRef, useState } from 'preact/hooks';
 import { logView } from '../views.js';
 import { Icon, catStyle } from './icons.jsx';
+import { Sourced } from './Sources.jsx';
 import { Sheet, Switch } from './Sheet.jsx';
 
 const LONG_PRESS_MS = 500;
@@ -122,7 +123,7 @@ export function LogSheet({ model, store, nav, date }) {
     <Sheet label="Registrar" onClose={nav.close} head={head}>
       <div class="sheet-body" ref={body} onScroll={onScroll}>
         {v.redFlag && (
-          <div class="alert danger" role="alert"><strong>Procure atendimento</strong><div>{v.redFlag}</div></div>
+          <div class="alert danger" role="alert"><strong>Procure atendimento</strong><div>{v.redFlag.marked}</div><Sourced copy={v.redFlag} /></div>
         )}
         <section class="suggest" data-sec="top">
           <div class="sec-head" style={{ padding: '0 4px' }}>
@@ -142,7 +143,7 @@ export function LogSheet({ model, store, nav, date }) {
         {v.sections.map((s) => (
           <section key={s.id} data-sec={s.id} style={{ ...catStyle(s.id), display: 'flex', flexDirection: 'column', gap: 10 }}>
             <div class="sec-head"><h3>{s.label}</h3><span class="small muted">{s.hint}</span></div>
-            {s.id === 'sex' && v.pds && <div class="alert warn" role="alert"><strong>Atenção</strong><div>{v.pds}</div></div>}
+            {s.id === 'sex' && v.pds && <div class="alert warn" role="alert"><strong>Atenção</strong><Sourced copy={v.pds} /></div>}
             {s.id === 'test' && pregPrompt && (
               <div class="alert" role="status" style={{ background: 'var(--indigo-tint)', border: '1.5px solid var(--indigo)' }}>
                 <strong style={{ color: 'var(--indigo-ink)' }}>Teste positivo registrado</strong>

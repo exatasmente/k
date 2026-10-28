@@ -1,9 +1,10 @@
 import { addDays, diffDays } from '../domain/dates.js';
 import { CATALOG, CATEGORIES, getItem, isVisible } from '../domain/catalog.js';
-import { METHODS, tracksOvulation } from '../domain/contraception.js';
+import { bleedingFromMethod, METHODS, tracksOvulation } from '../domain/contraception.js';
+import { sourcesFor } from '../domain/sources.js';
 import { phaseOn } from '../domain/cycles.js';
 import { cycleCoverage, cycleObservation } from '../domain/observation.js';
-import { emergencyContraceptionAlert, irregularity, pregnancyAlert, COPY } from '../domain/rules.js';
+import { emergencyContraceptionAlert, irregularity, pregnancyAlert, COPY, COPY_SOURCES } from '../domain/rules.js';
 import { gestationalAge, PREGNANCY_DAYS } from '../domain/stages.js';
 
 // O que cada tela mostra, calculado a partir do modelo (store.js). Sem DOM: testável.
@@ -32,11 +33,18 @@ const PHASE_PREP = {
 // Fases do ciclo para estatística: "pode começar" e "atrasada" contam como lútea.
 const statPhase = (phase) => (phase === 'expected' || phase === 'late' ? 'luteal' : phase);
 
+/** Texto de saúde com as fontes que o sustentam, para a tela mostrar "Fonte: ...". */
+export const copyOf = (key) => ({ text: COPY[key], sources: sourcesFor(COPY_SOURCES[key]) });
+
+// Duração aproximada do lóquio, o sangramento normal depois do parto (Caderneta, MS 2026).
+export const LOCHIA_DAYS = 42;
+
+// Menstruação mais longa que isso é "prolongada" (FIGO 2018).
+export const PROLONGED_AFTER_DAYS = 8;
+
 const PAIN = new Set(['cramps', 'back_pain', 'headache', 'abdominal_pain']);
-const CARE = {
-  discharge_unusual: 'Se vier com coceira, ardor ou cheiro forte, vale procurar avaliação.',
-  vaginal_itch: 'Se persistir ou vier com secreção diferente, vale procurar avaliação.',
-};
+// Orientação na ficha do sintoma (chave do texto em COPY).
+const CARE = { discharge_unusual: 'discharge', vaginal_itch: 'itch', flow_heavy: 'heavyFlow' };
 const DEFAULT_SUGGEST = ['cramps', 'headache', 'fatigue', 'mood_swings'];
 const PREG_SUGGEST = [
   ['nausea', 'fatigue', 'breast_tenderness', 'sleepy'],
@@ -64,11 +72,19 @@ export function todayView(model) {
 
   // Sinais de alerta (gestação) e PDS (ciclo): regras locais.
   const red = pregnancyAlert(codes, model.stage);
-  view.redFlag = red.triggered ? `Você marcou: ${red.codes.map((c) => getItem(c).label.toLowerCase()).join(', ')}. ${COPY.pregnancyUrgent}` : null;
+  view.redFlag = redFlagOf(red);
 
   if (mode === 'pregnancy') view.pregnancy = pregnancyCard(model);
   if (mode === 'postpartum') {
-    view.postpartum = { since: `Desde ${fmt(model.postpartum.start)} · ${plural(Math.floor(diffDays(model.postpartum.start, today) / 7), 'semana', 'semanas')}` };
+    const days = diffDays(model.postpartum.start, today);
+    view.postpartum = {
+      since: `Desde ${fmt(model.postpartum.start)} · ${plural(Math.floor(days / 7), 'semana', 'semanas')}`,
+      paused: copyOf('paused'),
+      warning: copyOf('postpartumWarning'),
+      // Lóquio (sangramento normal do pós-parto) dura cerca de 42 dias (Caderneta, MS 2026):
+      // antes disso, "Menstruei" pede confirmação.
+      lochiaPossible: days < LOCHIA_DAYS,
+    };
   }
   if (mode === 'cycle' && lastPeriodStart(model)) view.ring = ringView(model);
   // RF01.4: menstruação aberta há 10+ dias foi fechada pela média; pede confirmação.
@@ -96,9 +112,10 @@ export function todayView(model) {
 
   // RN03: ciclos irregulares, uma vez por ciclo completo até ela tocar em "Ok".
   const lastCycle = ctx?.cycles.at(-1)?.start;
-  if (mode === 'cycle' && lastCycle && irregularity(ctx).kind === 'irregular' && !model.dismissed.has(`irregular|${lastCycle}`)) {
-    view.irregular = { context: lastCycle, title: 'Seus ciclos variaram bastante', body: COPY.irregular };
+  if (mode === 'cycle' && lastCycle && irregularity(ctx, model).kind === 'irregular' && !model.dismissed.has(`irregular|${lastCycle}`)) {
+    view.irregular = { context: lastCycle, title: 'Seus ciclos variaram bastante', ...copyOf('irregular') };
   }
+  if (mode === 'cycle' && ctx) Object.assign(view, bleedingNotices(model));
 
   if (ctx && codes.has('emergency_contraception')) {
     const alert = emergencyContraceptionAlert(ctx, ecDates(model), today);
@@ -107,7 +124,7 @@ export function todayView(model) {
       view.pds = {
         context,
         title: alert.inCycle >= 2 ? `Esta é a ${alert.inCycle}ª vez neste ciclo` : `Foram ${alert.in12Months} vezes em 12 meses`,
-        body: COPY.emergencyContraception,
+        ...copyOf('emergencyContraception'),
       };
     }
   }
@@ -117,6 +134,44 @@ export function todayView(model) {
 export function tagOf(code) {
   const item = getItem(code);
   return { code, label: item.label, cat: item.cat };
+}
+
+/** Sinal de alerta da gestação marcado: o que ela marcou + "busque atendimento" com fontes. */
+function redFlagOf(red) {
+  if (!red.triggered) return null;
+  return { marked: `Você marcou: ${red.codes.map((c) => getItem(c).label.toLowerCase()).join(', ')}.`, ...copyOf('pregnancyUrgent') };
+}
+
+/**
+ * Sangramentos que merecem avaliação (FIGO 2018, ACOG, MS 2016): menstruação com mais de
+ * 8 dias e escape fora da menstruação. Cada aviso aparece uma vez por contexto até o "Ok".
+ */
+function bleedingNotices(model) {
+  const { today, livePeriods, dismissed } = model;
+  const out = {};
+  const open = model.openPeriod;
+  if (open && diffDays(open.start, today) >= PROLONGED_AFTER_DAYS && !dismissed.has(`prolonged|${open.start}`)) {
+    out.prolonged = { context: open.start, title: 'Menstruação longa', ...copyOf('prolonged') };
+  } else {
+    const last = [...livePeriods].reverse().find((p) => p.end && p.end <= today);
+    if (last && diffDays(last.start, last.end) + 1 > PROLONGED_AFTER_DAYS && diffDays(last.end, today) <= 30
+      && !dismissed.has(`prolonged|${last.start}`)) {
+      out.prolonged = { context: last.start, title: 'Menstruação longa', ...copyOf('prolongedPast') };
+    }
+  }
+  // Escape nos últimos 14 dias, fora de qualquer menstruação. Com método hormonal o escape
+  // é comum (MS 2016); aí só vale o que vem logo depois da relação.
+  const hormonal = bleedingFromMethod(model.method);
+  for (let i = 0; i < 14; i++) {
+    const d = addDays(today, -i);
+    if (!model.codesOn(d).has('spotting')) continue;
+    if (livePeriods.some((p) => d >= addDays(p.start, -2) && d <= addDays(p.end ?? today, 2))) continue;
+    const afterSex = [d, addDays(d, -1)].some((x) => [...model.codesOn(x)].some((c) => c.startsWith('sex_')));
+    if ((hormonal && !afterSex) || dismissed.has(`intermenstrual|${d}`)) continue;
+    out.intermenstrual = { context: d, title: afterSex ? 'Sangramento depois da relação' : 'Sangramento fora da menstruação', ...copyOf('intermenstrual') };
+    break;
+  }
+  return out;
 }
 
 function ringView(model) {
@@ -146,9 +201,14 @@ function ringView(model) {
         : status === 'window' ? `a qualquer dia até ${fmtShort(prediction.window.to)}`
           : `Menstruação em ${plural(untilWindow, 'dia', 'dias')}`,
     window: status === 'before' || status === 'window' ? `Previsão: entre ${fmtShort(prediction.window.from)} e ${fmtShort(prediction.window.to)}` : null,
-    hormonalNote: tracks ? null : `Sem janela fértil com ${METHODS[model.method].label.toLowerCase()}. O foco aqui é como você se sente.`,
-    // Métodos hormonais podem suspender a menstruação de propósito: aí não é sinal de alerta.
-    absenceNote: status === 'absence' && tracks ? COPY.longAbsence : null,
+    hormonalNote: METHODS[model.method].ovulation === 'suppressed'
+      ? { text: `Sem janela fértil com ${METHODS[model.method].label.toLowerCase()}. O foco aqui é como você se sente.`, sources: [] }
+      : METHODS[model.method].ovulation === 'uncertain' ? copyOf('ovulationUncertain') : null,
+    // Com DIU de cobre a ovulação continua, mas a proteção vale todos os dias.
+    fertileNote: !tracks ? null : model.method === 'copper_iud' ? copyOf('iudProtects')
+      : ctx.fertileUnreliable ? copyOf('fertileUnreliable') : null,
+    // Com método hormonal ficar sem menstruar costuma ser efeito do método (CDC US SPR 2024).
+    absenceNote: status === 'absence' && !bleedingFromMethod(model.method) ? copyOf('longAbsence') : null,
   };
 }
 
@@ -165,6 +225,9 @@ function pregnancyCard(model) {
     consult: model.consult,
     consultText: consultIn == null ? 'Nenhuma consulta marcada' : consultIn > 1 ? `Em ${consultIn} dias` : consultIn === 1 ? 'Amanhã' : consultIn === 0 ? 'Hoje' : 'Já passou: marque a próxima',
     flags: CATALOG.filter((i) => i.alert && isVisible(i, visCtx(model))).map((i) => i.label),
+    flagsCopy: copyOf('pregnancyUrgent'),
+    // Com 41 semanas a gestante é encaminhada para avaliação (MS, CAB 32).
+    postTerm: ga.weeks >= 41 ? copyOf('postTerm') : null,
   };
 }
 
@@ -184,7 +247,7 @@ export function logView(model, date) {
   let pds = null;
   if (model.ctx && codes.has('emergency_contraception')) {
     const a = emergencyContraceptionAlert(model.ctx, ecDates(model), date);
-    if (a.triggered) pds = COPY.emergencyContraception;
+    if (a.triggered) pds = copyOf('emergencyContraception');
   }
   const sug = suggestions(model, date);
   return {
@@ -193,7 +256,7 @@ export function logView(model, date) {
     suggest: { label: sug.label, items: sug.codes.filter((c) => !model.hidden.has(getItem(c).cat)).map((c) => ({ code: c, label: getItem(c).label, cat: getItem(c).cat, pressed: codes.has(c) })) },
     calmPressed: codes.has('no_symptoms'),
     calmVisible: !model.hidden.has('symptom'),
-    redFlag: red.triggered ? `Você marcou: ${red.codes.map((c) => getItem(c).label.toLowerCase()).join(', ')}. ${COPY.pregnancyUrgent}` : null,
+    redFlag: redFlagOf(red),
     pds,
     editRows: CATEGORIES.filter((c) => isVisible(c, vis)).map((c) => ({
       id: c.id, label: c.label, on: !model.hidden.has(c.id),
@@ -298,8 +361,7 @@ function symptomCycle(model, item, cat) {
     topPrep = `${PHASE_PREP[top.key]} (${lo === hi ? `dia ${lo}` : `dias ${lo}–${hi}`} do ciclo)`;
     insight = `Aparece mais ${topPrep}.`;
   }
-  if (PAIN.has(code) && cov.present > 0) insight += ' Se a dor atrapalha sua rotina, vale conversar com sua ginecologista.';
-  if (CARE[code]) insight += ` ${CARE[code]}`;
+  const care = PAIN.has(code) && cov.present > 0 ? copyOf('pain') : CARE[code] ? copyOf(CARE[code]) : null;
 
   const shown = obs.slice(-8).reverse();
   const maxLen = Math.max(28, ...shown.map((c) => c.len));
@@ -308,7 +370,6 @@ function symptomCycle(model, item, cat) {
     return p?.end ? diffDays(p.start, p.end) + 1 : ctx.avgPeriodLength;
   };
   const rows = shown.map((c) => {
-    const ov = c.len - 13;
     let right = c.current ? `dia ${diffDays(c.start, today) + 1}` : `${c.len} dias`;
     if (c.observed) right += ` · ${c.confirmedOnly ? 'teve, sem dia marcado' : `${c.days.length}×`}`;
     return {
@@ -318,7 +379,7 @@ function symptomCycle(model, item, cat) {
       empty: c.current ? `Ainda sem registros de ${catName} neste ciclo` : `Sem registros de ${catName} neste ciclo · não entra na conta`,
       width: (c.len / maxLen) * 100,
       period: (Math.min(periodLen(c.start), c.len) / c.len) * 100,
-      fertile: tracks ? { left: ((ov - 6) / c.len) * 100, width: (7 / c.len) * 100 } : null,
+      fertile: tracks ? { left: ((ctx.fertileDays.from - 1) / c.len) * 100, width: ((ctx.fertileDays.to - ctx.fertileDays.from + 1) / c.len) * 100 } : null,
       dots: c.days.map((d) => ((d - 0.5) / c.len) * 100),
     };
   });
@@ -326,7 +387,7 @@ function symptomCycle(model, item, cat) {
   return {
     windows: [3, 6, 12].map((months, i) => ({ count: counts[i], label: `${counts[i] === 1 ? 'dia' : 'dias'} em ${months} meses` })),
     phaseTitle: 'Em que fase aparece', phases, rowsTitle: 'Ciclo a ciclo', rows, legendCycle: true, legendFertile: tracks,
-    coverageText, insight, coverage: cov, topPrep,
+    coverageText, insight, care, coverage: cov, topPrep,
   };
 }
 
@@ -366,9 +427,9 @@ function symptomPregnancy(model, item, cat) {
     });
   }
   const observedRows = rows.filter((r) => r.observed);
-  let insight = item.alert ? `É um sinal de alerta. ${COPY.pregnancyUrgent}`
+  const insight = item.alert ? 'É um sinal de alerta.'
     : total ? `Registrado em ${plural(total, 'dia', 'dias')} desde o início da gestação.` : 'Ainda sem registros na gestação.';
-  if (CARE[item.code]) insight += ` ${CARE[item.code]}`;
+  const care = item.alert ? copyOf('pregnancyUrgent') : CARE[item.code] ? copyOf(CARE[item.code]) : null;
   return {
     windows: [
       { count: thisWeek, label: `${thisWeek === 1 ? 'dia' : 'dias'} nesta semana` },
@@ -380,7 +441,7 @@ function symptomPregnancy(model, item, cat) {
       .map((label, i) => ({ key: `t${i + 1}`, label, pct: total ? Math.round((byTri[i] / total) * 100) : 0 })),
     rowsTitle: 'Semana a semana', rows, legendCycle: false, legendFertile: false,
     coverageText: `Aparece em ${observedRows.filter((r) => r.dots.length).length} das últimas ${plural(observedRows.length, 'semana', 'semanas')} com registro de ${catName}.`,
-    insight,
+    insight, care,
   };
 }
 
@@ -458,7 +519,7 @@ export function statsView(model) {
     };
   }
   if (!ctx) return { mode: 'empty' };
-  const reg = irregularity(ctx);
+  const reg = irregularity(ctx, model);
   const recent = ctx.cycles.slice(-reg.last.length);
   const regText = {
     insufficient: ['Ainda sem dados suficientes', 'muted', `Precisamos de 3 ciclos completos registrados para avaliar${ctx.cycles.length ? `. Até agora: ${ctx.cycles.map((c) => c.length).join(' e ')} dias.` : '.'}`],
@@ -467,6 +528,7 @@ export function statsView(model) {
       ? `O ciclo que começou em ${fmt(recent[reg.outlierIndex].start)} durou ${reg.last[reg.outlierIndex]} dias. Os outros variaram só ${plural(reg.restRange, 'dia', 'dias')}. Isso pode acontecer de vez em quando; se repetir, vale mostrar este histórico à sua ginecologista.` : ''],
     irregular: ['Ciclos irregulares', 'warn', COPY.irregular],
     paused: ['Pausado', 'muted', COPY.paused],
+    method: ['Depende do método', 'muted', COPY.methodBleeding],
   }[reg.kind];
   const maxBar = Math.max(28, ...reg.last);
   const ec = ecDates(model);
@@ -478,7 +540,10 @@ export function statsView(model) {
     avgCycleSub: reg.kind === 'outlier' ? 'sem contar o ciclo fora do padrão'
       : ctx.cycles.length ? `últimos ${plural(Math.min(6, ctx.cycles.length), 'ciclo', 'ciclos')}` : 'pelo seu cadastro, até o primeiro ciclo completo',
     avgPeriod: ctx.avgPeriodLength,
-    regularity: { title: regText[0], tone: regText[1], text: regText[2] },
+    regularity: {
+      title: regText[0], tone: regText[1], text: regText[2],
+      sources: sourcesFor(COPY_SOURCES[{ irregular: 'irregular', outlier: 'outlier', paused: 'paused', method: 'methodBleeding' }[reg.kind] ?? 'outlier']),
+    },
     bars: reg.last.map((len, i) => ({
       key: recent[i].start, len, height: Math.round((len / maxBar) * 60) + 8,
       odd: reg.kind === 'outlier' && i === reg.outlierIndex, month: fmtShort(recent[i].start).split(' ')[1],

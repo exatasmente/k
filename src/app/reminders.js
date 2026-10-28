@@ -60,7 +60,7 @@ export function planReminders(model) {
 
   // RN03: avisa uma vez por ciclo completo enquanto a classificação for irregular.
   const cycleStart = lastCycleStart(ctx);
-  if (irregularity(ctx).kind === 'irregular' && !model.dismissed.has(`irregular|${cycleStart}`)) {
+  if (irregularity(ctx, model).kind === 'irregular' && !model.dismissed.has(`irregular|${cycleStart}`)) {
     add('irregular', cycleStart, today, 'Seus ciclos variaram bastante',
       'Vale mostrar o histórico à sua ginecologista. Toque para ver o resumo.');
   }

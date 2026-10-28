@@ -2,7 +2,8 @@ import { addDays, diffDays } from '../domain/dates.js';
 import { CATALOG, getItem, isVisible } from '../domain/catalog.js';
 import { METHODS, tracksOvulation } from '../domain/contraception.js';
 import { phaseOn } from '../domain/cycles.js';
-import { emergencyContraceptionAlert, COPY } from '../domain/rules.js';
+import { emergencyContraceptionAlert, COPY, COPY_SOURCES } from '../domain/rules.js';
+import { SOURCES } from '../domain/sources.js';
 import { fmt, fmtShort, fmtYear, symptomView } from './views.js';
 
 // Assistente local: responde as perguntas sugeridas com os números do próprio app,
@@ -13,7 +14,16 @@ export const DISCLAIMER = 'Informativo. Não substitui o diagnóstico ou a orien
 export const GREETING = 'Oi! Respondo sobre o seu histórico com os dados que estão neste aparelho. Escolha uma pergunta abaixo.';
 
 const MED_WORDS = ['remédio', 'remedio', 'medicamento', 'posso tomar', 'posso usar', 'dipirona', 'paracetamol', 'ibuprofeno', 'chá', 'suplemento'];
-const ALERT_WORDS = ['sangr', 'líquido', 'liquido', 'febre', 'dor forte', 'contraç', 'mexendo menos', 'visão'];
+// Sinais da Caderneta da Gestante (MS, 2026) e do CDC: viram "busque atendimento".
+const ALERT_WORDS = ['sangr', 'líquido', 'liquido', 'febre', 'dor forte', 'contraç', 'mexendo menos', 'mexe menos', 'parou de mexer',
+  'visão', 'visao', 'pressão', 'pressao', 'peito', 'falta de ar', 'desmai', 'convuls', 'ardência ao urinar', 'dor ao urinar',
+  'manchas vermelhas', 'inchaço', 'inchaco', 'machucar'];
+
+/** Texto de saúde com a linha de fontes, como nos cartões. */
+export function sourced(key) {
+  const list = COPY_SOURCES[key].map((id) => SOURCES[id].short).join('; ');
+  return `${COPY[key]}\n\nFonte${COPY_SOURCES[key].length > 1 ? 's' : ''}: ${list}.`;
+}
 
 export function suggestedQuestions(model) {
   if (model.pregnancy) {
@@ -52,9 +62,9 @@ function mentionedSymptom(model, q) {
 
 function answerPregnancy(model, q) {
   if (has(q, MED_WORDS)) {
-    return 'Na gestação eu não indico nem avalio remédios, chás ou suplementos, mesmo os mais comuns. Quem pode dizer o que é seguro para você é sua obstetra ou o farmacêutico.\n\nSe a dor for forte, não passar ou vier com visão turva ou inchaço no rosto e nas mãos, procure atendimento.';
+    return `${sourced('pregnancyMedicine')}\n\nSe a dor de cabeça for forte ou não melhorar, ou vier com alteração na visão ou inchaço repentino, busque atendimento imediatamente.`;
   }
-  if (has(q, ALERT_WORDS)) return COPY.pregnancyUrgent;
+  if (has(q, ALERT_WORDS)) return sourced('pregnancyUrgent');
   const p = model.pregnancy;
   const ga = model.ga;
   const how = p.dating === 'ultrasound' ? 'pela ultrassonografia' : 'pela data da última menstruação';
@@ -76,7 +86,7 @@ function answerPregnancy(model, q) {
     return `Nos últimos 7 dias: ${keys.map((c) => `${getItem(c).label.toLowerCase()} (${plural(counts[c], 'dia', 'dias')})`).join(', ')}.`;
   }
   if (q.includes('parto')) {
-    return `A data provável do parto é ${fmtYear(p.dueDate)}, calculada ${how}. É uma estimativa: poucos bebês nascem exatamente nesse dia, e o pré-natal pode ajustá-la.`;
+    return `A data provável do parto é ${fmtYear(p.dueDate)}, calculada ${how}. ${sourced('dueDate')}`;
   }
   if (q.includes('semana')) {
     return `Você está com ${plural(ga.weeks, 'semana', 'semanas')} e ${plural(ga.extraDays, 'dia', 'dias')} (${ga.label}), no ${ga.trimester}º trimestre, contando ${how}.`;
@@ -94,7 +104,7 @@ function answerCycle(model, q) {
     let a = year.length
       ? `Você registrou ${plural(year.length, 'vez', 'vezes')} em ${today.slice(0, 4)}: ${year.map(fmt).join(', ')}.`
       : `Você não registrou a pílula do dia seguinte em ${today.slice(0, 4)}.`;
-    if (dates.length && emergencyContraceptionAlert(ctx, dates, today).triggered) a += `\n\n${COPY.emergencyContraception}`;
+    if (dates.length && emergencyContraceptionAlert(ctx, dates, today).triggered) a += `\n\n${sourced('emergencyContraception')}`;
     return a;
   }
   if (q.includes('relação') || q.includes('relacao')) {
@@ -109,12 +119,11 @@ function answerCycle(model, q) {
     let a = `Você registrou ${sym.label.toLowerCase()} em ${cov.present} de ${plural(cov.observed, 'ciclo', 'ciclos')} com registro`;
     a += cov.skipped ? ` (${plural(cov.skipped, 'ciclo', 'ciclos')} sem registro ${cov.skipped === 1 ? 'ficou' : 'ficaram'} de fora).` : '.';
     if (v.topPrep) a += ` Aparece mais ${v.topPrep}.`;
-    if (['cramps', 'back_pain', 'headache', 'abdominal_pain'].includes(sym.code) && cov.present > 0) {
-      a += '\n\nSe a dor atrapalha sua rotina, vale conversar com sua ginecologista.';
-    }
+    if (['cramps', 'back_pain', 'headache', 'abdominal_pain'].includes(sym.code) && cov.present > 0) a += `\n\n${sourced('pain')}`;
     return a;
   }
   if (q.includes('fértil') || q.includes('fertil')) {
+    if (METHODS[model.method].ovulation === 'uncertain') return sourced('ovulationUncertain');
     if (!tracksOvulation(model.method)) {
       return `Com ${METHODS[model.method].label.toLowerCase()}, a ovulação costuma ficar suprimida, então o app não mostra janela fértil.`;
     }
@@ -126,7 +135,8 @@ function answerCycle(model, q) {
       : [ph.fertileWindow, ...prediction.upcoming.map((u) => u.fertileWindow)].find((w) => w && w.start > today);
     if (!fw) return 'Ainda não consigo estimar a janela fértil com os dados registrados.';
     const range = `de ${fmtShort(fw.start)} a ${fmtShort(fw.end)}`;
-    return `${ph.phase === 'ovulatory' ? `Sim. Pela estimativa, sua janela fértil vai ${range}.` : `Hoje não. A próxima janela fértil estimada vai ${range}.`}\n\nÉ uma estimativa e não funciona como método contraceptivo.`;
+    const unreliable = ctx.fertileUnreliable ? `\n\n${COPY.fertileUnreliable}` : '';
+    return `${ph.phase === 'ovulatory' ? `Sim. Pela estimativa, sua janela fértil vai ${range}.` : `Hoje não. A próxima janela fértil estimada vai ${range}.`}${unreliable}\n\n${sourced('fertileEstimate')}`;
   }
   if (q.includes('última menstrua') || q.includes('ultima menstrua')) {
     if (!last) return 'Ainda não há menstruação registrada.';
@@ -134,14 +144,14 @@ function answerCycle(model, q) {
     return `Sua última menstruação começou em ${fmt(last.start)} (há ${plural(diffDays(last.start, today), 'dia', 'dias')})${dur}.`;
   }
   if (q.includes('grávida') || q.includes('gravida')) {
-    return 'O app não consegue saber se você está grávida. Se a menstruação atrasou, um teste de gravidez (de farmácia ou de sangue) responde. Se der positivo, registre em "Teste de gravidez" para ativar o modo gestação.';
+    return `O app não consegue saber se você está grávida. ${sourced('pregnancyTest')}\n\nSe der positivo, registre em "Teste positivo" para ativar o modo gestação.`;
   }
   if (q.includes('próxima') || q.includes('proxima')) {
     if (prediction.mode === 'awaiting_period') return 'Depois da gestação, as previsões voltam a partir da próxima menstruação.';
     if (!prediction.window) return 'Ainda não há dados para prever.';
-    if (prediction.status === 'long_absence') return `Faz ${prediction.daysSinceStart} dias desde a última menstruação registrada, então não dá para prever a próxima. ${COPY.longAbsence}`;
+    if (prediction.status === 'long_absence') return `Faz ${prediction.daysSinceStart} dias desde a última menstruação registrada, então não dá para prever a próxima. ${sourced('longAbsence')}`;
     const w = `entre ${fmtShort(prediction.window.from)} e ${fmtShort(prediction.window.to)}`;
-    if (prediction.status === 'late') return `A janela prevista (${w}) já passou há ${plural(prediction.daysLate, 'dia', 'dias')}. Fatores como estresse, doença ou viagem podem atrasar o ciclo.`;
+    if (prediction.status === 'late') return `A janela prevista (${w}) já passou há ${plural(prediction.daysLate, 'dia', 'dias')}. ${sourced('lateCauses')}`;
     if (prediction.status === 'expected') return `Pode começar a qualquer dia: a previsão vai ${w}.`;
     return `A próxima menstruação está prevista ${w}, pela média de ${ctx.avgCycleLength} dias dos seus ciclos.`;
   }

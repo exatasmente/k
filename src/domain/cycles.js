@@ -7,9 +7,20 @@ import { lengthsForAverage } from './regularity.js';
 
 export const DEFAULTS = Object.freeze({ cycleLength: 28, periodLength: 5 });
 export const AUTO_CLOSE_AFTER_DAYS = 10;
+// Fontes de cada número: docs/fontes-clinicas.md.
+// Ovulação estimada 14 dias antes da próxima menstruação (o MS fala em 11 a 16 dias;
+// a média real da fase lútea é ~12,4 ± 2,4 dias, Bull 2019): é só o ponto mais provável.
 export const LUTEAL_DAYS = 14;
-export const FERTILE_DAYS_BEFORE_OVULATION = 5;
+// Janela fértil pela regra do método do calendário (OMS, Handbook 2022 cap. 18; MS, CAB 26):
+// do dia (ciclo mais curto − 18) ao dia (ciclo mais longo − 11), contando o 1º dia da menstruação como dia 1.
+export const FERTILE_FROM_SHORTEST = 18;
+export const FERTILE_TO_LONGEST = 11;
+// Diferença a partir da qual o MS desaconselha o calendário: a estimativa fica pouco confiável.
+export const UNRELIABLE_RANGE_DAYS = 10;
 export const AVERAGE_WINDOW = 6;
+// Sem histórico, a próxima menstruação fica em média ± 3 dias: a variação típica de uma
+// mesma pessoa é de ~2,6 dias (desvio-padrão, Bull 2019).
+export const NO_HISTORY_MARGIN = 3;
 // Mais que isso sem menstruar não é "atraso": é ausência prolongada (pede avaliação).
 export const LONG_ABSENCE_DAYS = 90;
 export const MIN_CYCLES_WITHOUT_PRIOR = 3;
@@ -173,25 +184,36 @@ export function buildCycleContext({ periods, stages = [], methods = [], onboardi
   const lengths = cycles.map((c) => c.length);
   // Um ciclo fora do padrão não puxa a média (ver regularity.js).
   const avgCycleLength = blendedAverage(lengthsForAverage(lengths), priorCycle);
-  const window = predictionWindow(lengthsForAverage(lengths).slice(-AVERAGE_WINDOW), avgCycleLength);
+  const recent = lengthsForAverage(lengths).slice(-AVERAGE_WINDOW);
+  const window = predictionWindow(recent, avgCycleLength);
+  // O calendário usa os 6 ciclos mais recentes, inclusive um fora do padrão (OMS): para
+  // fertilidade, descartar o ciclo atípico seria errar para o lado arriscado.
+  const lastSix = lengths.slice(-AVERAGE_WINDOW);
+  const shortest = lastSix.length >= 2 ? Math.min(...lastSix) : avgCycleLength;
+  const longest = lastSix.length >= 2 ? Math.max(...lastSix) : avgCycleLength;
+  const fertileDays = { from: Math.max(1, shortest - FERTILE_FROM_SHORTEST), to: longest - FERTILE_TO_LONGEST };
+  const fertileUnreliable = longest - shortest >= UNRELIABLE_RANGE_DAYS;
 
-  return { today, periods: effective, stages, methods, cycles, avgCycleLength, avgPeriodLength, window, pendingConfirmation };
+  return {
+    today, periods: effective, stages, methods, cycles, avgCycleLength, avgPeriodLength, window, pendingConfirmation,
+    fertileDays, fertileUnreliable,
+  };
 }
 
 /**
  * Janela da próxima menstruação, em dias desde o início do ciclo: do ciclo recente
- * mais curto ao mais longo, nunca mais estreita que média ± 1. Sem histórico, média ± 2.
+ * mais curto ao mais longo, nunca mais estreita que média ± 1. Sem histórico, média ± 3.
  */
 export function predictionWindow(recentLengths, avg) {
-  if (recentLengths.length < 2) return { from: avg - 2, to: avg + 2 };
+  if (recentLengths.length < 2) return { from: avg - NO_HISTORY_MARGIN, to: avg + NO_HISTORY_MARGIN };
   return { from: Math.min(Math.min(...recentLengths), avg - 1), to: Math.max(Math.max(...recentLengths), avg + 1) };
 }
 
-function ovulationFor(nextStart) {
-  const ovulation = addDays(nextStart, -LUTEAL_DAYS);
+/** Ovulação provável e janela fértil (regra do calendário) do ciclo que começa em `cycleStart`. */
+function ovulationFor(ctx, cycleStart, nextStart) {
   return {
-    ovulation,
-    fertileWindow: { start: addDays(ovulation, -FERTILE_DAYS_BEFORE_OVULATION), end: addDays(ovulation, 1) },
+    ovulation: addDays(nextStart, -LUTEAL_DAYS),
+    fertileWindow: { start: addDays(cycleStart, ctx.fertileDays.from - 1), end: addDays(cycleStart, ctx.fertileDays.to - 1) },
   };
 }
 
@@ -226,7 +248,7 @@ export function phaseOn(ctx, date) {
   }
   if (!tracksOvulation(methodOn(ctx.methods, date))) return { ...base, phase: 'not_tracked' };
 
-  const { ovulation, fertileWindow } = ovulationFor(nextStart);
+  const { ovulation, fertileWindow } = ovulationFor(ctx, period.start, nextStart);
   const withOvulation = { ...base, ovulation, fertileWindow };
   if (date < fertileWindow.start) return { ...withOvulation, phase: 'follicular' };
   if (date <= fertileWindow.end) return { ...withOvulation, phase: 'ovulatory' };
@@ -261,7 +283,7 @@ export function predict(ctx, count = 3) {
   for (let i = 0; i < count; i++) {
     const start = addDays(firstNext, i * ctx.avgCycleLength);
     const entry = { start, end: addDays(start, ctx.avgPeriodLength - 1), ovulation: null, fertileWindow: null };
-    upcoming.push(showFertility ? { ...entry, ...ovulationFor(start) } : entry);
+    upcoming.push(showFertility ? { ...entry, ...ovulationFor(ctx, addDays(start, -ctx.avgCycleLength), start) } : entry);
   }
   return {
     mode: 'cycle', status, window: { from: windowFrom, to: windowTo }, upcoming,

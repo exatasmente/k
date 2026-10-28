@@ -30,7 +30,7 @@ test('perguntas sugeridas respondidas com os dados do aparelho', async () => {
   assert.match(answer(m, 'Senti cólica em todos os ciclos?'), /em 6 de 6 ciclos com registro/);
   assert.match(answer(m, 'Quando foi minha última relação?'), /20 de setembro, há 5 dias/);
   assert.match(answer(m, 'Quantas vezes tomei a pílula do dia seguinte neste ano?'), /não registrou/);
-  assert.match(answer(m, 'Estou na janela fértil?'), /não funciona como método contraceptivo/);
+  assert.match(answer(m, 'Estou na janela fértil?'), /não serve para evitar gravidez[\s\S]*Fontes: Wilcox et al\., BMJ 2000/);
   assert.match(answer(m, 'qual a capital da frança?'), /só as perguntas sugeridas/);
 });
 
@@ -48,7 +48,8 @@ test('gestação: guardrail de remédio e de sinal de alerta', async () => {
   const m = store.getModel();
   assert.ok(suggestedQuestions(m).includes('Com quantas semanas estou?'));
   assert.match(answer(m, 'Posso tomar dipirona?'), /não indico nem avalio remédios/);
-  assert.match(answer(m, 'Estou com sangramento'), /Procure atendimento hoje/);
+  assert.match(answer(m, 'Estou com sangramento'), /Busque atendimento imediatamente[\s\S]*Caderneta da Gestante/);
+  assert.match(answer(m, 'estou com falta de ar'), /Busque atendimento imediatamente/, 'sinais novos da Caderneta 2026');
   assert.match(answer(m, 'Com quantas semanas estou?'), /6 semanas e 3 dias/);
   assert.match(answer(m, 'Quando é a data provável do parto?'), /de 2027/);
 });

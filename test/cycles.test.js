@@ -24,7 +24,7 @@ test('onboarding valida faixas e já gera previsão sem histórico', () => {
   const p = predict(ctx);
   assert.equal(p.mode, 'cycle');
   assert.equal(p.status, 'before');
-  assert.deepEqual(p.window, { from: '2026-11-12', to: '2026-11-16' }, 'sem histórico: média ± 2');
+  assert.deepEqual(p.window, { from: '2026-11-11', to: '2026-11-17' }, 'sem histórico: média ± 3 (variação típica de ~2,6 dias, Bull 2019)');
 });
 
 test('registrar fluxo estende a menstruação vizinha ou abre uma nova', () => {
@@ -129,12 +129,20 @@ test('previsão pedida para 6 ciclos devolve 6', () => {
   for (let i = 1; i < 6; i++) assert.ok(p.upcoming[i].start > p.upcoming[i - 1].start);
 });
 
-test('RF01.2: ovulação 14 dias antes da próxima menstruação; janela fértil de 5 dias antes a 1 depois', () => {
+test('RF01.2: ovulação 14 dias antes da próxima; janela fértil pela regra do calendário (OMS/MS)', () => {
   const ctx = buildCycleContext({ periods: [periodFromOnboarding(onboarding)], onboarding, today: '2026-10-28' });
   const next = predict(ctx).upcoming[0];
   assert.equal(next.start, '2026-11-14');
   assert.equal(next.ovulation, '2026-10-31');
-  assert.deepEqual(next.fertileWindow, { start: '2026-10-26', end: '2026-11-01' });
+  assert.deepEqual(next.fertileWindow, { start: '2026-10-26', end: '2026-11-02' }, 'ciclo de 28: do dia 10 (28 − 18) ao dia 17 (28 − 11)');
+});
+
+test('janela fértil com histórico: do ciclo mais curto − 18 ao mais longo − 11; pouco confiável se variam 10+ dias', () => {
+  const regular = buildCycleContext({ periods: periodsAt(...startsFrom('2026-05-01', [26, 30, 28])), onboarding, today: '2026-08-01' });
+  assert.deepEqual(regular.fertileDays, { from: 8, to: 19 });
+  assert.equal(regular.fertileUnreliable, false);
+  const varied = buildCycleContext({ periods: periodsAt(...startsFrom('2026-04-01', [24, 34, 27])), onboarding, today: '2026-07-20' });
+  assert.equal(varied.fertileUnreliable, true, 'o MS desaconselha o calendário com diferença de 10 dias ou mais');
 });
 
 test('RN02: média dos últimos 6 ciclos; com menos de 3, mistura com o valor do cadastro', () => {

@@ -261,3 +261,5 @@ h1, h2, h3 { margin: 0; }
 .hold { position: relative; overflow: hidden; min-height: 52px; border-radius: 26px; border: 1.5px solid var(--berry); background: var(--card); color: var(--berry-ink); font-weight: 800; user-select: none; -webkit-user-select: none; touch-action: none; }
 .hold span.fill { position: absolute; left: 0; top: 0; bottom: 0; background: var(--berry-tint); }
 .hold span.lbl { position: relative; }
+.sources { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.sources a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }

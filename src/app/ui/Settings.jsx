@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { METHODS } from '../../domain/contraception.js';
 import { buildICS, calendarPredictions, reminderPrefs } from '../reminders.js';
 import { disableBackground, notificationSupport, registerBackground, requestNotifications, SUPPORT_TEXT } from '../notify.js';
+import { SOURCES } from '../../domain/sources.js';
 import { CloseButton, Sheet, Switch } from './Sheet.jsx';
 
 const HOLD_MS = 1500;
@@ -51,7 +52,7 @@ function Reminders({ model, store }) {
     download(buildICS(model, prefs), 'text/calendar', 'ciclo-previsoes.ics');
     setNote(`${predictions.length} previsões prontas para a agenda. Se você mudar algo no app, baixe de novo.`);
   };
-  const pill = model.method === 'pill' || model.method === 'continuous_pill';
+  const pill = ['pill', 'continuous_pill', 'desogestrel', 'minipill'].includes(model.method);
 
   return (
     <section class="card" aria-label="Lembretes">
@@ -200,6 +201,16 @@ export function SettingsSheet({ model, store, nav }) {
           <div><strong>Modo gestação</strong><div class="small muted">Acompanhe a gestação sem perder seu histórico de ciclos, e volte quando quiser.</div></div>
           <Switch on={!!model.pregnancy} label="Modo gestação" onToggle={model.pregnancy ? nav.openPregEnd : nav.openPregSetup} />
         </section>
+
+        <details class="card" aria-label="Fontes clínicas">
+          <summary style={{ fontWeight: 700, cursor: 'pointer', minHeight: 32 }}>Fontes clínicas dos alertas</summary>
+          <div class="small muted">Os alertas e orientações do app seguem estas fontes. Eles informam e não substituem uma consulta.</div>
+          <ul class="small" style={{ margin: 0, paddingLeft: 18, display: 'grid', gap: 6 }}>
+            {Object.entries(SOURCES).map(([id, s]) => (
+              <li key={id}><a href={s.url} target="_blank" rel="noopener noreferrer">{s.title}</a></li>
+            ))}
+          </ul>
+        </details>
 
         <section class="card" style={{ border: '1.5px solid var(--berry-tint)' }}>
           <strong style={{ color: 'var(--berry-ink)' }}>Apagar meus dados</strong>

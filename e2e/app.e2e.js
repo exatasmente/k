@@ -157,10 +157,10 @@ test('ajustes: pílula contínua esconde a janela fértil', async () => {
   await onboard(page);
   assert.match(await page.locator('.legend').first().innerText(), /Janela fértil/);
   await page.getByRole('button', { name: 'Ajustes e privacidade' }).click();
-  await page.getByRole('button', { name: 'Pílula contínua' }).click();
-  await page.getByRole('button', { name: 'Pílula contínua', pressed: true }).waitFor();
+  await page.getByRole('button', { name: 'Pílula combinada contínua' }).click();
+  await page.getByRole('button', { name: 'Pílula combinada contínua', pressed: true }).waitFor();
   await page.getByRole('button', { name: 'Fechar' }).last().click();
-  assert.match(await ringText(page), /Pílula contínua/);
+  assert.match(await ringText(page), /Pílula combinada contínua/);
   assert.equal(await page.getByText('Janela fértil', { exact: true }).count(), 0);
   await page.getByRole('button', { name: 'Calendário', exact: true }).click();
   await page.getByRole('button', { name: /^28, hoje/ }).waitFor();
@@ -169,7 +169,7 @@ test('ajustes: pílula contínua esconde a janela fértil', async () => {
 
 test('backup: restaurar em outro aparelho já cadastrado substitui os dados (método inclusive)', async () => {
   const first = await openApp();
-  await onboard(first.page, { method: 'Pílula contínua' });
+  await onboard(first.page, { method: 'Pílula combinada contínua' });
   await logToday(first.page, 'Cólica');
   await first.page.locator('.tags', { hasText: 'Cólica' }).waitFor();
   await first.page.getByRole('button', { name: 'Ajustes e privacidade' }).click();
@@ -189,7 +189,7 @@ test('backup: restaurar em outro aparelho já cadastrado substitui os dados (mé
   const tags = await page.locator('.tags').innerText();
   assert.match(tags, /Cólica/);
   assert.doesNotMatch(tags, /Dor de cabeça/);
-  assert.match(await ringText(page), /Pílula contínua/, 'antes ficavam os dois métodos e valia o do aparelho');
+  assert.match(await ringText(page), /Pílula combinada contínua/, 'antes ficavam os dois métodos e valia o do aparelho');
   assert.equal(await page.getByText('Janela fértil', { exact: true }).count(), 0);
   assert.deepEqual(errors, []);
 });
@@ -236,9 +236,12 @@ test('gestação: datação com aviso, sinal de alerta, pós-parto e volta ao ci
   await page.locator('.screen .display', { hasText: /^9s 1d$/ }).waitFor();
   assert.equal(await page.locator('.quick.period').count(), 0, 'sem "Menstruei" na gestação');
 
-  await logToday(page, 'Sangramento ou escape');
-  await page.getByRole('alert').filter({ hasText: 'Procure atendimento' }).waitFor();
-  assert.equal(await page.getByRole('alert').filter({ hasText: 'sangramento ou escape' }).count(), 1);
+  await logToday(page, 'Sangramento pela vagina');
+  const red = page.getByRole('alert').filter({ hasText: 'Procure atendimento' });
+  await red.waitFor();
+  assert.equal(await page.getByRole('alert').filter({ hasText: 'sangramento pela vagina' }).count(), 1);
+  assert.match(await red.innerText(), /Busque atendimento imediatamente[\s\S]*SAMU \(192\)/);
+  assert.match(await red.getByRole('link', { name: 'Caderneta da Gestante (MS, 2026)' }).getAttribute('href'), /caderneta-brasileira-da-gestante/);
 
   await page.getByRole('button', { name: 'Assistente', exact: true }).click();
   await page.getByRole('button', { name: 'Posso tomar remédio para dor de cabeça?' }).click();
@@ -252,6 +255,9 @@ test('gestação: datação com aviso, sinal de alerta, pós-parto e volta ao ci
   await setToday('2026-12-07'); // a menstruação volta 40 dias depois
   await page.getByText(/Desde 28 de outubro · 5 semanas/).waitFor();
   await page.locator('.quick.period').click();
+  // Antes de 6 semanas pode ser lóquio (Caderneta, MS 2026): o app confirma.
+  const lochia = page.getByRole('region', { name: 'Menstruação ou lóquio' });
+  await lochia.getByRole('button', { name: 'É menstruação' }).click();
   await page.locator('.ring').waitFor();
   assert.match(await ringText(page), /Menstruação/);
   assert.deepEqual(errors, []);
@@ -445,7 +451,7 @@ test('ciclos irregulares (RN03): aviso na Home leva ao Resumo e, visto, não vol
 test('lembretes: liga com permissão, o service worker avisa uma vez e com texto discreto; agenda baixa as previsões', async () => {
   const { page, context, errors } = await openApp({ today: '2026-11-05' });
   await context.grantPermissions(['notifications']);
-  await pickDate(page, '2026-10-17'); // janela prevista a partir de 12/11: aviso em 10/11
+  await pickDate(page, '2026-10-17'); // janela prevista a partir de 11/11 (média ± 3): aviso em 09/11
   await onboard(page);
   await page.waitForFunction(() => navigator.serviceWorker?.controller != null, null, { timeout: 10000 });
   await page.getByRole('button', { name: 'Ajustes e privacidade' }).click();
@@ -466,11 +472,11 @@ test('lembretes: liga com permissão, o service worker avisa uma vez e com texto
     const list = await reg.getNotifications();
     return { shown, notes: list.map((n) => [n.title, n.body]) };
   }, today);
-  assert.equal((await check('2026-11-09')).shown, 0, 'ainda não venceu');
-  const due = await check('2026-11-10');
+  assert.equal((await check('2026-11-08')).shown, 0, 'ainda não venceu');
+  const due = await check('2026-11-09');
   assert.equal(due.shown, 1);
   assert.deepEqual(due.notes, [['Ciclo', 'Você tem um lembrete. Toque para abrir.']], 'nada de "menstruação" na tela de bloqueio');
-  assert.equal((await check('2026-11-11')).shown, 0, 'não repete');
+  assert.equal((await check('2026-11-10')).shown, 0, 'não repete');
 
   const [download] = await Promise.all([page.waitForEvent('download'), section.getByRole('button', { name: 'Adicionar previsões à agenda' }).click()]);
   const ics = await readFile(await download.path(), 'utf8');
@@ -490,5 +496,25 @@ test('lembretes: sem permissão de notificação o interruptor não liga e expli
   await section.getByText(/bloqueadas para este site/).waitFor();
   assert.equal(await section.getByRole('button', { name: 'Lembretes' }).getAttribute('aria-pressed'), 'false');
   assert.equal(await section.getByRole('button', { name: 'Lembretes' }).isDisabled(), true);
+  assert.deepEqual(errors, []);
+});
+
+test('alertas mostram a fonte: menstruação com mais de 8 dias (FIGO) e lista de fontes nos Ajustes', async () => {
+  const { page, setToday, errors } = await openApp();
+  await pickDate(page, '2026-10-28');
+  await onboard(page); // menstruação aberta desde hoje
+  await setToday('2026-11-05'); // 9º dia
+  const card = page.getByRole('region', { name: 'Menstruação longa' });
+  await card.waitFor();
+  assert.match(await card.innerText(), /passou de 8 dias/);
+  assert.equal(await card.getByRole('link', { name: 'FIGO 2018' }).getAttribute('href'), 'https://doi.org/10.1002/ijgo.12666');
+  assert.equal(await card.getByRole('link', { name: 'FIGO 2018' }).getAttribute('target'), '_blank');
+  await card.getByRole('button', { name: 'Ok' }).click();
+  await card.waitFor({ state: 'detached' });
+
+  await page.getByRole('button', { name: 'Ajustes e privacidade' }).click();
+  await page.getByText('Fontes clínicas dos alertas').click();
+  await page.getByRole('link', { name: /Caderneta Brasileira da Gestante/ }).waitFor();
+  assert.ok(await page.getByRole('link', { name: /Family Planning: A Global Handbook/ }).count());
   assert.deepEqual(errors, []);
 });

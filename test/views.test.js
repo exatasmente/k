@@ -76,7 +76,9 @@ test('Gestação: Home, registro com alerta, calendário e resumo', async () => 
   const t = todayView(m);
   assert.equal(t.mode, 'pregnancy');
   assert.equal(t.pregnancy.short, '6s 3d');
-  assert.match(t.redFlag, /Procure atendimento hoje/);
+  assert.match(t.redFlag.marked, /sangramento pela vagina/);
+  assert.match(t.redFlag.text, /Busque atendimento imediatamente/);
+  assert.ok(t.redFlag.sources.some((s) => s.id === 'ms_caderneta_2026'), 'o alerta cita a Caderneta da Gestante');
   assert.equal(t.quick.showSex, false);
   const log = logView(m, '2026-10-28');
   assert.ok(log.sections.some((s) => s.id === 'alert'));
@@ -114,7 +116,7 @@ test('Hoje: muito tempo sem menstruação muda o anel e só alerta quem ovula', 
   assert.equal(v.ring.status, 'absence');
   assert.equal(v.ring.big, 'Sem menstruação');
   assert.equal(v.ring.window, null);
-  assert.equal(v.ring.absenceNote, COPY.longAbsence);
+  assert.equal(v.ring.absenceNote.text, COPY.longAbsence);
   await store.setMethod('implant');
   assert.equal(todayView(store.getModel()).ring.absenceNote, null, 'implante pode suspender a menstruação de propósito');
 });
@@ -128,5 +130,5 @@ test('método que suprime a ovulação: sem janela fértil no calendário, no Ho
   assert.deepEqual(fertileDays(m), []);
   assert.equal(todayView(m).ring.fertile, null);
   assert.ok(!suggestedQuestions(m).includes('Estou na janela fértil?'));
-  assert.match(answer(m, 'Estou na janela fértil?'), /pílula contínua.*não mostra janela fértil/);
+  assert.match(answer(m, 'Estou na janela fértil?'), /pílula combinada contínua.*não mostra janela fértil/);
 });

@@ -37,22 +37,22 @@ test('menstruação chegando: N dias antes da janela, texto discreto por padrão
   const { store, repo } = await setup();
   await store.setReminders({ enabled: true });
   const soon = byKind(repo.get('reminders', 'plan').items, 'period_soon');
-  assert.equal(soon.date, '2026-11-10', 'janela começa 12/11, 2 dias antes');
+  assert.equal(soon.date, '2026-11-09', 'janela começa 11/11 (média ± 3), 2 dias antes');
   assert.equal(soon.key, 'period_soon|2026-10-17', 'um aviso por ciclo, mesmo que a previsão mude');
   assert.deepEqual([soon.title, soon.body], ['Ciclo', 'Você tem um lembrete. Toque para abrir.'], 'nada de saúde na tela de bloqueio');
 
   await store.setReminders({ details: true, daysBefore: 4 });
   const detailed = byKind(repo.get('reminders', 'plan').items, 'period_soon');
-  assert.equal(detailed.date, '2026-11-08');
+  assert.equal(detailed.date, '2026-11-07');
   assert.equal(detailed.title, 'Menstruação chegando');
-  assert.match(detailed.body, /a partir de 12 nov/);
+  assert.match(detailed.body, /a partir de 11 nov/);
 });
 
 test('com o app aberto no dia do aviso, ele conta como visto (sem notificação repetida)', async () => {
   const { store, repo, clock } = await setup();
   await store.setReminders({ enabled: true });
   assert.deepEqual(shown(repo), []);
-  clock.today = '2026-11-10';
+  clock.today = '2026-11-09';
   await store.syncReminders();
   assert.deepEqual(shown(repo), ['period_soon|2026-10-17']);
 });

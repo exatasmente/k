@@ -1,5 +1,6 @@
 import { useState } from 'preact/hooks';
-import { calendarView } from '../views.js';
+import { calendarView, copyOf } from '../views.js';
+import { Sourced } from './Sources.jsx';
 import { Icon, catStyle } from './icons.jsx';
 
 const WD = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
@@ -48,6 +49,7 @@ export function CalendarScreen({ model, nav }) {
         {model.consult && <span><i class="swatch" style={{ background: 'var(--indigo-tint)', border: '2px solid var(--indigo)' }} />Consulta</span>}
         <span><i class="swatch" style={{ background: 'var(--c-sex)', borderRadius: 6, width: 8, height: 8 }} />Relação</span>
       </div>
+      {tracks && <Sourced class="small muted" copy={copyOf('fertileEstimate')} />}
 
       <section class="card">
         <h2 class="display" style={{ fontSize: 19 }}>{v.selected.title}</h2>

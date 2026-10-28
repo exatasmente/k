@@ -39,7 +39,8 @@ test('visibilidade por estágio de vida e semana de gestação', () => {
   assert.ok(!isVisible(getItem('bleeding'), cycle));
   assert.ok(!isVisible(getItem('baby_movement'), early), 'bebê só a partir de 16 semanas');
   assert.ok(isVisible(getItem('baby_movement'), late));
-  assert.ok(!isVisible(getItem('less_movement'), { stage: 'pregnancy', gestationalWeek: 27 }));
+  assert.ok(!isVisible(getItem('less_movement'), { stage: 'pregnancy', gestationalWeek: 19 }));
+  assert.ok(isVisible(getItem('less_movement'), { stage: 'pregnancy', gestationalWeek: 20 }), 'Caderneta 2026: a partir de 20 semanas');
   assert.ok(isVisible(getItem('less_movement'), late));
   assert.ok(isVisible(getItem('nausea'), early) && isVisible(getItem('nausea'), cycle), 'compartilhado aparece nos dois');
 });

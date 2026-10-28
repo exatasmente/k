@@ -1,4 +1,5 @@
 import { statsView } from '../views.js';
+import { Sources } from './Sources.jsx';
 
 const TONE = { good: 'var(--good)', warn: 'var(--warn-ink)', muted: 'var(--muted)' };
 
@@ -54,6 +55,7 @@ export function Stats({ model }) {
       <section class="card">
         <div class="head"><strong>Regularidade</strong><strong style={{ color: TONE[v.regularity.tone], fontSize: 14 }}>{v.regularity.title}</strong></div>
         <div class="muted">{v.regularity.text}</div>
+        <Sources sources={v.regularity.sources} />
         {v.bars.length > 0 && (
           <>
             <div class="bars" role="img" aria-label={`Duração dos últimos ciclos: ${v.bars.map((b) => b.len).join(', ')} dias`}>

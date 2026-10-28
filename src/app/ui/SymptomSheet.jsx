@@ -2,6 +2,7 @@ import { symptomView } from '../views.js';
 import { symptomQuestion } from '../assistant.js';
 import { Icon, catStyle } from './icons.jsx';
 import { CloseButton, Sheet } from './Sheet.jsx';
+import { Sourced } from './Sources.jsx';
 
 const PHASE_COLOR = {
   menstrual: 'var(--berry)', follicular: 'var(--muted)', ovulatory: 'var(--indigo)', luteal: 'var(--c-symptom)',
@@ -71,7 +72,10 @@ export function SymptomSheet({ model, nav, code, back }) {
           <div class="muted">{v.coverageText}</div>
         </section>
 
-        <div class="card" style={{ background: 'var(--ground)', border: 0 }}>{v.insight}</div>
+        <div class="card" style={{ background: 'var(--ground)', border: 0 }}>
+          <div>{v.insight}</div>
+          {v.care && <Sourced copy={v.care} />}
+        </div>
         <button class="btn accent block" onClick={() => nav.ask(symptomQuestion(model, code))}>Perguntar à assistente</button>
       </div>
     </Sheet>

@@ -38,4 +38,5 @@ Antes, ative em **Settings → Pages → Source: GitHub Actions**. No celular, a
 
 - [ADR 0001 — Arquitetura do MVP](docs/adr/0001-arquitetura-mvp.md)
 - [ADR 0002 — Lembretes sem servidor](docs/adr/0002-lembretes-sem-servidor.md)
+- [Fontes clínicas dos alertas](docs/fontes-clinicas.md)
 - [Modelo de dados](docs/modelo-de-dados.md)

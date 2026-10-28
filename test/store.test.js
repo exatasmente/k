@@ -99,9 +99,9 @@ test('onboarding com a última menstruação no mês passado', async () => {
   const m = store.getModel();
   assert.equal(m.periods[0].start, '2026-09-20');
   assert.equal(m.periods[0].end, '2026-09-24');
-  // 38 dias depois, com ciclo de 30: a janela (dias 28 a 32) já passou.
+  // 38 dias depois, com ciclo de 30: a janela (dias 27 a 33, média ± 3) já passou.
   assert.equal(m.prediction.status, 'late');
-  assert.equal(m.prediction.daysLate, 6);
+  assert.equal(m.prediction.daysLate, 5);
 });
 
 test('RF01.4: menstruação aberta há 10+ dias pede confirmação do fim', async () => {

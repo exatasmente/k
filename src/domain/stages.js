@@ -29,7 +29,8 @@ export function gestationalAge(lmp, date) {
 /**
  * Datação ao ativar o modo gestação (ou ao ajustar depois).
  * Pela DUM ou pela DPP do laudo da ultrassonografia, que costuma ser mais precisa.
- * @param {{method: 'lmp', lmp: string} | {method: 'ultrasound', dueDate: string}} input
+ * @param {({method: 'lmp', lmp: string} | {method: 'ultrasound', dueDate: string}) & {cycleLength?: number}} input
+ *   cycleLength: duração média do ciclo dela, para o aviso de teste feito cedo demais
  * @param {string} today
  */
 export function datePregnancy(input, today) {
@@ -42,9 +43,10 @@ export function datePregnancy(input, today) {
     valid: true,
     stage: { stage: 'pregnancy', start: lmp, end: null, dating: input.method, dueDate: addDays(lmp, PREGNANCY_DAYS) },
     ga,
-    // Teste costuma dar positivo a partir de ~4 semanas pela DUM. Menos que isso
-    // sugere que o "último sangramento" foi um escape.
-    earlyWarning: input.method === 'lmp' && ga.days < EARLY_TEST_WARNING_DAYS,
+    // O teste de farmácia dá positivo a partir do dia em que a menstruação viria (NHS; MS,
+    // CAB 32): ~4 semanas pela DUM num ciclo de 28 dias, mais tarde em ciclos longos.
+    // Antes disso, o "último sangramento" provavelmente foi um escape.
+    earlyWarning: input.method === 'lmp' && ga.days < (input.cycleLength ?? EARLY_TEST_WARNING_DAYS),
   };
 }
 

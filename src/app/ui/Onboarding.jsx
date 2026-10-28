@@ -1,6 +1,6 @@
 import { useState } from 'preact/hooks';
 import { addDays, addMonths, ageOn, diffDays, today as localToday } from '../../domain/dates.js';
-import { METHODS } from '../../domain/contraception.js';
+import { METHODS, tracksOvulation } from '../../domain/contraception.js';
 import { Icon } from './icons.jsx';
 import { Switch } from './Sheet.jsx';
 import { MonthPicker } from './MonthPicker.jsx';
@@ -30,7 +30,7 @@ export function Onboarding({ store }) {
   const [saving, setSaving] = useState(false);
 
   const daysAgo = diffDays(lastPeriodStart, today);
-  const hormonal = METHODS[method].suppressesOvulation;
+  const hormonal = !tracksOvulation(method);
 
   const finish = async () => {
     setSaving(true);
