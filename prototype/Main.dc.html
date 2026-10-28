@@ -142,6 +142,17 @@ body{margin:0}
       </button>
     </div>
 
+    <sc-if value="{{preg.on}}" hint-placeholder-val="{{false}}">
+      <section style="background: #FFFFFF; border: 1px solid #E6E2EC; border-radius: 28px; padding: 22px; display: flex; flex-direction: column; gap: 10px">
+        <div style="font-size: 13px; font-weight: 700; color: #3F3A8C; text-transform: uppercase; letter-spacing: 0.06em">Modo gestação</div>
+        <div style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 32px; font-weight: 800; line-height: 1.1">{{preg.weeks}}</div>
+        <div style="font-size: 14px; color: #5C5670">Contando desde a última menstruação ({{preg.lmp}}). Data provável do parto: {{preg.due}}. É uma estimativa; o pré-natal confirma.</div>
+        <div style="font-size: 14px; color: #5C5670">Seu histórico de ciclos continua guardado.</div>
+        <button onClick="{{togglePregnancy}}" style="align-self: flex-start; min-height: 44px; padding: 0 16px; border-radius: 22px; border: 1px solid #CFCAD8; background: #FFFFFF; color: #1F1A2E; font: inherit; font-weight: 700; cursor: pointer">Voltar a acompanhar o ciclo</button>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{preg.off}}" hint-placeholder-val="{{true}}">
     <section style="background: #FFFFFF; border: 1px solid #E6E2EC; border-radius: 28px; padding: 18px 18px 16px; display: flex; flex-direction: column; align-items: center; gap: 10px">
       <div style="position: relative; width: 232px; height: 232px">
         <svg width="232" height="232" viewBox="0 0 240 240" aria-hidden="true">
@@ -165,9 +176,14 @@ body{margin:0}
       <sc-if value="{{hormonal}}" hint-placeholder-val="{{false}}">
         <div style="font-size: 13px; color: #5C5670; text-align: center">{{ring.hormonalNote}}</div>
       </sc-if>
+      <sc-if value="{{ring.showWindow}}" hint-placeholder-val="{{true}}">
+        <div style="font-size: 13px; font-weight: 600; color: #8E1F35; background: #FBE9EC; border-radius: 12px; padding: 6px 12px">{{ring.window}}</div>
+      </sc-if>
     </section>
+    </sc-if>
 
-    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+    <div style="display: grid; gap: 10px; grid-template-columns: {{qa.cols}}">
+      <sc-if value="{{qa.showPeriod}}" hint-placeholder-val="{{true}}">
       <button onClick="{{togglePeriod}}" aria-pressed="{{periodOpen}}" style="min-height: 76px; border-radius: 22px; padding: 12px 14px; font: inherit; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 4px; {{qa.periodStyle}}">
         <span style="display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 16px">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5c2.6 3.7 5.5 6.6 5.5 10a5.5 5.5 0 0 1-11 0c0-3.4 2.9-6.3 5.5-10z"></path></svg>
@@ -175,6 +191,8 @@ body{margin:0}
         </span>
         <span style="font-size: 13px; opacity: 0.85">{{qa.periodSub}}</span>
       </button>
+      </sc-if>
+      <sc-if value="{{qa.showSex}}" hint-placeholder-val="{{true}}">
       <button onClick="{{quickSex}}" aria-pressed="{{qa.sexDone}}" style="min-height: 76px; border-radius: 22px; padding: 12px 14px; font: inherit; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 4px; {{qa.sexStyle}}">
         <span style="display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 16px">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"></path></svg>
@@ -182,6 +200,7 @@ body{margin:0}
         </span>
         <span style="font-size: 13px; opacity: 0.85">{{qa.sexSub}}</span>
       </button>
+      </sc-if>
     </div>
 
     <sc-if value="{{qa.sexDone}}" hint-placeholder-val="{{false}}">
@@ -382,17 +401,43 @@ body{margin:0}
         <div style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 22px; font-weight: 750">Registrar</div>
         <div style="font-size: 14px; color: #5C5670">{{logDateLabel}}</div>
       </div>
-      <button onClick="{{closeOverlay}}" style="min-height: 44px; padding: 0 18px; border-radius: 22px; border: 0; background: #1F1A2E; color: #FFFFFF; font: inherit; font-weight: 700; cursor: pointer">Pronto</button>
+      <div style="display: flex; gap: 8px">
+        <button onClick="{{toggleEdit}}" aria-pressed="{{editing}}" style="min-height: 44px; padding: 0 14px; border-radius: 22px; border: 1px solid #CFCAD8; background: #FFFFFF; color: #1F1A2E; font: inherit; font-weight: 700; cursor: pointer">{{editLabel}}</button>
+        <button onClick="{{closeOverlay}}" style="min-height: 44px; padding: 0 18px; border-radius: 22px; border: 0; background: #1F1A2E; color: #FFFFFF; font: inherit; font-weight: 700; cursor: pointer">Pronto</button>
+      </div>
     </div>
-    <div style="font-size: 13px; color: #5C5670">Toque para marcar · segure para ver o histórico</div>
-    <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px">
-      <sc-for list="{{sections}}" as="sec" hint-placeholder-count="5">
-        <a href="#sec-{{sec.id}}" style="flex: none; padding: 8px 12px; border-radius: 16px; font-size: 13px; font-weight: 700; text-decoration: none; background: {{sec.tint}}; color: {{sec.color}}">{{sec.short}}</a>
-      </sc-for>
-    </div>
+    <div style="font-size: 13px; color: #5C5670">{{logHint}}</div>
+    <sc-if value="{{notEditing}}" hint-placeholder-val="{{true}}">
+      <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px">
+        <sc-for list="{{sections}}" as="sec" hint-placeholder-count="8">
+          <a href="#sec-{{sec.id}}" style="flex: none; padding: 8px 12px; border-radius: 16px; font-size: 13px; font-weight: 700; text-decoration: none; background: {{sec.tint}}; color: {{sec.color}}">{{sec.short}}</a>
+        </sc-for>
+      </div>
+    </sc-if>
   </div>
+  <sc-if value="{{notEditing}}" hint-placeholder-val="{{true}}">
   <div style="flex: 1; overflow-y: auto; padding: 4px 16px 24px; display: flex; flex-direction: column; gap: 18px">
-    <sc-for list="{{sections}}" as="sec" hint-placeholder-count="5">
+    <section style="background: #F5F3F7; border-radius: 20px; padding: 14px 10px 12px; display: flex; flex-direction: column; gap: 10px">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 0 4px">
+        <h3 style="margin: 0; font-size: 15px; font-weight: 800">Comuns para você agora</h3>
+        <span style="font-size: 12px; color: #5C5670">{{suggest.phase}}</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px">
+        <sc-for list="{{suggest.items}}" as="it" hint-placeholder-count="4">
+          <button onClick="{{it.tap}}" onPointerDown="{{it.down}}" onPointerUp="{{it.up}}" onPointerLeave="{{it.up}}" onPointerCancel="{{it.up}}" onContextMenu="{{noMenu}}" aria-pressed="{{it.pressed}}" aria-label="{{it.aria}}" style="min-height: 92px; border-radius: 18px; padding: 10px 4px 8px; font: inherit; font-size: 12px; line-height: 1.2; font-weight: 600; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; touch-action: manipulation; {{it.style}}">
+            <span style="width: 40px; height: 40px; border-radius: 20px; display: flex; align-items: center; justify-content: center; flex: none; {{it.iconStyle}}">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{it.icon}}"></path></svg>
+            </span>
+            <span>{{it.label}}</span>
+          </button>
+        </sc-for>
+      </div>
+      <button onClick="{{calmDay.tap}}" aria-pressed="{{calmDay.pressed}}" style="min-height: 44px; border-radius: 22px; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; {{calmDay.style}}">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z M8 12.5l2.5 2.5L16 9.5"></path></svg>
+        Dia tranquilo · sem sintomas
+      </button>
+    </section>
+    <sc-for list="{{sections}}" as="sec" hint-placeholder-count="8">
       <section id="sec-{{sec.id}}" style="display: flex; flex-direction: column; gap: 10px">
         <div style="display: flex; justify-content: space-between; align-items: baseline">
           <h3 style="margin: 0; font-size: 15px; font-weight: 800; color: {{sec.color}}">{{sec.label}}</h3>
@@ -403,11 +448,21 @@ body{margin:0}
             <strong style="color: #9A3412">{{pds.title}}.</strong> {{pds.body}}
           </div>
         </sc-if>
-        <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px">
+        <sc-if value="{{sec.showPregPrompt}}" hint-placeholder-val="{{false}}">
+          <div role="status" style="background: #ECEBFA; border: 1.5px solid #3F3A8C; border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 8px">
+            <strong style="color: #2F2A80">Teste positivo registrado</strong>
+            <span style="font-size: 14px">Quer mudar o app para o modo gestação? Seu histórico de ciclos fica guardado e você pode voltar quando quiser. Um exame de sangue e uma consulta confirmam o resultado.</span>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap">
+              <button onClick="{{startPregnancy}}" style="min-height: 40px; border-radius: 20px; padding: 0 14px; border: 0; background: #3F3A8C; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer">Ativar modo gestação</button>
+              <button onClick="{{dismissPreg}}" style="min-height: 40px; border-radius: 20px; padding: 0 14px; border: 1px solid #3F3A8C; background: transparent; color: #2F2A80; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer">Agora não</button>
+            </div>
+          </div>
+        </sc-if>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px">
           <sc-for list="{{sec.items}}" as="it" hint-placeholder-count="6">
-            <button onClick="{{it.tap}}" onPointerDown="{{it.down}}" onPointerUp="{{it.up}}" onPointerLeave="{{it.up}}" onPointerCancel="{{it.up}}" onContextMenu="{{noMenu}}" aria-pressed="{{it.pressed}}" aria-label="{{it.aria}}" style="min-height: 92px; border-radius: 18px; padding: 10px 4px 8px; font: inherit; font-size: 12px; line-height: 1.2; font-weight: 600; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; touch-action: manipulation; {{it.style}}">
-              <span style="width: 40px; height: 40px; border-radius: 20px; display: flex; align-items: center; justify-content: center; flex: none; {{it.iconStyle}}">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{it.icon}}"></path></svg>
+            <button onClick="{{it.tap}}" onPointerDown="{{it.down}}" onPointerUp="{{it.up}}" onPointerLeave="{{it.up}}" onPointerCancel="{{it.up}}" onContextMenu="{{noMenu}}" aria-pressed="{{it.pressed}}" aria-label="{{it.aria}}" style="min-height: 44px; border-radius: 22px; padding: 4px 14px 4px 4px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; touch-action: manipulation; {{it.style}}">
+              <span style="width: 34px; height: 34px; border-radius: 17px; display: flex; align-items: center; justify-content: center; flex: none; {{it.iconStyle}}">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{it.icon}}"></path></svg>
               </span>
               <span>{{it.label}}</span>
             </button>
@@ -416,6 +471,26 @@ body{margin:0}
       </section>
     </sc-for>
   </div>
+  </sc-if>
+  <sc-if value="{{editing}}" hint-placeholder-val="{{false}}">
+  <div style="flex: 1; overflow-y: auto; padding: 4px 16px 24px; display: flex; flex-direction: column; gap: 8px">
+    <div style="font-size: 14px; color: #5C5670; padding: 0 4px 6px">Esconder uma categoria tira os ícones dela do registro. Esconder Relação também tira o atalho da tela Hoje.</div>
+    <sc-for list="{{editRows}}" as="r" hint-placeholder-count="8">
+      <div style="background: #F5F3F7; border-radius: 18px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px">
+        <div style="display: flex; align-items: center; gap: 10px">
+          <span style="width: 12px; height: 12px; border-radius: 6px; flex: none; background: {{r.color}}"></span>
+          <div>
+            <div style="font-weight: 700">{{r.label}}</div>
+            <div style="font-size: 13px; color: #5C5670">{{r.count}}</div>
+          </div>
+        </div>
+        <button onClick="{{r.toggle}}" aria-pressed="{{r.on}}" aria-label="{{r.aria}}" style="flex: none; width: 56px; height: 34px; border-radius: 17px; border: 0; padding: 3px; cursor: pointer; display: flex; background: {{r.bg}}; justify-content: {{r.justify}}">
+          <span style="width: 28px; height: 28px; border-radius: 14px; background: #FFFFFF; display: block"></span>
+        </button>
+      </div>
+    </sc-for>
+  </div>
+  </sc-if>
 </div>
 </sc-if>
 
@@ -586,8 +661,10 @@ body{margin:0}
       </div>
     </div>
     <div style="background: #FFFFFF; border-radius: 20px; padding: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px">
-      <div><div style="font-weight: 700">Modo gestação</div><div style="font-size: 14px; color: #5C5670">Em breve. Acompanhe a gestação sem perder seu histórico, e volte quando quiser.</div></div>
-      <span style="flex: none; font-size: 12px; font-weight: 700; color: #5C5670; border: 1px solid #D9D5E0; border-radius: 12px; padding: 4px 8px">em breve</span>
+      <div><div style="font-weight: 700">Modo gestação</div><div style="font-size: 14px; color: #5C5670">Acompanhe a gestação sem perder seu histórico de ciclos, e volte quando quiser.</div></div>
+      <button onClick="{{togglePregnancy}}" aria-pressed="{{preg.on}}" aria-label="Modo gestação" style="flex: none; width: 56px; height: 34px; border-radius: 17px; border: 0; padding: 3px; cursor: pointer; display: flex; background: {{preg.bg}}; justify-content: {{preg.justify}}">
+        <span style="width: 28px; height: 28px; border-radius: 14px; background: #FFFFFF; display: block"></span>
+      </button>
     </div>
     <div style="background: #FFFFFF; border: 1.5px solid #E7C3CB; border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
       <div style="font-weight: 700; color: #8E1F35">Apagar meus dados</div>
@@ -609,7 +686,7 @@ body{margin:0}
 
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"startScreen":{"editor":"enum","options":["onboarding","today","log","symptom","calendar","stats","chat","privacy"],"default":"onboarding"},"method":{"editor":"enum","options":["condom","none","pill","continuous_pill","hormonal_iud","copper_iud","implant","injection","ring_or_patch"],"default":"condom"},"$preview":{"width":390,"height":844}}'>
+<script type="text/x-dc" data-dc-script data-props='{"startScreen":{"editor":"enum","options":["onboarding","today","log","symptom","calendar","stats","chat","privacy","pregnancy"],"default":"onboarding"},"lastStart":{"editor":"text","default":"2026-10-17"},"method":{"editor":"enum","options":["condom","none","pill","continuous_pill","hormonal_iud","copper_iud","implant","injection","ring_or_patch"],"default":"condom"},"$preview":{"width":390,"height":844}}'>
 var TODAY = '2026-10-28';
 var INK = '#1F1A2E', MUTED = '#5C5670', LINE = '#E6E2EC', BERRY = '#B8304A', INDIGO = '#4B44B0';
 var MONTHS = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
@@ -666,15 +743,38 @@ var ICONS = {
   dumbbell: 'M6 7v10 M18 7v10 M3 10v4 M21 10v4 M6 12h12',
   flame: 'M12 21c4 0 6-3 6-6 0-4-3-6-4-9-2 2-2 4-2 4s-1-2-3-3c0 3-3 5-3 8 0 3 2 6 6 6z',
   walk: 'M14 5a2 2 0 1 1-4 0 2 2 0 0 1 4 0z M12 8v5l-3 7 M12 13l3 7 M8 11l4-2 4 2',
-  lotus: 'M12 20c-4 0-8-2-9-5 3 0 6 1 9 5z M12 20c4 0 8-2 9-5-3 0-6 1-9 5z M12 20c-2-3-2-8 0-13 2 5 2 10 0 13z'
+  lotus: 'M12 20c-4 0-8-2-9-5 3 0 6 1 9 5z M12 20c4 0 8-2 9-5-3 0-6 1-9 5z M12 20c-2-3-2-8 0-13 2 5 2 10 0 13z',
+  check: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z M8 12.5l2.5 2.5L16 9.5',
+  belly: 'M8 4c-2 3-3 6-3 9a7 7 0 0 0 14 0c0-3-1-6-3-9 M12 13h.01 M9 17c2 1 4 1 6 0',
+  battery: 'M3 8h15a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z M21 11v2 M5 11v2',
+  moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
+  itch: 'M6 7l2 2 M10 5l1 3 M14 5l-1 3 M18 7l-2 2 M12 11c-3 0-5 2.5-5 5.5S9 21 12 21s5-1.5 5-4.5S15 11 12 11z',
+  diarrhea: 'M12 3v8 M8 7l4 4 4-4 M7 15c1.5 2 1.5 3.5 0 5 M12 15c1.5 2 1.5 3.5 0 5 M17 15c1.5 2 1.5 3.5 0 5',
+  lock: 'M7 11V8a5 5 0 0 1 10 0v3 M5 11h14v9H5z M12 15v2',
+  calm: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z M8 10c.7.7 1.8.7 2.5 0 M13.5 10c.7.7 1.8.7 2.5 0 M9 14.5c1.7 1.3 4.3 1.3 6 0',
+  swings: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z M12 3v18 M8 10h.01 M16 10h.01 M7.5 15a2 2 0 0 0 3 0 M13.5 16a2 2 0 0 1 3 0',
+  dry: 'M12 3.5c2.6 3.7 5.5 6.6 5.5 10a5.5 5.5 0 0 1-11 0c0-3.4 2.9-6.3 5.5-10z M4 4l16 16',
+  cream: 'M6 15a6 4 0 0 0 12 0c0-2-2-3-3-5-1 1-2 1-3 0-1 1-2 1-3 0-1 2-3 3-3 5z',
+  watery: 'M12 3c2 3 4 5 4 7.5a4 4 0 0 1-8 0C8 8 10 6 12 3z M6 18h12 M8 21h8',
+  eggwhite: 'M12 3c3 4 5 7 5 10a5 5 0 0 1-10 0c0-3 2-6 5-10z M10 13a2 2 0 0 0 2 2',
+  unusual: 'M12 3.5c2.6 3.7 5.5 6.6 5.5 10a5.5 5.5 0 0 1-11 0c0-3.4 2.9-6.3 5.5-10z M12 10v3 M12 16h.01',
+  stress: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z M13 7l-3 5h4l-3 5',
+  bandage: 'M4.5 13.5l9-9a3.5 3.5 0 0 1 5 5l-9 9a3.5 3.5 0 0 1-5-5z M10 10h.01 M14 14h.01 M12 12h.01',
+  pin: 'M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11z M12 10a1.5 1.5 0 1 0 0 .01',
+  glass: 'M7 3h10l-1 7a4 4 0 0 1-8 0L7 3z M12 14v6 M8 21h8',
+  testPos: 'M3 10h18v4H3z M16 10v4 M6.5 12h3 M8 10.5v3',
+  testNeg: 'M3 10h18v4H3z M16 10v4 M6.5 12h3'
 };
 
 var CATS = [
-  { id: 'sex', label: 'Relação & proteção', short: 'Relação', color: '#A8326E', tint: '#FBE8F2', hint: '' },
   { id: 'flow', label: 'Fluxo & sangramento', short: 'Fluxo', color: BERRY, tint: '#FBE9EC', hint: 'fluxo: escolha um' },
-  { id: 'symptom', label: 'Sintomas físicos', short: 'Sintomas', color: '#6E3B96', tint: '#F2EAF8', hint: '' },
+  { id: 'symptom', label: 'Sintomas', short: 'Sintomas', color: '#6E3B96', tint: '#F2EAF8', hint: '' },
   { id: 'mood', label: 'Humor', short: 'Humor', color: '#1C6E64', tint: '#E2F2EF', hint: '' },
-  { id: 'lifestyle', label: 'Estilo de vida', short: 'Estilo de vida', color: '#8A5300', tint: '#FBEFDC', hint: '' }
+  { id: 'discharge', label: 'Secreção', short: 'Secreção', color: '#2563A8', tint: '#E5EEF8', hint: 'escolha uma' },
+  { id: 'sex', label: 'Relação & proteção', short: 'Relação', color: '#A8326E', tint: '#FBE8F2', hint: '' },
+  { id: 'factors', label: 'Fatores do dia', short: 'Fatores', color: '#4A5568', tint: '#EDEFF3', hint: 'ajudam a explicar mudanças' },
+  { id: 'lifestyle', label: 'Atividade física', short: 'Atividade', color: '#8A5300', tint: '#FBEFDC', hint: '' },
+  { id: 'test', label: 'Teste de gravidez', short: 'Teste', color: '#3F3A8C', tint: '#ECEBFA', hint: '' }
 ];
 var CAT_BY = {}; CATS.forEach(function (c) { CAT_BY[c.id] = c; });
 
@@ -691,31 +791,55 @@ var ITEMS = [
   { code: 'flow_heavy', label: 'Intenso', cat: 'flow', icon: 'drop3', group: 'flow' },
   { code: 'flow_dark', label: 'Escuro / borra', cat: 'flow', icon: 'dropDark', group: 'flow' },
   { code: 'spotting', label: 'Escape', cat: 'flow', icon: 'dots' },
+  { code: 'no_symptoms', label: 'Sem sintomas', cat: 'symptom', icon: 'check', special: true },
   { code: 'cramps', label: 'Cólica', cat: 'symptom', icon: 'bolt' },
+  { code: 'abdominal_pain', label: 'Dor abdominal', cat: 'symptom', icon: 'belly' },
   { code: 'back_pain', label: 'Dor nas costas', cat: 'symptom', icon: 'spine' },
   { code: 'breast_tenderness', label: 'Mamas sensíveis', cat: 'symptom', icon: 'breast' },
+  { code: 'headache', label: 'Dor de cabeça', cat: 'symptom', icon: 'head' },
   { code: 'acne', label: 'Acne', cat: 'symptom', icon: 'acne' },
   { code: 'bloating', label: 'Inchaço', cat: 'symptom', icon: 'bloat' },
-  { code: 'headache', label: 'Dor de cabeça', cat: 'symptom', icon: 'head' },
   { code: 'nausea', label: 'Enjoo', cat: 'symptom', icon: 'wave' },
+  { code: 'fatigue', label: 'Fadiga', cat: 'symptom', icon: 'battery' },
+  { code: 'insomnia', label: 'Insônia', cat: 'symptom', icon: 'moon' },
+  { code: 'vaginal_itch', label: 'Coceira vaginal', cat: 'symptom', icon: 'itch' },
+  { code: 'diarrhea', label: 'Diarreia', cat: 'symptom', icon: 'diarrhea' },
+  { code: 'constipation', label: 'Prisão de ventre', cat: 'symptom', icon: 'lock' },
+  { code: 'mood_calm', label: 'Calma', cat: 'mood', icon: 'calm' },
   { code: 'mood_happy', label: 'Feliz', cat: 'mood', icon: 'happy' },
+  { code: 'mood_swings', label: 'Mudanças de humor', cat: 'mood', icon: 'swings' },
   { code: 'mood_anxious', label: 'Ansiosa', cat: 'mood', icon: 'anxious' },
   { code: 'mood_irritated', label: 'Irritada', cat: 'mood', icon: 'irritated' },
   { code: 'mood_sad', label: 'Triste', cat: 'mood', icon: 'sad' },
   { code: 'mood_sensitive', label: 'Sensível', cat: 'mood', icon: 'sensitive' },
-  { code: 'mood_tired', label: 'Cansada', cat: 'mood', icon: 'tired' },
+  { code: 'discharge_dry', label: 'Seca', cat: 'discharge', icon: 'dry', group: 'discharge' },
+  { code: 'discharge_creamy', label: 'Cremosa', cat: 'discharge', icon: 'cream', group: 'discharge' },
+  { code: 'discharge_watery', label: 'Aquosa', cat: 'discharge', icon: 'watery', group: 'discharge' },
+  { code: 'discharge_eggwhite', label: 'Clara de ovo', cat: 'discharge', icon: 'eggwhite', group: 'discharge' },
+  { code: 'discharge_unusual', label: 'Diferente do normal', cat: 'discharge', icon: 'unusual', group: 'discharge' },
+  { code: 'stress', label: 'Estresse', cat: 'factors', icon: 'stress' },
+  { code: 'illness', label: 'Doença', cat: 'factors', icon: 'bandage' },
+  { code: 'travel', label: 'Viagem', cat: 'factors', icon: 'pin' },
+  { code: 'alcohol', label: 'Álcool', cat: 'factors', icon: 'glass' },
   { code: 'workout_light', label: 'Treino leve', cat: 'lifestyle', icon: 'dumbbell' },
   { code: 'workout_intense', label: 'Treino intenso', cat: 'lifestyle', icon: 'flame' },
   { code: 'walk', label: 'Caminhada', cat: 'lifestyle', icon: 'walk' },
-  { code: 'yoga', label: 'Yoga', cat: 'lifestyle', icon: 'lotus' }
+  { code: 'yoga', label: 'Yoga', cat: 'lifestyle', icon: 'lotus' },
+  { code: 'preg_test_positive', label: 'Teste positivo', cat: 'test', icon: 'testPos', group: 'preg_test' },
+  { code: 'preg_test_negative', label: 'Teste negativo', cat: 'test', icon: 'testNeg', group: 'preg_test' }
 ];
+var DEFAULT_SUGGEST = ['cramps', 'headache', 'fatigue', 'mood_swings'];
+var CARE = {
+  discharge_unusual: 'Se vier com coceira, ardor ou cheiro forte, vale procurar avaliação.',
+  vaginal_itch: 'Se persistir ou vier com secreção diferente, vale procurar avaliação.'
+};
 var ITEM_BY = {}; ITEMS.forEach(function (i) { ITEM_BY[i.code] = i; });
 
 var SAMPLE_LOG = {
   '2026-09-19': ['flow_heavy', 'cramps'], '2026-09-20': ['flow_heavy', 'cramps'], '2026-09-21': ['flow_medium'],
   '2026-09-22': ['flow_light'], '2026-09-23': ['flow_light'], '2026-09-30': ['sex_vaginal', 'protection_condom'],
   '2026-10-10': ['sex_vaginal', 'protection_condom'], '2026-10-14': ['mood_irritated', 'breast_tenderness'],
-  '2026-10-17': ['flow_heavy', 'cramps'], '2026-10-18': ['flow_heavy', 'cramps', 'mood_tired'], '2026-10-19': ['flow_medium', 'back_pain'],
+  '2026-10-17': ['flow_heavy', 'cramps'], '2026-10-18': ['flow_heavy', 'cramps', 'fatigue'], '2026-10-19': ['flow_medium', 'back_pain'],
   '2026-10-20': ['flow_light'], '2026-10-21': ['flow_light'], '2026-10-23': ['sex_vaginal', 'protection_none'],
   '2026-10-24': ['emergency_contraception'], '2026-10-25': ['workout_light', 'mood_happy'], '2026-10-27': ['mood_anxious', 'headache']
 };
@@ -724,8 +848,10 @@ var PAST_PDS = ['2026-03-08'];
 var PHASE_PROFILE = {
   cramps: [62, 8, 10, 20], back_pain: [45, 10, 10, 35], breast_tenderness: [10, 8, 17, 65], acne: [12, 18, 15, 55],
   bloating: [28, 10, 12, 50], headache: [35, 20, 15, 30], nausea: [30, 25, 20, 25], mood_anxious: [12, 15, 18, 55],
-  mood_irritated: [15, 10, 15, 60], mood_sad: [25, 10, 10, 55], mood_sensitive: [20, 10, 15, 55], mood_tired: [40, 15, 10, 35],
-  mood_happy: [10, 40, 35, 15], spotting: [10, 30, 45, 15]
+  mood_irritated: [15, 10, 15, 60], mood_sad: [25, 10, 10, 55], mood_sensitive: [20, 10, 15, 55], fatigue: [40, 15, 10, 35],
+  mood_happy: [10, 40, 35, 15], spotting: [10, 30, 45, 15], abdominal_pain: [50, 10, 10, 30], insomnia: [15, 15, 15, 55],
+  vaginal_itch: [15, 25, 25, 35], diarrhea: [55, 10, 10, 25], constipation: [10, 15, 15, 60], mood_swings: [10, 10, 15, 65],
+  mood_calm: [15, 40, 30, 15], discharge_eggwhite: [0, 15, 80, 5], discharge_creamy: [5, 30, 15, 50]
 };
 var PAIN = { cramps: 1, back_pain: 1, headache: 1 };
 var PHASE_PREP = ['na menstruação', 'na fase folicular', 'na janela fértil', 'na fase lútea'];
@@ -781,19 +907,25 @@ class Component extends DCLogic {
       onboarding: ['onboarding', null], today: ['today', null], log: ['today', 'log'], symptom: ['today', 'symptom'],
       calendar: ['calendar', null], stats: ['stats', null], chat: ['today', 'chat'], privacy: ['today', 'privacy']
     };
-    var s = map[start] || map.onboarding;
+    var s = map[start] || (start === 'pregnancy' ? map.today : map.onboarding);
+    // `lastStart` desloca o histórico de exemplo inteiro, para mostrar outros momentos do ciclo.
+    var last = props.lastStart || '2026-10-17';
+    var shift = diff('2026-10-17', last);
+    var log = {};
+    Object.keys(SAMPLE_LOG).forEach(function (d) { var nd = addDays(d, shift); if (nd <= TODAY) log[nd] = SAMPLE_LOG[d].slice(); });
     return {
       screen: s[0], overlay: s[1], symFromLog: false, obStep: 0,
-      lastStart: '2026-10-17', pastStarts: pastStartsFrom('2026-10-17'), cycleLen: 28, periodLen: 5, birth: '1996-05-12',
+      lastStart: last, pastStarts: pastStartsFrom(last), cycleLen: 28, periodLen: 5, birth: '1996-05-12',
       method: props.method || 'condom', aiOn: true, periodOpen: false,
-      log: JSON.parse(JSON.stringify(SAMPLE_LOG)), logDate: TODAY, symptom: 'cramps',
+      hiddenCats: {}, editCats: false, pregnant: start === 'pregnancy', pregPrompt: false,
+      log: log, logDate: TODAY, symptom: 'cramps',
       chat: [{ from: 'ai', text: GREETING }], draft: '',
       calMonth: '2026-10', calSel: TODAY, delProgress: 0, deleted: false, pdsAck: false
     };
   }
 
   componentDidUpdate(prev) {
-    if (prev.startScreen !== this.props.startScreen || prev.method !== this.props.method) {
+    if (prev.startScreen !== this.props.startScreen || prev.method !== this.props.method || prev.lastStart !== this.props.lastStart) {
       this.setState(this.initialState(this.props, this.props.startScreen || 'onboarding'));
     }
   }
@@ -815,10 +947,14 @@ class Component extends DCLogic {
     if (i >= 0) cur.splice(i, 1);
     else {
       if (item.group) cur = cur.filter(function (c) { return !ITEM_BY[c] || ITEM_BY[c].group !== item.group; });
+      // "Sem sintomas" e sintomas se excluem: o dia continua registrado, só muda o conteúdo.
+      if (code === 'no_symptoms') cur = cur.filter(function (c) { return !ITEM_BY[c] || ITEM_BY[c].cat !== 'symptom'; });
+      else if (item.cat === 'symptom') cur = cur.filter(function (c) { return c !== 'no_symptoms'; });
       cur.push(code);
     }
     var patch = {};
     if (code === 'emergency_contraception' && i < 0) patch.pdsAck = false;
+    if (code === 'preg_test_positive') patch.pregPrompt = i < 0 && !this.state.pregnant;
     var log = Object.assign({}, this.state.log);
     log[date] = cur;
     patch.log = log;
@@ -829,25 +965,80 @@ class Component extends DCLogic {
 
   allStarts() { return this.state.pastStarts.concat([this.state.lastStart]); }
 
+  // Média (RN02, sem o ciclo fora do padrão) e janela da próxima menstruação.
+  cycleStats() {
+    var st = this.state;
+    var key = st.pastStarts.join(',') + '|' + st.lastStart + '|' + st.cycleLen;
+    if (this._csKey === key) return this._cs;
+    var starts = this.allStarts();
+    var lens = [];
+    for (var k = 1; k < starts.length; k++) lens.push(diff(starts[k - 1], starts[k]));
+    var reg = regularity(lens);
+    var base = reg.kind === 'outlier' ? reg.rest : lens.slice(-6);
+    var avg = base.length ? Math.round(base.reduce(function (s, v) { return s + v; }, 0) / base.length) : st.cycleLen;
+    // Janela: do ciclo recente mais curto ao mais longo, nunca menor que média ± 1.
+    var lo = base.length >= 2 ? Math.min.apply(null, base) : avg - 2;
+    var hi = base.length >= 2 ? Math.max.apply(null, base) : avg + 2;
+    lo = Math.min(lo, avg - 1);
+    hi = Math.max(hi, avg + 1);
+    this._csKey = key;
+    this._cs = { starts: starts, lens: lens, reg: reg, avg: avg, winLo: addDays(st.lastStart, lo), winHi: addDays(st.lastStart, hi) };
+    return this._cs;
+  }
+
   predictedStarts(n) {
+    if (this.state.pregnant) return [];
+    var cs = this.cycleStats();
+    // Depois que a janela passa, a próxima previsão parte de amanhã, não de uma data já vencida.
+    var first = addDays(this.state.lastStart, cs.avg);
+    if (first <= TODAY && cs.winHi < TODAY) first = addDays(TODAY, 1);
     var out = [];
-    for (var i = 1; i <= n; i++) out.push(addDays(this.state.lastStart, i * this.state.cycleLen));
+    for (var i = 0; i < n; i++) out.push(addDays(first, i * cs.avg));
     return out;
+  }
+
+  // Fase mais comum de cada sintoma/humor na fase atual: vira a linha "Comuns para você agora".
+  suggestions(date) {
+    var self = this;
+    var cyc = this.cycleList();
+    var cur = null;
+    cyc.forEach(function (c) { if (c.start <= date) cur = c; });
+    var names = this.tracks() ? ['Menstruação', 'Fase folicular', 'Janela fértil', 'Fase lútea'] : ['Menstruação', 'Fora da menstruação'];
+    if (!cur || this.state.pregnant) return { phase: this.state.pregnant ? 'Gestação' : '', codes: DEFAULT_SUGGEST.slice() };
+    var p = this.phaseIdx(diff(cur.start, date) + 1, cur.len);
+    var scores = [];
+    ITEMS.forEach(function (it) {
+      if ((it.cat !== 'symptom' && it.cat !== 'mood') || it.special) return;
+      var n = 0;
+      cyc.forEach(function (c) {
+        if (c.current) return;
+        self.symptomDaysIn(c, it.code).days.forEach(function (cd) { if (self.phaseIdx(cd, c.len) === p) n++; });
+      });
+      if (n > 0) scores.push({ code: it.code, n: n });
+    });
+    scores.sort(function (a, b) { return b.n - a.n; });
+    var codes = scores.slice(0, 4).map(function (s) { return s.code; });
+    DEFAULT_SUGGEST.forEach(function (c) { if (codes.length < 4 && codes.indexOf(c) < 0) codes.push(c); });
+    return { phase: names[p], codes: codes };
   }
 
   phaseOf(date) {
     var st = this.state;
+    if (st.pregnant && date >= addDays(st.lastStart, st.periodLen)) {
+      return { cd: diff(st.lastStart, date) + 1, predicted: false, period: false, fertile: false, ovulation: false, name: 'Gestação' };
+    }
     var starts = this.allStarts().concat(this.predictedStarts(4));
     var idx = -1;
     for (var i = 0; i < starts.length; i++) if (starts[i] <= date) idx = i;
     if (idx < 0) return null;
     var s = starts[idx];
-    var next = starts[idx + 1] || addDays(s, st.cycleLen);
+    var next = starts[idx + 1] || addDays(s, this.cycleStats().avg);
     var cd = diff(s, date) + 1;
-    var predicted = s > TODAY;
+    var predicted = idx >= this.allStarts().length;
     var inPeriod = cd <= st.periodLen || (s === st.lastStart && st.periodOpen && date <= TODAY);
     var res = { cd: cd, predicted: predicted, period: inPeriod, fertile: false, ovulation: false, name: '' };
     if (inPeriod) { res.name = predicted ? 'Menstruação prevista' : 'Menstruação'; return res; }
+    if (s === st.lastStart && cd > this.cycleStats().avg) { res.name = 'Ciclo mais longo que a média'; return res; }
     if (!this.tracks()) { res.name = 'Fora da menstruação'; return res; }
     var ov = addDays(next, -14), fs = addDays(ov, -5), fe = addDays(ov, 1);
     res.ov = ov; res.fs = fs; res.fe = fe;
@@ -875,12 +1066,12 @@ class Component extends DCLogic {
   }
 
   cycleList() {
-    var st = this.state;
+    var avg = this.cycleStats().avg;
     var starts = this.allStarts();
     return starts.map(function (s, i) {
       var next = starts[i + 1];
       return {
-        start: s, current: !next, len: next ? diff(s, next) : st.cycleLen,
+        start: s, current: !next, len: next ? diff(s, next) : avg,
         end: next ? addDays(next, -1) : TODAY, age: starts.length - 1 - i
       };
     });
@@ -968,6 +1159,7 @@ class Component extends DCLogic {
       insight = 'Aparece mais ' + topPrep + '.';
     }
     if (PAIN[code] && present > 0) insight += ' Se a dor atrapalha sua rotina, vale conversar com sua ginecologista.';
+    if (CARE[code]) insight += ' ' + CARE[code];
 
     var shown = cycles.slice(-8).reverse();
     var maxLen = Math.max.apply(null, shown.map(function (c) { return c.len; }).concat([28]));
@@ -1063,27 +1255,42 @@ class Component extends DCLogic {
     };
 
     // ---- ciclo / anel
+    var cs = this.cycleStats();
+    var L = cs.avg;
     var C = 2 * Math.PI * 96;
     var cd = diff(st.lastStart, TODAY) + 1;
-    var nextStart = addDays(st.lastStart, st.cycleLen);
-    var until = diff(TODAY, nextStart);
     var phase = this.phaseOf(TODAY);
-    var ovCd = st.cycleLen - 14 + 1;
-    var fa = (ovCd - 6) / st.cycleLen, fb = (ovCd + 1) / st.cycleLen;
-    var frac = (Math.min(cd, st.cycleLen) - 0.5) / st.cycleLen;
+    var ovCd = L - 14 + 1;
+    var fa = (ovCd - 6) / L, fb = (ovCd + 1) / L;
+    var frac = (Math.min(cd, L) - 0.5) / L;
     var ang = frac * 2 * Math.PI - Math.PI / 2;
-    var nextText = until > 1 ? 'Menstruação em ' + until + ' dias' : until === 1 ? 'Menstruação prevista para amanhã' : until === 0 ? 'Menstruação prevista para hoje' : 'Atrasada há ' + (-until) + ' dias';
+    var toLo = diff(TODAY, cs.winLo), pastHi = diff(cs.winHi, TODAY);
+    // Previsão é uma janela: "atrasada" só depois que a janela inteira passou.
+    var when = phase.period && !phase.predicted ? 'period' : pastHi > 0 ? 'late' : toLo <= 0 ? 'window' : 'before';
     var ring = {
       showFertile: tracks,
-      periodDash: (Math.min(st.periodLen, st.cycleLen) / st.cycleLen * C).toFixed(1) + ' ' + C.toFixed(1),
+      showWindow: when === 'before' || when === 'window',
+      window: 'Previsão: entre ' + fmtShort(cs.winLo) + ' e ' + fmtShort(cs.winHi),
+      periodDash: (Math.min(st.periodLen, L) / L * C).toFixed(1) + ' ' + C.toFixed(1),
       fertDash: (tracks ? (fb - fa) * C : 0).toFixed(1) + ' ' + C.toFixed(1),
       fertOffset: (-fa * C).toFixed(1),
       mx: (120 + 96 * Math.cos(ang)).toFixed(1), my: (120 + 96 * Math.sin(ang)).toFixed(1),
       top: hormonal ? METHOD_LABEL[st.method] : 'Dia ' + cd + ' do ciclo',
-      big: phase.period ? 'Menstruação' : hormonal ? 'Dia ' + cd : until < 0 ? 'Atrasada' : phase.name.replace('Fase ', ''),
-      color: phase.period ? BERRY : phase.fertile ? INDIGO : INK,
-      bottom: phase.period ? 'Dia ' + cd + ' da menstruação' : nextText,
+      big: when === 'period' ? 'Menstruação' : when === 'late' ? 'Atrasada' : when === 'window' ? 'Pode começar' : hormonal ? 'Dia ' + cd : phase.name.replace('Fase ', ''),
+      color: when === 'period' || when === 'window' ? BERRY : when === 'late' ? '#9A3412' : phase.fertile ? INDIGO : INK,
+      bottom: when === 'period' ? 'Dia ' + cd + ' da menstruação'
+        : when === 'late' ? 'há ' + pastHi + (pastHi === 1 ? ' dia' : ' dias') + ' além da janela prevista'
+        : when === 'window' ? 'a qualquer dia até ' + fmtShort(cs.winHi)
+        : 'Menstruação em ' + toLo + (toLo === 1 ? ' dia' : ' dias'),
       hormonalNote: 'Sem janela fértil com ' + METHOD_LABEL[st.method].toLowerCase() + '. O foco aqui é como você se sente.'
+    };
+    var gest = diff(st.lastStart, TODAY);
+    var gw = Math.floor(gest / 7), gd = gest % 7;
+    var preg = {
+      on: !!st.pregnant, off: !st.pregnant,
+      weeks: gw + (gw === 1 ? ' semana' : ' semanas') + (gd ? ' e ' + gd + (gd === 1 ? ' dia' : ' dias') : ''),
+      lmp: fmt(st.lastStart), due: fmt(addDays(st.lastStart, 280)),
+      bg: st.pregnant ? INDIGO : '#C9C5D2', justify: st.pregnant ? 'flex-end' : 'flex-start'
     };
 
     // ---- ações rápidas
@@ -1093,7 +1300,10 @@ class Component extends DCLogic {
     var unprotected = sexDone && !hasCondom && (hasNone ? !BASELINE[st.method] : (st.method !== 'condom' && !BASELINE[st.method]));
     var pdsToday = today.indexOf('emergency_contraception') >= 0;
     var protText = hasCondom ? 'com preservativo' : hasNone ? 'sem preservativo' : BASELINE[st.method] ? 'protegida por: ' + METHOD_LABEL[st.method].toLowerCase() : 'sem proteção registrada';
+    var showSex = !st.hiddenCats.sex, showPeriod = !st.pregnant;
     var qa = {
+      showSex: showSex, showPeriod: showPeriod,
+      cols: showSex && showPeriod ? 'repeat(2, minmax(0, 1fr))' : 'minmax(0, 1fr)',
       periodLabel: st.periodOpen ? 'Menstruando' : 'Menstruei',
       periodSub: st.periodOpen ? 'Toque quando terminar' : 'Marca hoje como dia 1',
       periodStyle: st.periodOpen ? 'border: 0; background: ' + BERRY + '; color: #FFFFFF' : 'border: 1.5px solid #E7C3CB; background: #FFFFFF; color: #8E1F35',
@@ -1132,33 +1342,57 @@ class Component extends DCLogic {
 
     // ---- seções do modal
     var logCodes = this.codes(st.logDate);
-    var sections = CATS.map(function (cat) {
+    var itemVM = function (it) {
+      var cat = CAT_BY[it.cat];
+      var on = logCodes.indexOf(it.code) >= 0;
+      var border = on ? cat.color : it.highlight ? '#C2410C' : LINE;
+      return {
+        label: it.label, pressed: on, icon: ICONS[it.icon],
+        aria: it.label + (on ? ', marcado' : '') + '. Segure para ver o histórico.',
+        style: (on ? 'background: ' + cat.color + '; color: #FFFFFF; ' : 'background: #FFFFFF; color: ' + INK + '; ') + 'border: ' + (it.highlight ? '2px' : '1.5px') + ' solid ' + border,
+        iconStyle: on ? 'background: rgba(255, 255, 255, 0.22); color: #FFFFFF' : it.highlight ? 'background: #FFE7D6; color: #9A3412' : 'background: ' + cat.tint + '; color: ' + cat.color,
+        tap: function () {
+          if (self._lpFired) { self._lpFired = false; return; }
+          self.toggleCode(st.logDate, it.code);
+        },
+        down: function () {
+          self._lpFired = false;
+          clearTimeout(self._lp);
+          self._lp = setTimeout(function () {
+            self._lpFired = true;
+            self.setState({ overlay: 'symptom', symptom: it.code, symFromLog: true });
+          }, 500);
+        },
+        up: function () { clearTimeout(self._lp); }
+      };
+    };
+    var sections = CATS.filter(function (cat) { return !st.hiddenCats[cat.id]; }).map(function (cat) {
       return {
         id: cat.id, label: cat.label, short: cat.short, color: cat.color, tint: cat.tint, hint: cat.hint,
         showAlert: cat.id === 'sex' && pds.triggered && logCodes.indexOf('emergency_contraception') >= 0,
-        items: ITEMS.filter(function (it) { return it.cat === cat.id; }).map(function (it) {
-          var on = logCodes.indexOf(it.code) >= 0;
-          var border = on ? cat.color : it.highlight ? '#C2410C' : LINE;
-          return {
-            label: it.label, pressed: on, icon: ICONS[it.icon],
-            aria: it.label + (on ? ', marcado' : '') + '. Segure para ver o histórico.',
-            style: (on ? 'background: ' + cat.color + '; color: #FFFFFF; ' : 'background: #FFFFFF; color: ' + INK + '; ') + 'border: ' + (it.highlight ? '2px' : '1.5px') + ' solid ' + border,
-            iconStyle: on ? 'background: rgba(255, 255, 255, 0.22); color: #FFFFFF' : it.highlight ? 'background: #FFE7D6; color: #9A3412' : 'background: ' + cat.tint + '; color: ' + cat.color,
-            tap: function () {
-              if (self._lpFired) { self._lpFired = false; return; }
-              self.toggleCode(st.logDate, it.code);
-            },
-            down: function () {
-              self._lpFired = false;
-              clearTimeout(self._lp);
-              self._lp = setTimeout(function () {
-                self._lpFired = true;
-                self.setState({ overlay: 'symptom', symptom: it.code, symFromLog: true });
-              }, 500);
-            },
-            up: function () { clearTimeout(self._lp); }
-          };
-        })
+        showPregPrompt: cat.id === 'test' && st.pregPrompt && !st.pregnant,
+        items: ITEMS.filter(function (it) { return it.cat === cat.id && !it.special; }).map(itemVM)
+      };
+    });
+    var sug = this.suggestions(st.logDate);
+    var suggest = {
+      phase: sug.phase,
+      items: sug.codes.filter(function (c) { return !st.hiddenCats[ITEM_BY[c].cat]; }).map(function (c) { return itemVM(ITEM_BY[c]); })
+    };
+    var calmOn = logCodes.indexOf('no_symptoms') >= 0;
+    var calmDay = {
+      pressed: calmOn,
+      style: calmOn ? 'border: 0; background: #1C6E64; color: #FFFFFF' : 'border: 1.5px solid #B9DCD6; background: #FFFFFF; color: #14524A',
+      tap: function () { self.toggleCode(st.logDate, 'no_symptoms'); }
+    };
+    var editRows = CATS.map(function (cat) {
+      var on = !st.hiddenCats[cat.id];
+      return {
+        label: cat.label, color: cat.color, on: on,
+        count: ITEMS.filter(function (i) { return i.cat === cat.id && !i.special; }).length + ' itens',
+        aria: (on ? 'Esconder ' : 'Mostrar ') + cat.label,
+        bg: on ? INDIGO : '#C9C5D2', justify: on ? 'flex-end' : 'flex-start',
+        toggle: function () { var h = Object.assign({}, st.hiddenCats); h[cat.id] = on; self.setState({ hiddenCats: h }); }
       };
     });
 
@@ -1206,14 +1440,8 @@ class Component extends DCLogic {
     };
 
     // ---- resumo
-    var starts = this.allStarts();
-    var lens = [];
-    for (var k = 1; k < starts.length; k++) lens.push(diff(starts[k - 1], starts[k]));
-    var reg = regularity(lens);
-    var mean = function (xs) { return Math.round(xs.reduce(function (s, v) { return s + v; }, 0) / xs.length); };
-    // A média ignora o ciclo fora do padrão para não puxar a previsão.
-    var avgBase = reg.kind === 'outlier' ? reg.rest : lens.slice(-6);
-    var avg = avgBase.length ? mean(avgBase) : st.cycleLen;
+    // A média (em cycleStats) ignora o ciclo fora do padrão para não puxar a previsão.
+    var starts = cs.starts, lens = cs.lens, reg = cs.reg, avg = cs.avg;
     var lastStarts = starts.slice(-reg.last.length - 1, -1);
     var regText = {
       insufficient: ['Ainda sem dados suficientes', MUTED, 'Precisamos de 3 ciclos completos registrados para avaliar' + (lens.length ? '. Até agora: ' + lens.join(' e ') + ' dias.' : '.')],
@@ -1232,7 +1460,7 @@ class Component extends DCLogic {
         return { len: l, h: Math.round(l / maxBar * 60) + 8, color: odd ? '#C2410C' : '#A9A4B8', textColor: odd ? '#9A3412' : MUTED, label: fmtShort(lastStarts[i]).split(' ')[1] };
       }),
       pds: pds.in12 + (pds.in12 === 1 ? ' vez' : ' vezes') + ' nos últimos 12 meses · ' + pds.inCycle + ' neste ciclo.',
-      top: ['cramps', 'mood_tired', 'breast_tenderness'].map(function (c) {
+      top: ['cramps', 'fatigue', 'breast_tenderness'].map(function (c) {
         var d = self.symptomData(c);
         return { label: d.label, text: d.n + ' de ' + d.loggedCount + ' ciclos', pct: d.loggedCount ? Math.round(d.n / d.loggedCount * 100) : 0 };
       })
@@ -1261,7 +1489,14 @@ class Component extends DCLogic {
       todayLong: fmtLong(TODAY), ring: ring, qa: qa, pds: pds, periodOpen: st.periodOpen,
       todayTags: todayTags, hasTags: todayTags.length > 0, noTags: todayTags.length === 0,
       todayCountText: todayTags.length === 1 ? '1 item' : todayTags.length + ' itens',
-      sections: sections, logDateLabel: st.logDate === TODAY ? 'Hoje, ' + fmt(TODAY) : fmtLong(st.logDate),
+      sections: sections, suggest: suggest, calmDay: calmDay, editRows: editRows, preg: preg,
+      editing: st.editCats, notEditing: !st.editCats, editLabel: st.editCats ? 'Concluir' : 'Editar',
+      logHint: st.editCats ? 'Escolha o que aparece no registro.' : 'Toque para marcar · segure para ver o histórico',
+      toggleEdit: function () { self.setState({ editCats: !st.editCats }); },
+      startPregnancy: function () { self.setState({ pregnant: true, pregPrompt: false, periodOpen: false, overlay: null, screen: 'today' }); },
+      dismissPreg: function () { self.setState({ pregPrompt: false }); },
+      togglePregnancy: function () { self.setState({ pregnant: !st.pregnant, pregPrompt: false }); },
+      logDateLabel: st.logDate === TODAY ? 'Hoje, ' + fmt(TODAY) : fmtLong(st.logDate),
       sym: this.symptomData(st.symptom), cal: cal, stats: stats,
       showFab: st.aiOn && st.screen !== 'onboarding',
       tabs: tabDefs.map(function (t) {
@@ -1289,7 +1524,7 @@ class Component extends DCLogic {
       openPrivacy: function () { self.setState({ overlay: 'privacy' }); },
       openLog: function () { self.setState({ overlay: 'log', logDate: TODAY }); },
       openChat: function () { self.setState({ overlay: 'chat' }); },
-      closeOverlay: function () { clearInterval(self._del); self.setState({ overlay: null, delProgress: 0 }); },
+      closeOverlay: function () { clearInterval(self._del); self.setState({ overlay: null, delProgress: 0, editCats: false }); },
       closeSymptom: function () { self.setState({ overlay: st.symFromLog ? 'log' : null, symFromLog: false }); },
       askSymptom: function () {
         var it = ITEM_BY[st.symptom];

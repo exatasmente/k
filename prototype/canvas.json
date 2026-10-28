@@ -10,7 +10,9 @@
     "Main.dc.html": { "h": 844, "is_interactive": true, "radius": 40, "title": "Protótipo navegável (comece aqui)", "w": 390, "x": 0, "y": 0 },
     "Privacidade.dc.html": { "h": 844, "is_interactive": true, "radius": 40, "title": "Ajustes & privacidade", "w": 390, "x": 3290, "y": 0 },
     "Registro.dc.html": { "h": 844, "is_interactive": true, "radius": 40, "title": "Registro por ícones", "w": 390, "x": 940, "y": 0 },
-    "Resumo.dc.html": { "h": 844, "is_interactive": true, "radius": 40, "title": "Resumo (regularidade com ciclo fora do padrão)", "w": 390, "x": 3760, "y": 0 }
+    "Resumo.dc.html": { "h": 844, "is_interactive": true, "radius": 40, "title": "Resumo (regularidade com ciclo fora do padrão)", "w": 390, "x": 3760, "y": 0 },
+    "Janela.dc.html": { "h": 844, "is_interactive": true, "radius": 40, "title": "Hoje · menstruação pode começar (janela)", "w": 390, "x": 4230, "y": 0 },
+    "Gestacao.dc.html": { "h": 844, "is_interactive": true, "radius": 40, "title": "Modo gestação", "w": 390, "x": 4700, "y": 0 }
   },
   "createdOnFiles": { "at": "2026-10-28T12:00:00Z", "v": 1 },
   "designSystems": [],
@@ -34,7 +36,9 @@
     "Chat.dc.html",
     "Hormonal.dc.html",
     "Privacidade.dc.html",
-    "Resumo.dc.html"
+    "Resumo.dc.html",
+    "Janela.dc.html",
+    "Gestacao.dc.html"
   ],
   "pages": [],
   "title": "Protótipo Ciclo — MVP"
