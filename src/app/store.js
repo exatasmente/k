@@ -198,6 +198,19 @@ export function createStore(repo, { today = localToday } = {}) {
       return shouldAskAtPeriodEnd(period, 'cramps', model.codesOn, model.answers[open.start]?.cramps) ? open.start : null;
     }),
 
+    /** Apaga uma menstruação registrada por engano, com o fluxo anotado nos dias dela. */
+    removePeriod: act(async (periodId) => {
+      const p = model.livePeriods.find((x) => x.id === periodId);
+      if (!p) return;
+      const last = p.end ?? model.today;
+      const flow = [];
+      for (let d = p.start; d <= last; d = addDays(d, 1)) {
+        for (const c of model.codesOn(d)) if (FLOW_CODES.includes(c)) flow.push(entryId(d, c));
+      }
+      await repo.remove('periods', p.id);
+      if (flow.length) await repo.remove('entries', ...flow);
+    }),
+
     /** RF01.4: confirma (ou corrige) o fim de uma menstruação fechada automaticamente pela média. */
     confirmPeriodEnd: act(async (periodId, end) => {
       const p = model.periods.find((x) => x.id === periodId);

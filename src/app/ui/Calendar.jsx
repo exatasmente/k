@@ -10,7 +10,7 @@ function shiftMonth(month, delta) {
   return new Date(Date.UTC(y, m - 1 + delta, 1)).toISOString().slice(0, 7);
 }
 
-export function CalendarScreen({ model, nav }) {
+export function CalendarScreen({ model, nav, store }) {
   const [month, setMonth] = useState(model.today.slice(0, 7));
   const [selected, setSelected] = useState(model.today);
   const v = calendarView(model, month, selected);
@@ -62,7 +62,26 @@ export function CalendarScreen({ model, nav }) {
           </div>
         )}
         {v.selected.canLog && <button class="btn" onClick={() => nav.openLog(selected)}>Registrar neste dia</button>}
+        {v.selected.period && <RemovePeriod key={v.selected.period.id} period={v.selected.period} store={store} />}
       </section>
+    </div>
+  );
+}
+
+/** Apagar uma menstruação registrada por engano: o primeiro toque pede confirmação. */
+function RemovePeriod({ period, store }) {
+  const [confirm, setConfirm] = useState(false);
+  return (
+    <div class="row" style={{ justifyContent: 'space-between', flexWrap: 'wrap' }}>
+      <span class="small muted">{period.text}</span>
+      {confirm ? (
+        <span class="row">
+          <button class="btn danger" onClick={() => store.removePeriod(period.id)}>Apagar mesmo</button>
+          <button class="btn" onClick={() => setConfirm(false)}>Cancelar</button>
+        </span>
+      ) : (
+        <button class="btn ghost" onClick={() => setConfirm(true)}>Apagar esta menstruação</button>
+      )}
     </div>
   );
 }
