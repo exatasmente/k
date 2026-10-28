@@ -125,6 +125,7 @@ export function SettingsSheet({ model, store, nav }) {
   const [deleted, setDeleted] = useState(false);
   const [message, setMessage] = useState('');
   const fileInput = useRef(null);
+  const historyInput = useRef(null);
   const periodLength = model.profile.onboarding.periodLength;
 
   const exportBackup = () => {
@@ -139,6 +140,18 @@ export function SettingsSheet({ model, store, nav }) {
       setMessage('Backup restaurado. Ele substituiu os dados que estavam neste aparelho.');
     } catch (err) {
       setMessage(`Não deu para restaurar: ${err.message}`);
+    }
+  };
+  const importHistory = async (e) => {
+    const file = e.currentTarget.files?.[0];
+    e.currentTarget.value = '';
+    if (!file) return;
+    try {
+      const r = await store.importHistory(JSON.parse(await file.text()));
+      setMessage(`Histórico importado: ${r.periods} ${r.periods === 1 ? 'menstruação' : 'menstruações'} e ${r.entries} ${r.entries === 1 ? 'registro' : 'registros'}.`
+        + (r.skipped ? ` ${r.skipped} já ${r.skipped === 1 ? 'existia' : 'existiam'} aqui e ${r.skipped === 1 ? 'ficou' : 'ficaram'} como estava${r.skipped === 1 ? '' : 'm'}.` : ''));
+    } catch (err) {
+      setMessage(`Não deu para importar: ${err.message}`);
     }
   };
   const deleteAll = async () => {
@@ -175,6 +188,9 @@ export function SettingsSheet({ model, store, nav }) {
           <strong>Onde ficam seus dados</strong>
           <div class="muted">Neste aparelho, cifrados. Sem conta e sem nuvem.</div>
           <div class="small muted">Restaurar um backup substitui o que está neste aparelho.</div>
+          <button class="btn" onClick={() => historyInput.current?.click()}>Importar histórico de outro app</button>
+          <input ref={historyInput} type="file" accept="application/json,.json" class="sr-only" tabIndex={-1} onChange={importHistory} aria-label="Arquivo de histórico" />
+          <div class="small muted">Acrescenta ciclos antigos sem apagar nada. O que você já registrou aqui vale mais.</div>
           <div class="row">
             <button class="btn" onClick={exportBackup}>Baixar backup</button>
             <button class="btn" onClick={() => fileInput.current?.click()}>Restaurar backup</button>

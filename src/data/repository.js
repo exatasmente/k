@@ -133,6 +133,13 @@ export async function openRepository(opts = {}) {
       return { format: EXPORT_FORMAT, version: EXPORT_VERSION, exportedAt: now(), stores };
     },
 
+    /** Grava vários stores numa transação só, validando tudo antes. @param {Record<string, object[]>} changes */
+    async putAll(changes) {
+      const stamped = {};
+      for (const [store, records] of Object.entries(changes)) stamped[store] = stampAndCheck(store, records);
+      await writeAll(stamped);
+    },
+
     /**
      * Restaura um backup no lugar dos dados atuais (não soma: dois métodos vigentes ou
      * menstruações em dobro mudariam as previsões). Valida tudo antes e grava numa

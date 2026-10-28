@@ -14,6 +14,7 @@ import { dueReminders, planReminders, reminderPrefs } from './reminders.js';
 // As telas leem `getModel()` e chamam as ações; cada ação grava e notifica.
 
 const SINCE_ALWAYS = '1900-01-01';
+export const HISTORY_FORMAT = 'ciclo-historico';
 const PRENATAL_ID = 'prenatal-next';
 const uuid = () => globalThis.crypto.randomUUID();
 
@@ -283,6 +284,31 @@ export function createStore(repo, { today = localToday } = {}) {
 
     exportBackup: () => repo.exportJSON(),
     importBackup: act((backup) => repo.importJSON(backup)),
+
+    /**
+     * Histórico vindo de outro app ({format: 'ciclo-historico', periods, entries, cycleAnswers}).
+     * Só acrescenta: o que ela já registrou aqui vence (menstruação que se sobrepõe, mesmo
+     * registro do dia, mesma resposta). Tudo ou nada. Devolve quanto entrou e quanto ficou de fora.
+     */
+    importHistory: act(async (data) => {
+      if (data?.format !== HISTORY_FORMAT) throw new Error('Arquivo não é um histórico de ciclos deste app.');
+      const live = model.livePeriods;
+      const overlaps = (a, b) => a.start <= (b.end ?? model.today) && b.start <= (a.end ?? model.today);
+      const periods = [];
+      let skipped = 0;
+      for (const p of data.periods ?? []) {
+        const candidate = { start: p.start, end: p.end ?? null };
+        if ([...live, ...periods].some((q) => overlaps(candidate, q))) { skipped++; continue; }
+        periods.push({ id: uuid(), ...candidate, source: 'import', confirmed: true });
+      }
+      const entries = (data.entries ?? []).filter((e) => !model.codesOn(e.date).has(e.code))
+        .map((e) => ({ id: entryId(e.date, e.code), date: e.date, code: e.code, source: 'import' }));
+      const cycleAnswers = (data.cycleAnswers ?? []).filter((a) => !model.answers[a.cycleStart]?.[a.code])
+        .map((a) => ({ id: cycleAnswerId(a.cycleStart, a.code), cycleStart: a.cycleStart, code: a.code, answer: a.answer }));
+      skipped += (data.entries?.length ?? 0) - entries.length + (data.cycleAnswers?.length ?? 0) - cycleAnswers.length;
+      await repo.putAll({ periods, entries, cycleAnswers });
+      return { periods: periods.length, entries: entries.length + cycleAnswers.length, skipped };
+    }),
 
     /**
      * Apaga tudo do aparelho. Devolve o registro anônimo (sem datas) que PODE ser
