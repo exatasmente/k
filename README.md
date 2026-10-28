@@ -1,0 +1,37 @@
+# Ciclo (nome provisório)
+
+App de acompanhamento menstrual local-first: zero fricção, privacidade rigorosa (LGPD) e regras
+de saúde explicáveis.
+
+## Estrutura
+
+| Pasta | Conteúdo |
+|---|---|
+| `src/domain/` | Regras puras: ciclo e previsão, regularidade, alertas, três estados de registro, gestação, catálogo, privacidade |
+| `src/data/` | Banco local: esquema, validadores, criptografia (AES-GCM) e repositório IndexedDB |
+| `src/app/` | Store (liga banco e domínio), view-models das telas e interface em Preact |
+| `test/` | Testes das regras (`node --test`) |
+| `docs/` | ADRs e modelo de dados |
+| `prototype/` | Fontes do protótipo de alta fidelidade (canvas interativo) |
+
+## Rodar
+
+Requer Node 20 ou mais recente.
+
+```sh
+npm install
+npm run dev      # app em modo desenvolvimento
+npm test         # testes das regras, do banco e das telas (sem navegador)
+npm run build    # gera o PWA em dist/
+```
+
+## Publicar
+
+O workflow `.github/workflows/pages.yml` publica o PWA no GitHub Pages a cada push na `master`.
+Antes, ative em **Settings → Pages → Source: GitHub Actions**. No celular, abra o endereço e use
+"Adicionar à tela inicial": instalado, o navegador não apaga os dados.
+
+## Documentos
+
+- [ADR 0001 — Arquitetura do MVP](docs/adr/0001-arquitetura-mvp.md)
+- [Modelo de dados](docs/modelo-de-dados.md)

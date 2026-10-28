@@ -1,0 +1,2115 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Ciclo · protótipo navegável</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&amp;family=Figtree:wght@400..700&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #F5F3F7; color: #1F1A2E; font-family: 'Figtree', system-ui, sans-serif; font-size: 15px; line-height: 1.4">
+
+<!-- ============ ONBOARDING ============ -->
+<sc-if value="{{isOnboarding}}" hint-placeholder-val="{{false}}">
+<div style="position: absolute; inset: 0; display: flex; flex-direction: column; padding: 24px 24px 28px; box-sizing: border-box; gap: 20px">
+  <div style="display: flex; align-items: center; gap: 12px; min-height: 44px">
+    <sc-if value="{{ob.canBack}}" hint-placeholder-val="{{false}}">
+      <button onClick="{{obBack}}" aria-label="Voltar" style="width: 44px; height: 44px; border-radius: 22px; border: 1px solid #E6E2EC; background: #FFFFFF; color: #1F1A2E; display: flex; align-items: center; justify-content: center; cursor: pointer">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>
+      </button>
+    </sc-if>
+    <div style="flex: 1; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px">
+      <sc-for list="{{ob.bars}}" as="b" hint-placeholder-count="4">
+        <div style="height: 6px; border-radius: 3px; background: {{b.color}}"></div>
+      </sc-for>
+    </div>
+    <div style="font-size: 13px; font-weight: 600; color: #5C5670">{{ob.stepLabel}}</div>
+  </div>
+
+  <sc-if value="{{ob.s0}}" hint-placeholder-val="{{true}}">
+    <div style="display: flex; flex-direction: column; gap: 16px">
+      <h1 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 30px; line-height: 1.1; font-weight: 750">Quando começou sua última menstruação?</h1>
+      <p style="margin: 0; color: #5C5670">Toque no dia. Se não lembrar exato, escolha o mais próximo.</p>
+      <div style="font-size: 13px; font-weight: 700; color: #5C5670; text-transform: uppercase; letter-spacing: 0.06em">Outubro 2026</div>
+      <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px">
+        <sc-for list="{{ob.days}}" as="d" hint-placeholder-count="28">
+          <button onClick="{{d.pick}}" aria-label="{{d.aria}}" aria-pressed="{{d.selected}}" style="height: 52px; border-radius: 14px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; font: inherit; {{d.style}}">
+            <span style="font-size: 11px; font-weight: 600; opacity: 0.85">{{d.wd}}</span>
+            <span style="font-size: 16px; font-weight: 700">{{d.num}}</span>
+          </button>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ob.s1}}" hint-placeholder-val="{{false}}">
+    <div style="display: flex; flex-direction: column; gap: 16px">
+      <h1 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 30px; line-height: 1.1; font-weight: 750">Seu ritmo</h1>
+      <p style="margin: 0; color: #5C5670">Não sabe? Deixe 28 e 5. O app aprende com seus registros.</p>
+      <div style="background: #FFFFFF; border: 1px solid #E6E2EC; border-radius: 20px; padding: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px">
+        <div>
+          <div style="font-weight: 700">Duração do ciclo</div>
+          <div style="font-size: 13px; color: #5C5670">De uma menstruação à outra</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px">
+          <button onClick="{{decCycle}}" aria-label="Diminuir duração do ciclo" style="width: 44px; height: 44px; border-radius: 22px; border: 1px solid #E6E2EC; background: #F5F3F7; color: #1F1A2E; font-size: 22px; cursor: pointer">−</button>
+          <div style="min-width: 56px; text-align: center; font-family: 'Bricolage Grotesque', sans-serif; font-size: 22px; font-weight: 750">{{ob.cycleText}}</div>
+          <button onClick="{{incCycle}}" aria-label="Aumentar duração do ciclo" style="width: 44px; height: 44px; border-radius: 22px; border: 1px solid #E6E2EC; background: #F5F3F7; color: #1F1A2E; font-size: 22px; cursor: pointer">+</button>
+        </div>
+      </div>
+      <div style="background: #FFFFFF; border: 1px solid #E6E2EC; border-radius: 20px; padding: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px">
+        <div>
+          <div style="font-weight: 700">Duração da menstruação</div>
+          <div style="font-size: 13px; color: #5C5670">Dias de sangramento</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px">
+          <button onClick="{{decPeriod}}" aria-label="Diminuir duração da menstruação" style="width: 44px; height: 44px; border-radius: 22px; border: 1px solid #E6E2EC; background: #F5F3F7; color: #1F1A2E; font-size: 22px; cursor: pointer">−</button>
+          <div style="min-width: 56px; text-align: center; font-family: 'Bricolage Grotesque', sans-serif; font-size: 22px; font-weight: 750">{{ob.periodText}}</div>
+          <button onClick="{{incPeriod}}" aria-label="Aumentar duração da menstruação" style="width: 44px; height: 44px; border-radius: 22px; border: 1px solid #E6E2EC; background: #F5F3F7; color: #1F1A2E; font-size: 22px; cursor: pointer">+</button>
+        </div>
+      </div>
+      <div style="background: #FFFFFF; border: 1px solid #E6E2EC; border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 8px">
+        <label for="ob-birth" style="font-weight: 700">Data de nascimento</label>
+        <input id="ob-birth" type="date" value="{{birth}}" onChange="{{setBirth}}" style="height: 44px; border-radius: 12px; border: 1px solid #E6E2EC; padding: 0 12px; font: inherit; color: #1F1A2E; background: #F5F3F7">
+        <div style="font-size: 13px; color: #5C5670">{{ob.ageText}}</div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ob.s2}}" hint-placeholder-val="{{false}}">
+    <div style="display: flex; flex-direction: column; gap: 16px">
+      <h1 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 30px; line-height: 1.1; font-weight: 750">Você usa algum método contraceptivo?</h1>
+      <p style="margin: 0; color: #5C5670">Assim não perguntamos de novo a cada registro.</p>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+        <sc-for list="{{methodChips}}" as="m" hint-placeholder-count="9">
+          <button onClick="{{m.pick}}" aria-pressed="{{m.selected}}" style="min-height: 52px; border-radius: 16px; padding: 10px 12px; font: inherit; font-weight: 600; text-align: left; cursor: pointer; {{m.style}}">{{m.label}}</button>
+        </sc-for>
+      </div>
+      <sc-if value="{{hormonal}}" hint-placeholder-val="{{false}}">
+        <div style="background: #ECEBFA; color: #2F2A80; border-radius: 16px; padding: 12px 14px; font-size: 14px">Com esse método não mostramos janela fértil. O foco passa a ser sintomas, humor e sangramentos.</div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ob.s3}}" hint-placeholder-val="{{false}}">
+    <div style="display: flex; flex-direction: column; gap: 16px">
+      <h1 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 30px; line-height: 1.1; font-weight: 750">Seus dados são seus</h1>
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <div style="background: #FFFFFF; border: 1px solid #E6E2EC; border-radius: 18px; padding: 14px; display: flex; gap: 12px; align-items: flex-start">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4B44B0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h10a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"></path><path d="M11 18h2"></path></svg>
+          <div><div style="font-weight: 700">Ficam neste aparelho</div><div style="font-size: 14px; color: #5C5670">Sem conta e sem nuvem por enquanto.</div></div>
+        </div>
+        <div style="background: #FFFFFF; border: 1px solid #E6E2EC; border-radius: 18px; padding: 14px; display: flex; gap: 12px; align-items: flex-start">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4B44B0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6l7-3z"></path></svg>
+          <div><div style="font-weight: 700">A IA não sabe quem você é</div><div style="font-size: 14px; color: #5C5670">Ela recebe só datas e eventos. Nunca nome, e-mail ou foto.</div></div>
+        </div>
+      </div>
+      <div style="background: #FFFFFF; border: 1px solid #E6E2EC; border-radius: 18px; padding: 14px; display: flex; gap: 12px; align-items: center; justify-content: space-between">
+        <div><div style="font-weight: 700">Ativar assistente de IA</div><div style="font-size: 14px; color: #5C5670">Opcional. Dá para mudar depois.</div></div>
+        <button onClick="{{toggleAi}}" aria-pressed="{{aiOn}}" aria-label="Ativar assistente de IA" style="width: 56px; height: 34px; border-radius: 17px; border: 0; padding: 3px; cursor: pointer; display: flex; background: {{aiSwitch.bg}}; justify-content: {{aiSwitch.justify}}">
+          <span style="width: 28px; height: 28px; border-radius: 14px; background: #FFFFFF; display: block"></span>
+        </button>
+      </div>
+    </div>
+  </sc-if>
+
+  <div style="margin-top: auto">
+    <button onClick="{{obNext}}" style="width: 100%; height: 56px; border-radius: 28px; border: 0; background: #1F1A2E; color: #FFFFFF; font: inherit; font-size: 17px; font-weight: 700; cursor: pointer">{{ob.cta}}</button>
+  </div>
+</div>
+</sc-if>
+
+<!-- ============ APP ============ -->
+<sc-if value="{{isApp}}" hint-placeholder-val="{{true}}">
+<div style="position: absolute; top: 0; left: 0; right: 0; bottom: 76px; overflow-y: auto">
+
+  <!-- ---------- HOJE ---------- -->
+  <sc-if value="{{isToday}}" hint-placeholder-val="{{true}}">
+  <div style="padding: 20px 20px 96px; display: flex; flex-direction: column; gap: 14px">
+    <div style="display: flex; justify-content: space-between; align-items: center">
+      <div>
+        <div style="font-size: 13px; font-weight: 700; color: #5C5670; text-transform: uppercase; letter-spacing: 0.06em">Hoje</div>
+        <div style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 24px; font-weight: 750">{{todayLong}}</div>
+      </div>
+      <button onClick="{{openPrivacy}}" aria-label="Ajustes e privacidade" style="width: 44px; height: 44px; border-radius: 22px; border: 1px solid #E6E2EC; background: #FFFFFF; color: #1F1A2E; display: flex; align-items: center; justify-content: center; cursor: pointer">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6l7-3z"></path><path d="M9.5 12l2 2 3.5-4"></path></svg>
+      </button>
+    </div>
+
+    <sc-if value="{{redFlag.show}}" hint-placeholder-val="{{false}}">
+      <div role="alert" style="background: #FDECEA; border: 2px solid #B42318; border-radius: 22px; padding: 16px; display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; align-items: center; gap: 8px; color: #912018; font-weight: 800; font-size: 17px">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4l9 16H3l9-16z"></path><path d="M12 10v4"></path><path d="M12 17h.01"></path></svg>
+          Procure atendimento
+        </div>
+        <div style="font-size: 14px; color: #4A1410">{{redFlag.text}}</div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{preg.on}}" hint-placeholder-val="{{false}}">
+      <section style="background: #FFFFFF; border: 1px solid #E6E2EC; border-radius: 28px; padding: 22px; display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px">
+          <div style="font-size: 13px; font-weight: 700; color: #3F3A8C; text-transform: uppercase; letter-spacing: 0.06em">Gestação</div>
+          <div style="font-size: 13px; font-weight: 700; color: #5C5670">{{preg.trimester}}</div>
+        </div>
+        <div>
+          <div style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 44px; font-weight: 800; line-height: 1">{{preg.short}}</div>
+          <div style="font-size: 14px; color: #5C5670">{{preg.long}}</div>
+        </div>
+        <div role="img" aria-label="Progresso da gestação até 40 semanas" style="display: flex; flex-direction: column; gap: 4px">
+          <div style="height: 10px; border-radius: 5px; background: #ECEBFA"><div style="height: 10px; border-radius: 5px; background: #4B44B0; width: {{preg.pct}}%"></div></div>
+          <div style="display: flex; justify-content: space-between; font-size: 12px; color: #5C5670"><span>0</span><span>13s</span><span>27s</span><span>40 semanas</span></div>
+        </div>
+        <div style="font-size: 14px">Data provável do parto: <strong>{{preg.due}}</strong></div>
+        <div style="font-size: 13px; color: #5C5670">{{preg.datingLabel}}. É uma estimativa; o pré-natal pode ajustar.</div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap">
+          <button onClick="{{openPregSetup}}" style="min-height: 44px; padding: 0 16px; border-radius: 22px; border: 1px solid #CFCAD8; background: #FFFFFF; color: #1F1A2E; font: inherit; font-weight: 700; cursor: pointer">Ajustar datação</button>
+          <button onClick="{{openPregEnd}}" style="min-height: 44px; padding: 0 16px; border-radius: 22px; border: 0; background: transparent; color: #5C5670; font: inherit; font-weight: 600; cursor: pointer">Encerrar acompanhamento</button>
+        </div>
+      </section>
+      <section style="background: #FFFFFF; border: 1px solid #E6E2EC; border-radius: 22px; padding: 16px; display: flex; flex-direction: column; gap: 8px">
+        <label for="consult-date" style="font-weight: 700">Próxima consulta do pré-natal</label>
+        <input id="consult-date" type="date" value="{{preg.consult}}" onChange="{{setConsult}}" style="height: 44px; border-radius: 12px; border: 1px solid #E6E2EC; padding: 0 12px; font: inherit; color: #1F1A2E; background: #F5F3F7">
+        <div style="font-size: 13px; color: #5C5670">{{preg.consultText}}</div>
+      </section>
+      <section style="background: #FFFFFF; border: 1px solid #E6E2EC; border-radius: 22px; padding: 6px 16px; display: flex; flex-direction: column">
+        <button onClick="{{toggleFlags}}" aria-expanded="{{preg.flagsOpen}}" style="min-height: 48px; border: 0; background: transparent; color: #912018; font: inherit; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 0; text-align: left">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4l9 16H3l9-16z"></path><path d="M12 10v4"></path><path d="M12 17h.01"></path></svg>
+          {{preg.flagsLabel}}
+        </button>
+        <sc-if value="{{preg.flagsOpen}}" hint-placeholder-val="{{false}}">
+          <div style="display: flex; flex-direction: column; gap: 6px; padding-bottom: 12px">
+            <sc-for list="{{preg.flags}}" as="f" hint-placeholder-count="8">
+              <div style="font-size: 14px; display: flex; gap: 8px"><span aria-hidden="true" style="color: #B42318">•</span>{{f.label}}</div>
+            </sc-for>
+            <div style="font-size: 13px; color: #5C5670; margin-top: 4px">Se acontecer, procure atendimento. Se for intenso, vá ao pronto-socorro ou ligue 192 (SAMU).</div>
+          </div>
+        </sc-if>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{pp.on}}" hint-placeholder-val="{{false}}">
+      <section style="background: #FFFFFF; border: 1px solid #E6E2EC; border-radius: 28px; padding: 22px; display: flex; flex-direction: column; gap: 10px">
+        <div style="font-size: 13px; font-weight: 700; color: #3F3A8C; text-transform: uppercase; letter-spacing: 0.06em">Pós-parto</div>
+        <div style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 24px; font-weight: 800">{{pp.since}}</div>
+        <div style="font-size: 14px; color: #5C5670">Nos primeiros meses, principalmente amamentando, a menstruação pode demorar a voltar e vir irregular. Os avisos de regularidade ficam pausados.</div>
+        <div style="font-size: 14px; color: #912018">Sangramento muito intenso, febre ou dor forte: procure atendimento.</div>
+        <button onClick="{{togglePeriod}}" style="align-self: flex-start; min-height: 44px; padding: 0 16px; border-radius: 22px; border: 1.5px solid #E7C3CB; background: #FFFFFF; color: #8E1F35; font: inherit; font-weight: 700; cursor: pointer">Minha menstruação voltou</button>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{awaiting.on}}" hint-placeholder-val="{{false}}">
+      <section style="background: #FFFFFF; border: 1px solid #E6E2EC; border-radius: 28px; padding: 22px; display: flex; flex-direction: column; gap: 10px">
+        <div style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 24px; font-weight: 800">Esperando a menstruação voltar</div>
+        <div style="font-size: 14px; color: #5C5670">Quando ela vier, toque em "Menstruei". As previsões voltam a partir daí. Seu histórico continua guardado.</div>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{askCard.show}}" hint-placeholder-val="{{false}}">
+      <section aria-label="Pergunta sobre o ciclo" style="background: #FFFFFF; border: 1px solid #E6E2EC; border-radius: 22px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+        <div style="font-weight: 700">Teve cólica nesta menstruação?</div>
+        <div style="font-size: 13px; color: #5C5670">Uma resposta vale para o ciclo todo. "Não lembro" deixa como sem registro.</div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap">
+          <button onClick="{{askCard.yes}}" style="min-height: 40px; padding: 0 16px; border-radius: 20px; border: 0; background: #6E3B96; color: #FFFFFF; font: inherit; font-weight: 700; cursor: pointer">Sim</button>
+          <button onClick="{{askCard.no}}" style="min-height: 40px; padding: 0 16px; border-radius: 20px; border: 1px solid #CFCAD8; background: #FFFFFF; color: #1F1A2E; font: inherit; font-weight: 700; cursor: pointer">Não</button>
+          <button onClick="{{askCard.unknown}}" style="min-height: 40px; padding: 0 16px; border-radius: 20px; border: 0; background: transparent; color: #5C5670; font: inherit; font-weight: 600; cursor: pointer">Não lembro</button>
+        </div>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{showRing}}" hint-placeholder-val="{{true}}">
+    <section style="background: #FFFFFF; border: 1px solid #E6E2EC; border-radius: 28px; padding: 18px 18px 16px; display: flex; flex-direction: column; align-items: center; gap: 10px">
+      <div style="position: relative; width: 232px; height: 232px">
+        <svg width="232" height="232" viewBox="0 0 240 240" aria-hidden="true">
+          <circle cx="120" cy="120" r="96" fill="none" stroke="#EEEBF3" stroke-width="18"></circle>
+          <circle cx="120" cy="120" r="96" fill="none" stroke="#B9B5EE" stroke-width="18" stroke-dasharray="{{ring.fertDash}}" stroke-dashoffset="{{ring.fertOffset}}" transform="rotate(-90 120 120)"></circle>
+          <circle cx="120" cy="120" r="96" fill="none" stroke="#B8304A" stroke-width="18" stroke-dasharray="{{ring.periodDash}}" transform="rotate(-90 120 120)"></circle>
+          <circle cx="{{ring.mx}}" cy="{{ring.my}}" r="13" fill="#FFFFFF" stroke="#1F1A2E" stroke-width="4"></circle>
+        </svg>
+        <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 2px">
+          <div style="font-size: 13px; font-weight: 700; color: #5C5670">{{ring.top}}</div>
+          <div style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 27px; line-height: 1.1; font-weight: 800; max-width: 150px; color: {{ring.color}}">{{ring.big}}</div>
+          <div style="font-size: 14px; color: #5C5670; max-width: 140px">{{ring.bottom}}</div>
+        </div>
+      </div>
+      <sc-if value="{{ring.showFertile}}" hint-placeholder-val="{{true}}">
+        <div style="display: flex; gap: 16px; font-size: 13px; color: #5C5670">
+          <span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 5px; background: #B8304A; display: inline-block"></span>Menstruação</span>
+          <span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 5px; background: #B9B5EE; display: inline-block"></span>Janela fértil</span>
+        </div>
+      </sc-if>
+      <sc-if value="{{hormonal}}" hint-placeholder-val="{{false}}">
+        <div style="font-size: 13px; color: #5C5670; text-align: center">{{ring.hormonalNote}}</div>
+      </sc-if>
+      <sc-if value="{{ring.showWindow}}" hint-placeholder-val="{{true}}">
+        <div style="font-size: 13px; font-weight: 600; color: #8E1F35; background: #FBE9EC; border-radius: 12px; padding: 6px 12px">{{ring.window}}</div>
+      </sc-if>
+    </section>
+    </sc-if>
+
+    <div style="display: grid; gap: 10px; grid-template-columns: {{qa.cols}}">
+      <sc-if value="{{qa.showPeriod}}" hint-placeholder-val="{{true}}">
+      <button onClick="{{togglePeriod}}" aria-pressed="{{periodOpen}}" style="min-height: 76px; border-radius: 22px; padding: 12px 14px; font: inherit; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 4px; {{qa.periodStyle}}">
+        <span style="display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 16px">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5c2.6 3.7 5.5 6.6 5.5 10a5.5 5.5 0 0 1-11 0c0-3.4 2.9-6.3 5.5-10z"></path></svg>
+          {{qa.periodLabel}}
+        </span>
+        <span style="font-size: 13px; opacity: 0.85">{{qa.periodSub}}</span>
+      </button>
+      </sc-if>
+      <sc-if value="{{qa.showSex}}" hint-placeholder-val="{{true}}">
+      <button onClick="{{quickSex}}" aria-pressed="{{qa.sexDone}}" style="min-height: 76px; border-radius: 22px; padding: 12px 14px; font: inherit; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 4px; {{qa.sexStyle}}">
+        <span style="display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 16px">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"></path></svg>
+          {{qa.sexLabel}}
+        </span>
+        <span style="font-size: 13px; opacity: 0.85">{{qa.sexSub}}</span>
+      </button>
+      </sc-if>
+    </div>
+
+    <sc-if value="{{qa.showStrip}}" hint-placeholder-val="{{false}}">
+      <div style="border-radius: 22px; padding: 14px; display: flex; flex-direction: column; gap: 10px; {{qa.stripStyle}}">
+        <div style="font-size: 14px; font-weight: 600">{{qa.stripText}}</div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap">
+          <sc-for list="{{qa.protChips}}" as="p" hint-placeholder-count="2">
+            <button onClick="{{p.pick}}" aria-pressed="{{p.selected}}" style="min-height: 40px; border-radius: 20px; padding: 0 14px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; {{p.style}}">{{p.label}}</button>
+          </sc-for>
+        </div>
+        <button onClick="{{togglePdsToday}}" aria-pressed="{{qa.pdsToday}}" style="min-height: 48px; border-radius: 16px; padding: 0 14px; font: inherit; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 10px; {{qa.pdsStyle}}">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l8-8a4.95 4.95 0 0 1 7 7l-8 8a4.95 4.95 0 0 1-7-7z"></path><path d="M8.5 8.5l7 7"></path></svg>
+          {{qa.pdsLabel}}
+        </button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{pds.showToday}}" hint-placeholder-val="{{false}}">
+      <div role="alert" style="background: #FFF1E6; border: 1.5px solid #C2410C; border-radius: 22px; padding: 16px; display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; align-items: center; gap: 8px; color: #9A3412; font-weight: 800">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4l9 16H3l9-16z"></path><path d="M12 10v4"></path><path d="M12 17h.01"></path></svg>
+          {{pds.title}}
+        </div>
+        <div style="font-size: 14px; color: #431407">{{pds.body}}</div>
+        <div style="display: flex; gap: 8px">
+          <button onClick="{{askPds}}" style="min-height: 40px; border-radius: 20px; padding: 0 14px; border: 0; background: #9A3412; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer">Entender melhor</button>
+          <button onClick="{{ackPds}}" style="min-height: 40px; border-radius: 20px; padding: 0 14px; border: 1px solid #C2410C; background: transparent; color: #9A3412; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer">Ok</button>
+        </div>
+      </div>
+    </sc-if>
+
+    <button onClick="{{openLog}}" style="min-height: 56px; border-radius: 28px; border: 0; background: #1F1A2E; color: #FFFFFF; font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
+      Registrar sintomas, humor e mais
+    </button>
+
+    <section style="display: flex; flex-direction: column; gap: 10px">
+      <div style="display: flex; justify-content: space-between; align-items: baseline">
+        <h2 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 19px; font-weight: 750">Registros de hoje</h2>
+        <span style="font-size: 13px; color: #5C5670">{{todayCountText}}</span>
+      </div>
+      <sc-if value="{{hasTags}}" hint-placeholder-val="{{true}}">
+        <div style="display: flex; flex-wrap: wrap; gap: 8px">
+          <sc-for list="{{todayTags}}" as="t" hint-placeholder-count="4">
+            <span style="display: inline-flex; align-items: center; gap: 2px; padding-left: 12px; border-radius: 20px; font-size: 14px; font-weight: 600; background: {{t.tint}}; color: {{t.color}}">
+              {{t.label}}
+              <button onClick="{{t.remove}}" aria-label="{{t.removeAria}}" style="width: 36px; height: 36px; border: 0; background: transparent; color: inherit; cursor: pointer; display: flex; align-items: center; justify-content: center">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12"></path><path d="M18 6L6 18"></path></svg>
+              </button>
+            </span>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{noTags}}" hint-placeholder-val="{{false}}">
+        <div style="font-size: 14px; color: #5C5670">Nada marcado hoje ainda.</div>
+      </sc-if>
+    </section>
+  </div>
+  </sc-if>
+
+  <!-- ---------- CALENDÁRIO ---------- -->
+  <sc-if value="{{isCalendar}}" hint-placeholder-val="{{false}}">
+  <div style="padding: 20px 20px 96px; display: flex; flex-direction: column; gap: 14px">
+    <div style="display: flex; justify-content: space-between; align-items: center">
+      <h1 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 26px; font-weight: 750">{{cal.title}}</h1>
+      <div style="display: flex; gap: 8px">
+        <button onClick="{{calPrev}}" aria-label="Mês anterior" style="width: 44px; height: 44px; border-radius: 22px; border: 1px solid #E6E2EC; background: #FFFFFF; color: #1F1A2E; cursor: pointer; display: flex; align-items: center; justify-content: center">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>
+        </button>
+        <button onClick="{{calNext}}" aria-label="Próximo mês" style="width: 44px; height: 44px; border-radius: 22px; border: 1px solid #E6E2EC; background: #FFFFFF; color: #1F1A2E; cursor: pointer; display: flex; align-items: center; justify-content: center">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg>
+        </button>
+      </div>
+    </div>
+    <div style="background: #FFFFFF; border: 1px solid #E6E2EC; border-radius: 24px; padding: 14px 10px">
+      <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin-bottom: 6px">
+        <sc-for list="{{cal.weekdays}}" as="w" hint-placeholder-count="7">
+          <div style="text-align: center; font-size: 12px; font-weight: 700; color: #5C5670">{{w}}</div>
+        </sc-for>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px">
+        <sc-for list="{{cal.cells}}" as="c" hint-placeholder-count="35">
+          <sc-if value="{{c.blank}}" hint-placeholder-val="{{false}}"><div style="height: 46px"></div></sc-if>
+          <sc-if value="{{c.day}}" hint-placeholder-val="{{true}}">
+            <button onClick="{{c.pick}}" aria-label="{{c.aria}}" aria-pressed="{{c.selected}}" style="height: 46px; border-radius: 14px; font: inherit; font-size: 15px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 0; box-sizing: border-box; {{c.style}}">
+              <span>{{c.num}}</span>
+              <span style="width: 6px; height: 6px; border-radius: 3px; background: {{c.dot}}"></span>
+            </button>
+          </sc-if>
+        </sc-for>
+      </div>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; gap: 8px 14px; font-size: 13px; color: #5C5670">
+      <span style="display: flex; align-items: center; gap: 6px"><span style="width: 14px; height: 14px; border-radius: 5px; background: #B8304A; display: inline-block"></span>Menstruação</span>
+      <span style="display: flex; align-items: center; gap: 6px"><span style="width: 14px; height: 14px; border-radius: 5px; border: 2px dashed #B8304A; box-sizing: border-box; display: inline-block"></span>Prevista</span>
+      <sc-if value="{{ring.showFertile}}" hint-placeholder-val="{{true}}">
+        <span style="display: flex; align-items: center; gap: 6px"><span style="width: 14px; height: 14px; border-radius: 5px; background: #E4E2FA; display: inline-block"></span>Janela fértil</span>
+      </sc-if>
+      <sc-if value="{{ring.showFertile}}" hint-placeholder-val="{{true}}">
+        <span style="display: flex; align-items: center; gap: 6px"><span style="width: 14px; height: 14px; border-radius: 5px; border: 2px solid #4B44B0; box-sizing: border-box; display: inline-block"></span>Ovulação</span>
+      </sc-if>
+      <span style="display: flex; align-items: center; gap: 6px"><span style="width: 8px; height: 8px; border-radius: 4px; background: #B23A78; display: inline-block"></span>Relação</span>
+    </div>
+    <div style="background: #FFFFFF; border: 1px solid #E6E2EC; border-radius: 24px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+      <div style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 19px; font-weight: 750">{{cal.selTitle}}</div>
+      <div style="font-size: 14px; color: #5C5670">{{cal.selPhase}}</div>
+      <sc-if value="{{cal.selHasTags}}" hint-placeholder-val="{{false}}">
+        <div style="display: flex; flex-wrap: wrap; gap: 6px">
+          <sc-for list="{{cal.selTags}}" as="t" hint-placeholder-count="3">
+            <span style="padding: 6px 12px; border-radius: 16px; font-size: 13px; font-weight: 600; background: {{t.tint}}; color: {{t.color}}">{{t.label}}</span>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{cal.canLog}}" hint-placeholder-val="{{true}}">
+        <button onClick="{{logSelected}}" style="min-height: 48px; border-radius: 24px; border: 1px solid #1F1A2E; background: #FFFFFF; color: #1F1A2E; font: inherit; font-weight: 700; cursor: pointer">Registrar neste dia</button>
+      </sc-if>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- ---------- RESUMO ---------- -->
+  <sc-if value="{{isStats}}" hint-placeholder-val="{{false}}">
+  <div style="padding: 20px 20px 96px; display: flex; flex-direction: column; gap: 14px">
+    <h1 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 26px; font-weight: 750">Resumo</h1>
+    <sc-if value="{{stats.pregnant}}" hint-placeholder-val="{{false}}">
+      <div style="background: #FFFFFF; border: 1px solid #E6E2EC; border-radius: 22px; padding: 16px; display: flex; flex-direction: column; gap: 4px">
+        <div style="font-size: 13px; color: #5C5670; font-weight: 600">Gestação · {{preg.trimester}}</div>
+        <div style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 30px; font-weight: 800">{{preg.short}}</div>
+        <div style="font-size: 14px; color: #5C5670">Data provável do parto: {{preg.due}}</div>
+      </div>
+      <div style="background: #FFFFFF; border: 1px solid #E6E2EC; border-radius: 22px; padding: 16px; display: flex; flex-direction: column; gap: 8px">
+        <div style="font-weight: 700">Sinais de alerta registrados</div>
+        <sc-if value="{{stats.preg.hasFlags}}" hint-placeholder-val="{{false}}">
+          <sc-for list="{{stats.preg.flags}}" as="f" hint-placeholder-count="2">
+            <div style="font-size: 14px; color: #912018">{{f.text}}</div>
+          </sc-for>
+        </sc-if>
+        <sc-if value="{{stats.preg.noFlags}}" hint-placeholder-val="{{true}}">
+          <div style="font-size: 14px; color: #5C5670">Nenhum até agora.</div>
+        </sc-if>
+      </div>
+      <div style="background: #FFFFFF; border: 1px solid #E6E2EC; border-radius: 22px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+        <div style="font-weight: 700">Mais registrados na gestação</div>
+        <sc-if value="{{stats.preg.hasTop}}" hint-placeholder-val="{{true}}">
+          <sc-for list="{{stats.preg.top}}" as="s" hint-placeholder-count="3">
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <div style="display: flex; justify-content: space-between; font-size: 14px"><span>{{s.label}}</span><span style="color: #5C5670">{{s.text}}</span></div>
+              <div style="height: 8px; border-radius: 4px; background: #EEEBF3"><div style="height: 8px; border-radius: 4px; background: #0E6F86; width: {{s.pct}}%"></div></div>
+            </div>
+          </sc-for>
+        </sc-if>
+        <sc-if value="{{stats.preg.noTop}}" hint-placeholder-val="{{false}}">
+          <div style="font-size: 14px; color: #5C5670">Ainda sem registros de sintomas ou humor na gestação.</div>
+        </sc-if>
+      </div>
+      <div style="font-size: 13px; color: #5C5670">Regularidade e médias do ciclo ficam pausadas durante a gestação.</div>
+      <button disabled="{{true}}" style="min-height: 48px; border-radius: 24px; border: 1px dashed #8C879C; background: transparent; color: #5C5670; font: inherit; font-weight: 700">Levar ao pré-natal (PDF) · em breve</button>
+    </sc-if>
+    <sc-if value="{{stats.normal}}" hint-placeholder-val="{{true}}">
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+      <div style="background: #FFFFFF; border: 1px solid #E6E2EC; border-radius: 22px; padding: 16px">
+        <div style="font-size: 13px; color: #5C5670; font-weight: 600">Ciclo médio</div>
+        <div style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 30px; font-weight: 800">{{stats.cycle}}</div>
+        <div style="font-size: 12px; color: #5C5670">{{stats.cycleSub}}</div>
+      </div>
+      <div style="background: #FFFFFF; border: 1px solid #E6E2EC; border-radius: 22px; padding: 16px">
+        <div style="font-size: 13px; color: #5C5670; font-weight: 600">Menstruação média</div>
+        <div style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 30px; font-weight: 800">{{stats.period}}</div>
+      </div>
+    </div>
+    <div style="background: #FFFFFF; border: 1px solid #E6E2EC; border-radius: 22px; padding: 16px; display: flex; flex-direction: column; gap: 8px">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px">
+        <div style="font-weight: 700">Regularidade</div>
+        <div style="font-size: 14px; font-weight: 800; color: {{stats.regColor}}">{{stats.regTitle}}</div>
+      </div>
+      <div style="font-size: 14px; color: #5C5670">{{stats.regularity}}</div>
+      <sc-if value="{{stats.hasBars}}" hint-placeholder-val="{{true}}">
+        <div style="display: flex; align-items: flex-end; gap: 8px; height: 104px; padding-top: 6px">
+          <sc-for list="{{stats.bars}}" as="b" hint-placeholder-count="6">
+            <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px">
+              <div style="font-size: 12px; font-weight: 800; color: {{b.textColor}}">{{b.len}}</div>
+              <div style="width: 100%; border-radius: 6px; height: {{b.h}}px; background: {{b.color}}"></div>
+              <div style="font-size: 11px; color: #5C5670">{{b.label}}</div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="font-size: 12px; color: #5C5670">Duração dos últimos ciclos, em dias, pelo mês de início</div>
+      </sc-if>
+    </div>
+    <div style="background: #FFFFFF; border: 1px solid #E6E2EC; border-radius: 22px; padding: 16px; display: flex; flex-direction: column; gap: 6px">
+      <div style="font-weight: 700">Pílula do dia seguinte</div>
+      <div style="font-size: 14px; color: #5C5670">{{stats.pds}}</div>
+    </div>
+    <div style="background: #FFFFFF; border: 1px solid #E6E2EC; border-radius: 22px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+      <div style="font-weight: 700">Sintomas mais frequentes</div>
+      <sc-for list="{{stats.top}}" as="s" hint-placeholder-count="3">
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <div style="display: flex; justify-content: space-between; font-size: 14px"><span>{{s.label}}</span><span style="color: #5C5670">{{s.text}}</span></div>
+          <div style="height: 8px; border-radius: 4px; background: #EEEBF3"><div style="height: 8px; border-radius: 4px; background: #6E3B96; width: {{s.pct}}%"></div></div>
+        </div>
+      </sc-for>
+      <div style="font-size: 12px; color: #5C5670">Um ciclo só entra na conta se você registrou algum sintoma nele ou marcou "Sem sintomas". Ciclo em branco não é ciclo sem sintoma.</div>
+    </div>
+    <button disabled="{{true}}" style="min-height: 48px; border-radius: 24px; border: 1px dashed #8C879C; background: transparent; color: #5C5670; font: inherit; font-weight: 700">Exportar PDF/CSV · em breve</button>
+    </sc-if>
+  </div>
+  </sc-if>
+</div>
+
+<sc-if value="{{showFab}}" hint-placeholder-val="{{true}}">
+  <button onClick="{{openChat}}" aria-label="Abrir assistente" style="position: absolute; right: 18px; bottom: 92px; width: 58px; height: 58px; border-radius: 29px; border: 0; background: #4B44B0; color: #FFFFFF; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 24px rgba(75, 68, 176, 0.35)">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3z"></path><path d="M19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8L19 16z"></path></svg>
+  </button>
+</sc-if>
+
+<nav aria-label="Navegação principal" style="position: absolute; left: 0; right: 0; bottom: 0; height: 76px; background: #FFFFFF; border-top: 1px solid #E6E2EC; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); padding-bottom: 8px; box-sizing: border-box">
+  <sc-for list="{{tabs}}" as="tab" hint-placeholder-count="3">
+    <button onClick="{{tab.go}}" aria-current="{{tab.current}}" style="border: 0; background: transparent; font: inherit; font-size: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: {{tab.color}}; font-weight: {{tab.weight}}">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{tab.icon}}"></path></svg>
+      {{tab.label}}
+    </button>
+  </sc-for>
+</nav>
+</sc-if>
+
+<!-- ============ SHEET: REGISTRO ============ -->
+<sc-if value="{{ov.log}}" hint-placeholder-val="{{false}}">
+<button onClick="{{closeOverlay}}" aria-label="Fechar registro" style="position: absolute; inset: 0; border: 0; background: rgba(31, 26, 46, 0.45); cursor: pointer"></button>
+<div role="dialog" aria-label="Registrar" style="position: absolute; left: 0; right: 0; bottom: 0; height: 790px; background: #FFFFFF; border-radius: 28px 28px 0 0; display: flex; flex-direction: column">
+  <div style="padding: 10px 16px 0; display: flex; flex-direction: column; gap: 10px">
+    <div style="width: 40px; height: 5px; border-radius: 3px; background: #D9D5E0; align-self: center"></div>
+    <div style="display: flex; justify-content: space-between; align-items: center">
+      <div>
+        <div style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 22px; font-weight: 750">Registrar</div>
+        <div style="font-size: 14px; color: #5C5670">{{logDateLabel}}</div>
+      </div>
+      <div style="display: flex; gap: 8px">
+        <button onClick="{{toggleEdit}}" aria-pressed="{{editing}}" style="min-height: 44px; padding: 0 14px; border-radius: 22px; border: 1px solid #CFCAD8; background: #FFFFFF; color: #1F1A2E; font: inherit; font-weight: 700; cursor: pointer">{{editLabel}}</button>
+        <button onClick="{{closeOverlay}}" style="min-height: 44px; padding: 0 18px; border-radius: 22px; border: 0; background: #1F1A2E; color: #FFFFFF; font: inherit; font-weight: 700; cursor: pointer">Pronto</button>
+      </div>
+    </div>
+    <div style="font-size: 13px; color: #5C5670">{{logHint}}</div>
+    <sc-if value="{{notEditing}}" hint-placeholder-val="{{true}}">
+      <nav aria-label="Ir para a seção" class="log-chips" style="position: relative; display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px">
+        <sc-for list="{{jumpChips}}" as="j" hint-placeholder-count="9">
+          <button id="chip-{{j.id}}" onClick="{{j.jump}}" aria-current="{{j.current}}" style="flex: none; min-height: 36px; padding: 0 14px; border: 0; border-radius: 18px; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; {{j.style}}">{{j.short}}</button>
+        </sc-for>
+      </nav>
+    </sc-if>
+  </div>
+  <sc-if value="{{notEditing}}" hint-placeholder-val="{{true}}">
+  <div class="log-scroll" onScroll="{{logScroll}}" style="position: relative; flex: 1; overflow-y: auto; padding: 4px 16px 24px; display: flex; flex-direction: column; gap: 18px">
+    <sc-if value="{{logRedFlag.show}}" hint-placeholder-val="{{false}}">
+      <div role="alert" style="background: #FDECEA; border: 2px solid #B42318; border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 6px">
+        <strong style="color: #912018; font-size: 16px">Procure atendimento</strong>
+        <span style="font-size: 14px; color: #4A1410">{{logRedFlag.text}}</span>
+      </div>
+    </sc-if>
+    <section id="sec-top" style="background: #F5F3F7; border-radius: 20px; padding: 14px 10px 12px; display: flex; flex-direction: column; gap: 10px">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 0 4px">
+        <h3 style="margin: 0; font-size: 15px; font-weight: 800">Comuns para você agora</h3>
+        <span style="font-size: 12px; color: #5C5670">{{suggest.phase}}</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px">
+        <sc-for list="{{suggest.items}}" as="it" hint-placeholder-count="4">
+          <button onClick="{{it.tap}}" onPointerDown="{{it.down}}" onPointerUp="{{it.up}}" onPointerLeave="{{it.up}}" onPointerCancel="{{it.up}}" onContextMenu="{{noMenu}}" aria-pressed="{{it.pressed}}" aria-label="{{it.aria}}" style="min-height: 92px; border-radius: 18px; padding: 10px 4px 8px; font: inherit; font-size: 12px; line-height: 1.2; font-weight: 600; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; touch-action: manipulation; {{it.style}}">
+            <span style="width: 40px; height: 40px; border-radius: 20px; display: flex; align-items: center; justify-content: center; flex: none; {{it.iconStyle}}">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{it.icon}}"></path></svg>
+            </span>
+            <span>{{it.label}}</span>
+          </button>
+        </sc-for>
+      </div>
+      <button onClick="{{calmDay.tap}}" aria-pressed="{{calmDay.pressed}}" style="min-height: 44px; border-radius: 22px; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; {{calmDay.style}}">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z M8 12.5l2.5 2.5L16 9.5"></path></svg>
+        Dia tranquilo · sem sintomas
+      </button>
+    </section>
+    <sc-for list="{{sections}}" as="sec" hint-placeholder-count="8">
+      <section id="sec-{{sec.id}}" style="display: flex; flex-direction: column; gap: 10px">
+        <div style="display: flex; justify-content: space-between; align-items: baseline">
+          <h3 style="margin: 0; font-size: 15px; font-weight: 800; color: {{sec.color}}">{{sec.label}}</h3>
+          <span style="font-size: 12px; color: #5C5670">{{sec.hint}}</span>
+        </div>
+        <sc-if value="{{sec.showAlert}}" hint-placeholder-val="{{false}}">
+          <div role="alert" style="background: #FFF1E6; border: 1.5px solid #C2410C; border-radius: 16px; padding: 12px; font-size: 13px; color: #431407">
+            <strong style="color: #9A3412">{{pds.title}}.</strong> {{pds.body}}
+          </div>
+        </sc-if>
+        <sc-if value="{{sec.showPregPrompt}}" hint-placeholder-val="{{false}}">
+          <div role="status" style="background: #ECEBFA; border: 1.5px solid #3F3A8C; border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 8px">
+            <strong style="color: #2F2A80">Teste positivo registrado</strong>
+            <span style="font-size: 14px">Quer mudar o app para o modo gestação? Seu histórico de ciclos fica guardado e você pode voltar quando quiser. Um exame de sangue e uma consulta confirmam o resultado.</span>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap">
+              <button onClick="{{startPregnancy}}" style="min-height: 40px; border-radius: 20px; padding: 0 14px; border: 0; background: #3F3A8C; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer">Ativar modo gestação</button>
+              <button onClick="{{dismissPreg}}" style="min-height: 40px; border-radius: 20px; padding: 0 14px; border: 1px solid #3F3A8C; background: transparent; color: #2F2A80; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer">Agora não</button>
+            </div>
+          </div>
+        </sc-if>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px">
+          <sc-for list="{{sec.items}}" as="it" hint-placeholder-count="6">
+            <button onClick="{{it.tap}}" onPointerDown="{{it.down}}" onPointerUp="{{it.up}}" onPointerLeave="{{it.up}}" onPointerCancel="{{it.up}}" onContextMenu="{{noMenu}}" aria-pressed="{{it.pressed}}" aria-label="{{it.aria}}" style="min-height: 44px; border-radius: 22px; padding: 4px 14px 4px 4px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; touch-action: manipulation; {{it.style}}">
+              <span style="width: 34px; height: 34px; border-radius: 17px; display: flex; align-items: center; justify-content: center; flex: none; {{it.iconStyle}}">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{it.icon}}"></path></svg>
+              </span>
+              <span>{{it.label}}</span>
+            </button>
+          </sc-for>
+        </div>
+      </section>
+    </sc-for>
+  </div>
+  </sc-if>
+  <sc-if value="{{editing}}" hint-placeholder-val="{{false}}">
+  <div style="flex: 1; overflow-y: auto; padding: 4px 16px 24px; display: flex; flex-direction: column; gap: 8px">
+    <div style="font-size: 14px; color: #5C5670; padding: 0 4px 6px">Esconder uma categoria tira os ícones dela do registro. Esconder Relação também tira o atalho da tela Hoje.</div>
+    <sc-for list="{{editRows}}" as="r" hint-placeholder-count="8">
+      <div style="background: #F5F3F7; border-radius: 18px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px">
+        <div style="display: flex; align-items: center; gap: 10px">
+          <span style="width: 12px; height: 12px; border-radius: 6px; flex: none; background: {{r.color}}"></span>
+          <div>
+            <div style="font-weight: 700">{{r.label}}</div>
+            <div style="font-size: 13px; color: #5C5670">{{r.count}}</div>
+          </div>
+        </div>
+        <button onClick="{{r.toggle}}" aria-pressed="{{r.on}}" aria-label="{{r.aria}}" style="flex: none; width: 56px; height: 34px; border-radius: 17px; border: 0; padding: 3px; cursor: pointer; display: flex; background: {{r.bg}}; justify-content: {{r.justify}}">
+          <span style="width: 28px; height: 28px; border-radius: 14px; background: #FFFFFF; display: block"></span>
+        </button>
+      </div>
+    </sc-for>
+  </div>
+  </sc-if>
+</div>
+</sc-if>
+
+<!-- ============ SHEET: FICHA DO SINTOMA ============ -->
+<sc-if value="{{ov.symptom}}" hint-placeholder-val="{{false}}">
+<button onClick="{{closeSymptom}}" aria-label="Fechar ficha" style="position: absolute; inset: 0; border: 0; background: rgba(31, 26, 46, 0.45); cursor: pointer"></button>
+<div role="dialog" aria-label="{{sym.label}}" style="position: absolute; left: 0; right: 0; bottom: 0; height: 760px; background: #FFFFFF; border-radius: 28px 28px 0 0; display: flex; flex-direction: column">
+  <div style="padding: 10px 20px 0; display: flex; flex-direction: column; gap: 12px">
+    <div style="width: 40px; height: 5px; border-radius: 3px; background: #D9D5E0; align-self: center"></div>
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px">
+      <div style="display: flex; align-items: center; gap: 12px">
+        <span style="width: 48px; height: 48px; border-radius: 24px; display: flex; align-items: center; justify-content: center; background: {{sym.tint}}; color: {{sym.color}}">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{sym.icon}}"></path></svg>
+        </span>
+        <div>
+          <div style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 24px; font-weight: 750; line-height: 1.1">{{sym.label}}</div>
+          <div style="font-size: 13px; color: #5C5670">{{sym.cat}} · dados de exemplo</div>
+        </div>
+      </div>
+      <button onClick="{{closeSymptom}}" aria-label="Fechar" style="width: 44px; height: 44px; border-radius: 22px; border: 1px solid #E6E2EC; background: #FFFFFF; color: #1F1A2E; cursor: pointer; display: flex; align-items: center; justify-content: center">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12"></path><path d="M18 6L6 18"></path></svg>
+      </button>
+    </div>
+  </div>
+  <div style="flex: 1; overflow-y: auto; padding: 16px 20px 24px; display: flex; flex-direction: column; gap: 16px">
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+      <sc-for list="{{sym.windows}}" as="w" hint-placeholder-count="3">
+        <div style="background: #F5F3F7; border-radius: 18px; padding: 12px; display: flex; flex-direction: column; gap: 2px">
+          <div style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 26px; font-weight: 800">{{w.count}}</div>
+          <div style="font-size: 12px; color: #5C5670; font-weight: 600">{{w.label}}</div>
+        </div>
+      </sc-for>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <h3 style="margin: 0; font-size: 16px; font-weight: 800">{{sym.phaseTitle}}</h3>
+      <sc-for list="{{sym.phases}}" as="p" hint-placeholder-count="4">
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <div style="display: flex; justify-content: space-between; font-size: 14px"><span>{{p.label}}</span><span style="font-weight: 700">{{p.pct}}%</span></div>
+          <div style="height: 10px; border-radius: 5px; background: #EEEBF3"><div style="height: 10px; border-radius: 5px; width: {{p.pct}}%; background: {{p.color}}"></div></div>
+        </div>
+      </sc-for>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <h3 style="margin: 0; font-size: 16px; font-weight: 800">{{sym.rowsTitle}}</h3>
+      <div style="display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: #5C5670">
+        <span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 5px; display: inline-block; background: {{sym.color}}"></span>dia com {{sym.label}}</span>
+        <sc-if value="{{sym.legendCycle}}" hint-placeholder-val="{{true}}">
+          <span style="display: flex; align-items: center; gap: 6px"><span style="width: 16px; height: 8px; border-radius: 4px; background: #F0B8C3; display: inline-block"></span>menstruação</span>
+        </sc-if>
+        <sc-if value="{{sym.legendFertile}}" hint-placeholder-val="{{true}}">
+          <span style="display: flex; align-items: center; gap: 6px"><span style="width: 16px; height: 8px; border-radius: 4px; background: #D6D3F6; display: inline-block"></span>janela fértil</span>
+        </sc-if>
+        <span style="display: flex; align-items: center; gap: 6px"><span style="width: 16px; height: 8px; border-radius: 4px; border: 1.5px dashed #A9A4B8; box-sizing: border-box; display: inline-block"></span>sem registros</span>
+      </div>
+      <sc-for list="{{sym.rows}}" as="r" hint-placeholder-count="6">
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <div style="display: flex; justify-content: space-between; gap: 8px; font-size: 13px">
+            <span style="font-weight: 700">{{r.label}}</span>
+            <span style="color: #5C5670">{{r.right}}</span>
+          </div>
+          <sc-if value="{{r.logged}}" hint-placeholder-val="{{true}}">
+            <div style="position: relative; height: 14px; width: {{r.width}}%">
+              <div style="position: absolute; inset: 0; border-radius: 7px; background: #EEEBF3"></div>
+              <div style="position: absolute; left: 0; top: 0; bottom: 0; border-radius: 7px; background: #F0B8C3; width: {{r.periodW}}%"></div>
+              <div style="position: absolute; top: 0; bottom: 0; border-radius: 7px; background: #D6D3F6; left: {{r.fertL}}%; width: {{r.fertW}}%"></div>
+              <sc-for list="{{r.dots}}" as="d" hint-placeholder-count="2">
+                <div style="position: absolute; top: 50%; width: 14px; height: 14px; border-radius: 7px; border: 2px solid #FFFFFF; box-sizing: border-box; transform: translate(-50%, -50%); left: {{d.left}}%; background: {{d.color}}"></div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{r.notLogged}}" hint-placeholder-val="{{false}}">
+            <div style="height: 14px; border-radius: 7px; border: 1.5px dashed #A9A4B8; box-sizing: border-box; width: {{r.width}}%"></div>
+            <div style="font-size: 12px; color: #5C5670">{{r.emptyText}}</div>
+          </sc-if>
+        </div>
+      </sc-for>
+      <div style="font-size: 14px; color: #5C5670">{{sym.cycleText}}</div>
+    </div>
+    <div style="background: #F5F3F7; border-radius: 18px; padding: 14px; font-size: 14px">{{sym.insight}}</div>
+    <button onClick="{{askSymptom}}" style="min-height: 52px; border-radius: 26px; border: 0; background: #4B44B0; color: #FFFFFF; font: inherit; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3z"></path></svg>
+      Perguntar à assistente
+    </button>
+  </div>
+</div>
+</sc-if>
+
+<!-- ============ SHEET: CHAT IA ============ -->
+<sc-if value="{{ov.chat}}" hint-placeholder-val="{{false}}">
+<button onClick="{{closeOverlay}}" aria-label="Fechar assistente" style="position: absolute; inset: 0; border: 0; background: rgba(31, 26, 46, 0.45); cursor: pointer"></button>
+<div role="dialog" aria-label="Assistente" style="position: absolute; left: 0; right: 0; bottom: 0; height: 740px; background: #FFFFFF; border-radius: 28px 28px 0 0; display: flex; flex-direction: column">
+  <div style="padding: 10px 16px 12px; display: flex; flex-direction: column; gap: 10px; border-bottom: 1px solid #EEEBF3">
+    <div style="width: 40px; height: 5px; border-radius: 3px; background: #D9D5E0; align-self: center"></div>
+    <div style="display: flex; justify-content: space-between; align-items: center">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span style="width: 40px; height: 40px; border-radius: 20px; background: #ECEBFA; color: #4B44B0; display: flex; align-items: center; justify-content: center">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3z"></path></svg>
+        </span>
+        <div>
+          <div style="font-weight: 800; font-size: 17px">Assistente</div>
+          <div style="font-size: 12px; color: #5C5670">Recebe só datas e eventos · sem nome ou e-mail</div>
+        </div>
+      </div>
+      <button onClick="{{closeOverlay}}" aria-label="Fechar" style="width: 44px; height: 44px; border-radius: 22px; border: 1px solid #E6E2EC; background: #FFFFFF; color: #1F1A2E; cursor: pointer; display: flex; align-items: center; justify-content: center">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12"></path><path d="M18 6L6 18"></path></svg>
+      </button>
+    </div>
+  </div>
+  <sc-if value="{{aiOn}}" hint-placeholder-val="{{true}}">
+    <div style="flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column-reverse; gap: 10px">
+      <sc-for list="{{chatRev}}" as="m" hint-placeholder-count="2">
+        <div style="max-width: 82%; padding: 10px 14px; border-radius: 18px; font-size: 15px; white-space: pre-line; {{m.style}}">{{m.text}}</div>
+      </sc-for>
+    </div>
+    <div style="padding: 10px 16px 14px; display: flex; flex-direction: column; gap: 10px; border-top: 1px solid #EEEBF3">
+      <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px">
+        <sc-for list="{{pills}}" as="p" hint-placeholder-count="4">
+          <button onClick="{{p.ask}}" style="flex: none; min-height: 38px; padding: 0 12px; border-radius: 19px; border: 1px solid #C9C5F0; background: #F6F5FD; color: #2F2A80; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer">{{p.q}}</button>
+        </sc-for>
+      </div>
+      <form onSubmit="{{sendDraft}}" style="display: flex; gap: 8px; margin: 0">
+        <input aria-label="Escreva sua pergunta" placeholder="Pergunte sobre seu ciclo" value="{{draft}}" onChange="{{setDraft}}" style="flex: 1; min-width: 0; height: 46px; border-radius: 23px; border: 1px solid #E6E2EC; padding: 0 16px; font: inherit; color: #1F1A2E; background: #F5F3F7">
+        <button type="submit" aria-label="Enviar" style="width: 46px; height: 46px; border-radius: 23px; border: 0; background: #4B44B0; color: #FFFFFF; cursor: pointer; display: flex; align-items: center; justify-content: center">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="M13 6l6 6-6 6"></path></svg>
+        </button>
+      </form>
+      <div style="font-size: 11.5px; color: #5C5670; text-align: center">Informativo. Não substitui o diagnóstico ou a orientação de um profissional de saúde.</div>
+    </div>
+  </sc-if>
+  <sc-if value="{{aiOff}}" hint-placeholder-val="{{false}}">
+    <div style="flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 14px; align-items: flex-start">
+      <div style="font-size: 16px; font-weight: 700">A assistente está desligada</div>
+      <div style="font-size: 14px; color: #5C5670">Ligue nos ajustes para fazer perguntas sobre seu histórico.</div>
+      <button onClick="{{toggleAi}}" style="min-height: 44px; padding: 0 18px; border-radius: 22px; border: 0; background: #4B44B0; color: #FFFFFF; font: inherit; font-weight: 700; cursor: pointer">Ligar assistente</button>
+    </div>
+  </sc-if>
+</div>
+</sc-if>
+
+<!-- ============ SHEET: DATAÇÃO DA GESTAÇÃO ============ -->
+<sc-if value="{{ov.pregSetup}}" hint-placeholder-val="{{false}}">
+<button onClick="{{closeOverlay}}" aria-label="Fechar" style="position: absolute; inset: 0; border: 0; background: rgba(31, 26, 46, 0.45); cursor: pointer"></button>
+<div role="dialog" aria-label="Datação da gestação" style="position: absolute; left: 0; right: 0; bottom: 0; max-height: 800px; background: #FFFFFF; border-radius: 28px 28px 0 0; display: flex; flex-direction: column; overflow-y: auto">
+  <div style="padding: 10px 20px 24px; display: flex; flex-direction: column; gap: 14px">
+    <div style="width: 40px; height: 5px; border-radius: 3px; background: #D9D5E0; align-self: center"></div>
+    <div style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 24px; font-weight: 750">Como contamos as semanas?</div>
+    <div style="font-size: 14px; color: #5C5670">Dá para ajustar depois. A ultrassonografia do início da gestação costuma ser a referência mais precisa.</div>
+
+    <div style="border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 10px; {{setup.dumStyle}}">
+      <button onClick="{{setupDum}}" aria-pressed="{{setup.dum}}" style="border: 0; background: transparent; padding: 0; font: inherit; font-weight: 700; color: #1F1A2E; text-align: left; cursor: pointer; min-height: 32px">Pela última menstruação</button>
+      <sc-if value="{{setup.dum}}" hint-placeholder-val="{{true}}">
+        <label for="setup-lmp" style="font-size: 13px; color: #5C5670">Primeiro dia da última menstruação</label>
+        <input id="setup-lmp" type="date" value="{{setup.lmp}}" onChange="{{setSetupLmp}}" style="height: 44px; border-radius: 12px; border: 1px solid #E6E2EC; padding: 0 12px; font: inherit; color: #1F1A2E; background: #F5F3F7">
+      </sc-if>
+    </div>
+
+    <div style="border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 10px; {{setup.usgStyle}}">
+      <button onClick="{{setupUsg}}" aria-pressed="{{setup.usg}}" style="border: 0; background: transparent; padding: 0; font: inherit; font-weight: 700; color: #1F1A2E; text-align: left; cursor: pointer; min-height: 32px">Pela ultrassonografia</button>
+      <sc-if value="{{setup.usg}}" hint-placeholder-val="{{false}}">
+        <label for="setup-due" style="font-size: 13px; color: #5C5670">Data provável do parto (DPP) que está no laudo</label>
+        <input id="setup-due" type="date" value="{{setup.due}}" onChange="{{setSetupDue}}" style="height: 44px; border-radius: 12px; border: 1px solid #E6E2EC; padding: 0 12px; font: inherit; color: #1F1A2E; background: #F5F3F7">
+      </sc-if>
+    </div>
+
+    <div style="font-size: 14px; font-weight: 600; color: #2F2A80; background: #ECEBFA; border-radius: 14px; padding: 10px 14px">{{setup.preview}}</div>
+    <sc-if value="{{setup.early}}" hint-placeholder-val="{{false}}">
+      <div role="status" style="font-size: 14px; color: #431407; background: #FFF1E6; border: 1.5px solid #C2410C; border-radius: 14px; padding: 12px 14px">{{setup.earlyText}}</div>
+    </sc-if>
+    <button onClick="{{confirmSetup}}" disabled="{{setup.invalid}}" style="min-height: 52px; border-radius: 26px; border: 0; background: #3F3A8C; color: #FFFFFF; font: inherit; font-weight: 700; cursor: pointer">{{setup.cta}}</button>
+    <button onClick="{{closeOverlay}}" style="min-height: 44px; border-radius: 22px; border: 0; background: transparent; color: #5C5670; font: inherit; font-weight: 600; cursor: pointer">Cancelar</button>
+  </div>
+</div>
+</sc-if>
+
+<!-- ============ SHEET: ENCERRAR GESTAÇÃO ============ -->
+<sc-if value="{{ov.pregEnd}}" hint-placeholder-val="{{false}}">
+<button onClick="{{closeOverlay}}" aria-label="Fechar" style="position: absolute; inset: 0; border: 0; background: rgba(31, 26, 46, 0.45); cursor: pointer"></button>
+<div role="dialog" aria-label="Encerrar acompanhamento da gestação" style="position: absolute; left: 0; right: 0; bottom: 0; background: #FFFFFF; border-radius: 28px 28px 0 0; padding: 10px 20px 28px; display: flex; flex-direction: column; gap: 12px">
+  <div style="width: 40px; height: 5px; border-radius: 3px; background: #D9D5E0; align-self: center"></div>
+  <div style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 24px; font-weight: 750">Encerrar o acompanhamento da gestação?</div>
+  <div style="font-size: 14px; color: #5C5670">Não vamos perguntar o motivo e não guardamos isso. Seus registros continuam aqui. Escolha como quer seguir:</div>
+  <button onClick="{{endToPostpartum}}" style="min-height: 52px; border-radius: 18px; border: 1px solid #E6E2EC; background: #FFFFFF; color: #1F1A2E; font: inherit; text-align: left; padding: 10px 16px; cursor: pointer">
+    <div style="font-weight: 700">Acompanhar o pós-parto</div>
+    <div style="font-size: 13px; color: #5C5670">Avisos de regularidade pausados enquanto o ciclo volta.</div>
+  </button>
+  <button onClick="{{endToCycle}}" style="min-height: 52px; border-radius: 18px; border: 1px solid #E6E2EC; background: #FFFFFF; color: #1F1A2E; font: inherit; text-align: left; padding: 10px 16px; cursor: pointer">
+    <div style="font-weight: 700">Voltar a acompanhar o ciclo</div>
+    <div style="font-size: 13px; color: #5C5670">As previsões recomeçam na próxima menstruação.</div>
+  </button>
+  <button onClick="{{closeOverlay}}" style="min-height: 44px; border-radius: 22px; border: 0; background: transparent; color: #5C5670; font: inherit; font-weight: 600; cursor: pointer">Cancelar</button>
+</div>
+</sc-if>
+
+<!-- ============ SHEET: PRIVACIDADE ============ -->
+<sc-if value="{{ov.privacy}}" hint-placeholder-val="{{false}}">
+<button onClick="{{closeOverlay}}" aria-label="Fechar ajustes" style="position: absolute; inset: 0; border: 0; background: rgba(31, 26, 46, 0.45); cursor: pointer"></button>
+<div role="dialog" aria-label="Ajustes e privacidade" style="position: absolute; left: 0; right: 0; bottom: 0; height: 790px; background: #F5F3F7; border-radius: 28px 28px 0 0; display: flex; flex-direction: column">
+  <div style="padding: 10px 20px 8px; display: flex; flex-direction: column; gap: 10px">
+    <div style="width: 40px; height: 5px; border-radius: 3px; background: #D9D5E0; align-self: center"></div>
+    <div style="display: flex; justify-content: space-between; align-items: center">
+      <div style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 24px; font-weight: 750">Ajustes & privacidade</div>
+      <button onClick="{{closeOverlay}}" aria-label="Fechar" style="width: 44px; height: 44px; border-radius: 22px; border: 1px solid #E6E2EC; background: #FFFFFF; color: #1F1A2E; cursor: pointer; display: flex; align-items: center; justify-content: center">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12"></path><path d="M18 6L6 18"></path></svg>
+      </button>
+    </div>
+  </div>
+  <div style="flex: 1; overflow-y: auto; padding: 8px 20px 28px; display: flex; flex-direction: column; gap: 12px">
+    <div style="background: #FFFFFF; border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 4px">
+      <div style="font-weight: 700">Onde ficam seus dados</div>
+      <div style="font-size: 14px; color: #5C5670">Neste aparelho. Sem conta e sem nuvem por enquanto.</div>
+    </div>
+    <div style="background: #FFFFFF; border-radius: 20px; padding: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px">
+      <div><div style="font-weight: 700">Assistente de IA</div><div style="font-size: 14px; color: #5C5670">Recebe só datas e eventos.</div></div>
+      <button onClick="{{toggleAi}}" aria-pressed="{{aiOn}}" aria-label="Assistente de IA" style="flex: none; width: 56px; height: 34px; border-radius: 17px; border: 0; padding: 3px; cursor: pointer; display: flex; background: {{aiSwitch.bg}}; justify-content: {{aiSwitch.justify}}">
+        <span style="width: 28px; height: 28px; border-radius: 14px; background: #FFFFFF; display: block"></span>
+      </button>
+    </div>
+    <div style="background: #FFFFFF; border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+      <div style="font-weight: 700">Método contraceptivo padrão</div>
+      <div style="display: flex; flex-wrap: wrap; gap: 6px">
+        <sc-for list="{{methodChips}}" as="m" hint-placeholder-count="9">
+          <button onClick="{{m.pick}}" aria-pressed="{{m.selected}}" style="min-height: 38px; border-radius: 19px; padding: 0 12px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; {{m.style}}">{{m.label}}</button>
+        </sc-for>
+      </div>
+    </div>
+    <div style="background: #FFFFFF; border-radius: 20px; padding: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px">
+      <div><div style="font-weight: 700">Modo gestação</div><div style="font-size: 14px; color: #5C5670">Acompanhe a gestação sem perder seu histórico de ciclos, e volte quando quiser.</div></div>
+      <button onClick="{{togglePregnancy}}" aria-pressed="{{preg.on}}" aria-label="Modo gestação" style="flex: none; width: 56px; height: 34px; border-radius: 17px; border: 0; padding: 3px; cursor: pointer; display: flex; background: {{preg.bg}}; justify-content: {{preg.justify}}">
+        <span style="width: 28px; height: 28px; border-radius: 14px; background: #FFFFFF; display: block"></span>
+      </button>
+    </div>
+    <div style="background: #FFFFFF; border: 1.5px solid #E7C3CB; border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+      <div style="font-weight: 700; color: #8E1F35">Apagar meus dados</div>
+      <sc-if value="{{notDeleted}}" hint-placeholder-val="{{true}}">
+        <div style="font-size: 14px; color: #5C5670">Apaga deste aparelho tudo que identifica você e seu histórico detalhado. Podemos manter estatísticas anônimas de ciclo, sem datas e sem nome, junto com sua idade.</div>
+        <button onPointerDown="{{holdStart}}" onPointerUp="{{holdEnd}}" onPointerLeave="{{holdEnd}}" onPointerCancel="{{holdEnd}}" onContextMenu="{{noMenu}}" aria-label="Segure para apagar meus dados" style="position: relative; overflow: hidden; min-height: 52px; border-radius: 26px; border: 1.5px solid #B8304A; background: #FFFFFF; color: #8E1F35; font: inherit; font-weight: 800; cursor: pointer; user-select: none; -webkit-user-select: none; touch-action: none">
+          <span style="position: absolute; left: 0; top: 0; bottom: 0; background: #FBE1E6; width: {{delProgress}}%"></span>
+          <span style="position: relative">Segure para apagar</span>
+        </button>
+      </sc-if>
+      <sc-if value="{{deleted}}" hint-placeholder-val="{{false}}">
+        <div style="font-size: 14px; color: #1F1A2E">Pronto. Seus dados foram apagados deste aparelho. Ficaram só estatísticas anônimas de ciclo.</div>
+        <button onClick="{{restart}}" style="min-height: 48px; border-radius: 24px; border: 0; background: #1F1A2E; color: #FFFFFF; font: inherit; font-weight: 700; cursor: pointer">Recomeçar</button>
+      </sc-if>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"startScreen":{"editor":"enum","options":["onboarding","today","log","symptom","calendar","stats","chat","privacy","pregnancy","pregnancyAlert"],"default":"onboarding"},"lastStart":{"editor":"text","default":"2026-10-17"},"method":{"editor":"enum","options":["condom","none","pill","continuous_pill","hormonal_iud","copper_iud","implant","injection","ring_or_patch"],"default":"condom"},"$preview":{"width":390,"height":844}}'>
+var TODAY = '2026-10-28';
+var INK = '#1F1A2E', MUTED = '#5C5670', LINE = '#E6E2EC', BERRY = '#B8304A', INDIGO = '#4B44B0';
+var MONTHS = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+var MONTHS_LONG = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+var WEEK = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+var WEEK_LONG = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
+
+function toMs(iso) { var p = iso.split('-'); return Date.UTC(+p[0], +p[1] - 1, +p[2]); }
+function fromMs(ms) { return new Date(ms).toISOString().slice(0, 10); }
+function addDays(iso, n) { return fromMs(toMs(iso) + n * 86400000); }
+function diff(a, b) { return Math.round((toMs(b) - toMs(a)) / 86400000); }
+function dayOf(iso) { return new Date(toMs(iso)).getUTCDate(); }
+function wdOf(iso) { return new Date(toMs(iso)).getUTCDay(); }
+function fmt(iso) { var d = new Date(toMs(iso)); return d.getUTCDate() + ' de ' + MONTHS_LONG[d.getUTCMonth()]; }
+function fmtLong(iso) { var d = new Date(toMs(iso)); return WEEK_LONG[d.getUTCDay()] + ', ' + d.getUTCDate() + ' de ' + MONTHS_LONG[d.getUTCMonth()]; }
+function hash(s) { var h = 7; for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 9973; return h; }
+
+var HORMONAL = { pill: 1, continuous_pill: 1, implant: 1, injection: 1, ring_or_patch: 1 };
+var BASELINE = { pill: 1, continuous_pill: 1, hormonal_iud: 1, copper_iud: 1, implant: 1, injection: 1, ring_or_patch: 1 };
+var METHODS = [
+  { id: 'none', label: 'Nenhum' }, { id: 'condom', label: 'Preservativo' }, { id: 'pill', label: 'Pílula com pausa' },
+  { id: 'continuous_pill', label: 'Pílula contínua' }, { id: 'hormonal_iud', label: 'DIU hormonal' }, { id: 'copper_iud', label: 'DIU de cobre' },
+  { id: 'implant', label: 'Implante' }, { id: 'injection', label: 'Injeção' }, { id: 'ring_or_patch', label: 'Anel ou adesivo' }
+];
+var METHOD_LABEL = {}; METHODS.forEach(function (m) { METHOD_LABEL[m.id] = m.label; });
+
+var DROP1 = 'M12 7c1.8 2.6 3.8 4.6 3.8 7a3.8 3.8 0 0 1-7.6 0c0-2.4 2-4.4 3.8-7z';
+var ICONS = {
+  heart: 'M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z',
+  lips: 'M3 12c3-3.5 6-4.5 9-2.2 3-2.3 6-1.3 9 2.2-3 4-6 5-9 5s-6-1-9-5z M3 12h18',
+  ring: 'M12 6a6 6 0 1 0 0 12 6 6 0 0 0 0-12z',
+  spark: 'M12 3v4 M12 17v4 M3 12h4 M17 12h4 M6 6l2.5 2.5 M15.5 15.5L18 18 M6 18l2.5-2.5 M15.5 8.5L18 6',
+  shield: 'M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6l7-3z M9.5 12l2 2 3.5-4',
+  shieldOff: 'M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6l7-3z M4 4l16 16',
+  pill: 'M4.5 12.5l8-8a4.95 4.95 0 0 1 7 7l-8 8a4.95 4.95 0 0 1-7-7z M8.5 8.5l7 7',
+  drop1: DROP1,
+  drop2: 'M8.5 6c1.8 2.6 3.8 4.6 3.8 7a3.8 3.8 0 0 1-7.6 0c0-2.4 2-4.4 3.8-7z M16.5 9c1.4 2 2.9 3.5 2.9 5.3a2.9 2.9 0 0 1-5.8 0c0-1.8 1.5-3.3 2.9-5.3z',
+  drop3: 'M12 2.5c1.3 1.9 2.7 3.3 2.7 5a2.7 2.7 0 0 1-5.4 0c0-1.7 1.4-3.1 2.7-5z M7.5 11.5c1.3 1.9 2.7 3.3 2.7 5a2.7 2.7 0 0 1-5.4 0c0-1.7 1.4-3.1 2.7-5z M16.5 11.5c1.3 1.9 2.7 3.3 2.7 5a2.7 2.7 0 0 1-5.4 0c0-1.7 1.4-3.1 2.7-5z',
+  dropDark: 'M12 3.5c2.6 3.7 5.5 6.6 5.5 10a5.5 5.5 0 0 1-11 0c0-3.4 2.9-6.3 5.5-10z M9 14h6 M10 17h4',
+  dots: 'M8 7.5a1.2 1.2 0 1 0 0 .01 M15.5 6a1.2 1.2 0 1 0 0 .01 M12 12a1.2 1.2 0 1 0 0 .01 M7 16.5a1.2 1.2 0 1 0 0 .01 M16.5 15a1.2 1.2 0 1 0 0 .01',
+  bolt: 'M13 2L4 14h7l-1 8 9-12h-7l1-8z',
+  spine: 'M12 3v18 M8 6h8 M9 10h6 M8 14h8 M9 18h6',
+  breast: 'M12 5a7 7 0 1 0 0 14 7 7 0 0 0 0-14z M12 12h.01',
+  acne: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z M8.5 9h.01 M15 8.5h.01 M10 14h.01 M14.5 14.5h.01',
+  bloat: 'M12 5a7 7 0 1 0 0 14 7 7 0 0 0 0-14z M2.5 12h2 M19.5 12h2',
+  head: 'M12 3a7 7 0 0 0-4 12.7V20h8v-4.3A7 7 0 0 0 12 3z M10 7l2.5 2.5L10 12',
+  wave: 'M3 9c2-2 4 2 6 0s4-2 6 0 4 2 6 0 M3 15c2-2 4 2 6 0s4-2 6 0 4 2 6 0',
+  happy: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z M9 10h.01 M15 10h.01 M8.5 14a4 4 0 0 0 7 0',
+  anxious: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z M9 10h.01 M15 10h.01 M8.5 15.5c1-1 2 1 3.5 0s2.5 1 3.5 0',
+  irritated: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z M8 8.5l2.5 1 M16 8.5l-2.5 1 M9 15.5h6',
+  sad: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z M9 10h.01 M15 10h.01 M8.5 16a4 4 0 0 1 7 0',
+  sensitive: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z M9 10h.01 M15 10h.01 M10 15.5h4 M16.5 12.5c.7 1 1.2 1.7 1.2 2.4a1.2 1.2 0 0 1-2.4 0c0-.7.5-1.4 1.2-2.4z',
+  tired: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z M8 10h2.5 M13.5 10h2.5 M10 15h4',
+  dumbbell: 'M6 7v10 M18 7v10 M3 10v4 M21 10v4 M6 12h12',
+  flame: 'M12 21c4 0 6-3 6-6 0-4-3-6-4-9-2 2-2 4-2 4s-1-2-3-3c0 3-3 5-3 8 0 3 2 6 6 6z',
+  walk: 'M14 5a2 2 0 1 1-4 0 2 2 0 0 1 4 0z M12 8v5l-3 7 M12 13l3 7 M8 11l4-2 4 2',
+  lotus: 'M12 20c-4 0-8-2-9-5 3 0 6 1 9 5z M12 20c4 0 8-2 9-5-3 0-6 1-9 5z M12 20c-2-3-2-8 0-13 2 5 2 10 0 13z',
+  check: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z M8 12.5l2.5 2.5L16 9.5',
+  belly: 'M8 4c-2 3-3 6-3 9a7 7 0 0 0 14 0c0-3-1-6-3-9 M12 13h.01 M9 17c2 1 4 1 6 0',
+  battery: 'M3 8h15a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z M21 11v2 M5 11v2',
+  moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
+  itch: 'M6 7l2 2 M10 5l1 3 M14 5l-1 3 M18 7l-2 2 M12 11c-3 0-5 2.5-5 5.5S9 21 12 21s5-1.5 5-4.5S15 11 12 11z',
+  diarrhea: 'M12 3v8 M8 7l4 4 4-4 M7 15c1.5 2 1.5 3.5 0 5 M12 15c1.5 2 1.5 3.5 0 5 M17 15c1.5 2 1.5 3.5 0 5',
+  lock: 'M7 11V8a5 5 0 0 1 10 0v3 M5 11h14v9H5z M12 15v2',
+  calm: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z M8 10c.7.7 1.8.7 2.5 0 M13.5 10c.7.7 1.8.7 2.5 0 M9 14.5c1.7 1.3 4.3 1.3 6 0',
+  swings: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z M12 3v18 M8 10h.01 M16 10h.01 M7.5 15a2 2 0 0 0 3 0 M13.5 16a2 2 0 0 1 3 0',
+  dry: 'M12 3.5c2.6 3.7 5.5 6.6 5.5 10a5.5 5.5 0 0 1-11 0c0-3.4 2.9-6.3 5.5-10z M4 4l16 16',
+  cream: 'M6 15a6 4 0 0 0 12 0c0-2-2-3-3-5-1 1-2 1-3 0-1 1-2 1-3 0-1 2-3 3-3 5z',
+  watery: 'M12 3c2 3 4 5 4 7.5a4 4 0 0 1-8 0C8 8 10 6 12 3z M6 18h12 M8 21h8',
+  eggwhite: 'M12 3c3 4 5 7 5 10a5 5 0 0 1-10 0c0-3 2-6 5-10z M10 13a2 2 0 0 0 2 2',
+  unusual: 'M12 3.5c2.6 3.7 5.5 6.6 5.5 10a5.5 5.5 0 0 1-11 0c0-3.4 2.9-6.3 5.5-10z M12 10v3 M12 16h.01',
+  stress: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z M13 7l-3 5h4l-3 5',
+  bandage: 'M4.5 13.5l9-9a3.5 3.5 0 0 1 5 5l-9 9a3.5 3.5 0 0 1-5-5z M10 10h.01 M14 14h.01 M12 12h.01',
+  pin: 'M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11z M12 10a1.5 1.5 0 1 0 0 .01',
+  glass: 'M7 3h10l-1 7a4 4 0 0 1-8 0L7 3z M12 14v6 M8 21h8',
+  testPos: 'M3 10h18v4H3z M16 10v4 M6.5 12h3 M8 10.5v3',
+  testNeg: 'M3 10h18v4H3z M16 10v4 M6.5 12h3',
+  testNone: 'M3 10h18v4H3z M16 10v4 M4 4l16 16',
+  noWorkout: 'M6 7v10 M18 7v10 M3 10v4 M21 10v4 M6 12h12 M4 4l16 16',
+  thermo: 'M14 14.8V4a2 2 0 0 0-4 0v10.8a4 4 0 1 0 4 0z M12 9v6',
+  pulse: 'M3 12h4l2-5 4 10 2-5h6',
+  zz: 'M5 9h5l-5 6h5 M13 4h6l-6 8h6',
+  bowl: 'M4 12h16a8 8 0 0 1-16 0z M9 8c0-2 1-3 3-4 M13 8c0-1.5.8-2.5 2-3',
+  vomit: 'M12 3a7 7 0 0 0-7 7c0 2 1 3.5 2 4.5 M12 3a7 7 0 0 1 7 7c0 2-1 3.5-2 4.5 M9 15c0 2 1 3 3 3s3-1 3-3 M12 18v3'
+};
+
+var CATS = [
+  { id: 'flow', label: 'Fluxo & sangramento', short: 'Fluxo', color: BERRY, tint: '#FBE9EC', hint: 'fluxo: escolha um', only: 'cycle' },
+  { id: 'alert', label: 'Sinais de alerta', short: 'Alerta', color: '#B42318', tint: '#FDECEA', hint: 'pedem avaliação', only: 'pregnancy' },
+  { id: 'symptom', label: 'Sintomas', short: 'Sintomas', color: '#6E3B96', tint: '#F2EAF8', hint: '' },
+  { id: 'mood', label: 'Humor', short: 'Humor', color: '#1C6E64', tint: '#E2F2EF', hint: '' },
+  { id: 'baby', label: 'Bebê', short: 'Bebê', color: '#0E6F86', tint: '#E0F2F7', hint: '', only: 'pregnancy', minWeek: 16 },
+  { id: 'discharge', label: 'Secreção', short: 'Secreção', color: '#2563A8', tint: '#E5EEF8', hint: 'escolha uma' },
+  { id: 'sex', label: 'Relação & proteção', short: 'Relação', color: '#A8326E', tint: '#FBE8F2', hint: '' },
+  { id: 'factors', label: 'Fatores do dia', short: 'Fatores', color: '#4A5568', tint: '#EDEFF3', hint: 'ajudam a explicar mudanças' },
+  { id: 'lifestyle', label: 'Atividade física', short: 'Atividade', color: '#8A5300', tint: '#FBEFDC', hint: '' },
+  { id: 'test', label: 'Teste de gravidez', short: 'Teste', color: '#3F3A8C', tint: '#ECEBFA', hint: '', only: 'cycle' }
+];
+var CAT_BY = {}; CATS.forEach(function (c) { CAT_BY[c.id] = c; });
+
+var ITEMS = [
+  { code: 'sex_vaginal', label: 'Vaginal', cat: 'sex', icon: 'heart' },
+  { code: 'sex_oral', label: 'Oral', cat: 'sex', icon: 'lips' },
+  { code: 'sex_anal', label: 'Anal', cat: 'sex', icon: 'ring' },
+  { code: 'sex_foreplay', label: 'Preliminares', cat: 'sex', icon: 'spark' },
+  { code: 'protection_condom', label: 'Com preservativo', cat: 'sex', icon: 'shield', group: 'protection', only: 'cycle' },
+  { code: 'protection_none', label: 'Sem preservativo', cat: 'sex', icon: 'shieldOff', group: 'protection', only: 'cycle' },
+  { code: 'emergency_contraception', label: 'Pílula do dia seguinte', cat: 'sex', icon: 'pill', highlight: true, only: 'cycle' },
+  { code: 'flow_light', label: 'Leve', cat: 'flow', icon: 'drop1', group: 'flow', only: 'cycle' },
+  { code: 'flow_medium', label: 'Médio', cat: 'flow', icon: 'drop2', group: 'flow', only: 'cycle' },
+  { code: 'flow_heavy', label: 'Intenso', cat: 'flow', icon: 'drop3', group: 'flow', only: 'cycle' },
+  { code: 'flow_dark', label: 'Escuro / borra', cat: 'flow', icon: 'dropDark', group: 'flow', only: 'cycle' },
+  { code: 'spotting', label: 'Escape', cat: 'flow', icon: 'dots', only: 'cycle' },
+  { code: 'no_symptoms', label: 'Sem sintomas', cat: 'symptom', icon: 'check', special: true, negates: true },
+  { code: 'cramps', label: 'Cólica', cat: 'symptom', icon: 'bolt', only: 'cycle' },
+  { code: 'abdominal_pain', label: 'Dor abdominal', cat: 'symptom', icon: 'belly', only: 'cycle' },
+  { code: 'back_pain', label: 'Dor nas costas', cat: 'symptom', icon: 'spine' },
+  { code: 'breast_tenderness', label: 'Mamas sensíveis', cat: 'symptom', icon: 'breast' },
+  { code: 'headache', label: 'Dor de cabeça', cat: 'symptom', icon: 'head' },
+  { code: 'acne', label: 'Acne', cat: 'symptom', icon: 'acne' },
+  { code: 'bloating', label: 'Inchaço', cat: 'symptom', icon: 'bloat' },
+  { code: 'nausea', label: 'Enjoo', cat: 'symptom', icon: 'wave' },
+  { code: 'fatigue', label: 'Fadiga', cat: 'symptom', icon: 'battery' },
+  { code: 'insomnia', label: 'Insônia', cat: 'symptom', icon: 'moon' },
+  { code: 'vaginal_itch', label: 'Coceira vaginal', cat: 'symptom', icon: 'itch' },
+  { code: 'diarrhea', label: 'Diarreia', cat: 'symptom', icon: 'diarrhea' },
+  { code: 'constipation', label: 'Prisão de ventre', cat: 'symptom', icon: 'lock' },
+  { code: 'vomiting', label: 'Vômito', cat: 'symptom', icon: 'vomit', only: 'pregnancy' },
+  { code: 'heartburn', label: 'Azia', cat: 'symptom', icon: 'flame', only: 'pregnancy' },
+  { code: 'sleepy', label: 'Sono', cat: 'symptom', icon: 'zz', only: 'pregnancy' },
+  { code: 'leg_cramps', label: 'Câimbras', cat: 'symptom', icon: 'bolt', only: 'pregnancy' },
+  { code: 'frequent_urination', label: 'Vontade frequente de urinar', cat: 'symptom', icon: 'drop1', only: 'pregnancy' },
+  { code: 'cravings', label: 'Desejos ou aversões', cat: 'symptom', icon: 'bowl', only: 'pregnancy' },
+  { code: 'swelling_legs', label: 'Inchaço nas pernas e pés', cat: 'symptom', icon: 'bloat', only: 'pregnancy' },
+  { code: 'baby_movement', label: 'Bebê se mexendo', cat: 'baby', icon: 'spark', only: 'pregnancy', minWeek: 16 },
+  { code: 'braxton', label: 'Contrações de treinamento', cat: 'baby', icon: 'pulse', only: 'pregnancy', minWeek: 20 },
+  // Sinais de alerta da gestação. PENDENTE de revisão por obstetra antes de abrir para terceiras.
+  { code: 'bleeding', label: 'Sangramento ou escape', cat: 'alert', icon: 'drop1', only: 'pregnancy', alert: true },
+  { code: 'fluid_loss', label: 'Perda de líquido', cat: 'alert', icon: 'watery', only: 'pregnancy', alert: true },
+  { code: 'severe_abdominal', label: 'Dor forte na barriga', cat: 'alert', icon: 'belly', only: 'pregnancy', alert: true },
+  { code: 'severe_headache', label: 'Dor de cabeça forte ou visão turva', cat: 'alert', icon: 'head', only: 'pregnancy', alert: true },
+  { code: 'sudden_swelling', label: 'Inchaço súbito no rosto ou nas mãos', cat: 'alert', icon: 'bloat', only: 'pregnancy', alert: true },
+  { code: 'fever', label: 'Febre', cat: 'alert', icon: 'thermo', only: 'pregnancy', alert: true },
+  { code: 'persistent_vomiting', label: 'Vômitos que impedem comer ou beber', cat: 'alert', icon: 'vomit', only: 'pregnancy', alert: true },
+  { code: 'regular_contractions', label: 'Contrações regulares', cat: 'alert', icon: 'pulse', only: 'pregnancy', alert: true, minWeek: 20 },
+  { code: 'less_movement', label: 'Bebê mexendo menos', cat: 'alert', icon: 'spark', only: 'pregnancy', alert: true, minWeek: 28 },
+  { code: 'mood_calm', label: 'Calma', cat: 'mood', icon: 'calm' },
+  { code: 'mood_happy', label: 'Feliz', cat: 'mood', icon: 'happy' },
+  { code: 'mood_swings', label: 'Mudanças de humor', cat: 'mood', icon: 'swings' },
+  { code: 'mood_anxious', label: 'Ansiosa', cat: 'mood', icon: 'anxious' },
+  { code: 'mood_irritated', label: 'Irritada', cat: 'mood', icon: 'irritated' },
+  { code: 'mood_sad', label: 'Triste', cat: 'mood', icon: 'sad' },
+  { code: 'mood_sensitive', label: 'Sensível', cat: 'mood', icon: 'sensitive' },
+  { code: 'discharge_dry', label: 'Seca', cat: 'discharge', icon: 'dry', group: 'discharge' },
+  { code: 'discharge_creamy', label: 'Cremosa', cat: 'discharge', icon: 'cream', group: 'discharge' },
+  { code: 'discharge_watery', label: 'Aquosa', cat: 'discharge', icon: 'watery', group: 'discharge' },
+  { code: 'discharge_eggwhite', label: 'Clara de ovo', cat: 'discharge', icon: 'eggwhite', group: 'discharge', only: 'cycle' },
+  { code: 'discharge_unusual', label: 'Diferente do normal', cat: 'discharge', icon: 'unusual', group: 'discharge' },
+  { code: 'stress', label: 'Estresse', cat: 'factors', icon: 'stress' },
+  { code: 'illness', label: 'Doença', cat: 'factors', icon: 'bandage' },
+  { code: 'travel', label: 'Viagem', cat: 'factors', icon: 'pin' },
+  { code: 'alcohol', label: 'Álcool', cat: 'factors', icon: 'glass' },
+  { code: 'no_workout', label: 'Não me exercitei', cat: 'lifestyle', icon: 'noWorkout', negates: true },
+  { code: 'workout_light', label: 'Treino leve', cat: 'lifestyle', icon: 'dumbbell' },
+  { code: 'workout_intense', label: 'Treino intenso', cat: 'lifestyle', icon: 'flame' },
+  { code: 'walk', label: 'Caminhada', cat: 'lifestyle', icon: 'walk' },
+  { code: 'yoga', label: 'Yoga', cat: 'lifestyle', icon: 'lotus' },
+  { code: 'preg_test_none', label: 'Não fiz teste', cat: 'test', icon: 'testNone', group: 'preg_test', only: 'cycle' },
+  { code: 'preg_test_positive', label: 'Teste positivo', cat: 'test', icon: 'testPos', group: 'preg_test', only: 'cycle' },
+  { code: 'preg_test_negative', label: 'Teste negativo', cat: 'test', icon: 'testNeg', group: 'preg_test', only: 'cycle' }
+];
+var DEFAULT_SUGGEST = ['cramps', 'headache', 'fatigue', 'mood_swings'];
+var CARE = {
+  discharge_unusual: 'Se vier com coceira, ardor ou cheiro forte, vale procurar avaliação.',
+  vaginal_itch: 'Se persistir ou vier com secreção diferente, vale procurar avaliação.'
+};
+var ITEM_BY = {}; ITEMS.forEach(function (i) { ITEM_BY[i.code] = i; });
+
+var SAMPLE_LOG = {
+  '2026-09-19': ['flow_heavy', 'cramps'], '2026-09-20': ['flow_heavy', 'cramps'], '2026-09-21': ['flow_medium'],
+  '2026-09-22': ['flow_light'], '2026-09-23': ['flow_light'], '2026-09-30': ['sex_vaginal', 'protection_condom'],
+  '2026-10-10': ['sex_vaginal', 'protection_condom'], '2026-10-14': ['mood_irritated', 'breast_tenderness'],
+  '2026-10-17': ['flow_heavy', 'cramps'], '2026-10-18': ['flow_heavy', 'cramps', 'fatigue'], '2026-10-19': ['flow_medium', 'back_pain'],
+  '2026-10-20': ['flow_light'], '2026-10-21': ['flow_light'], '2026-10-23': ['sex_vaginal', 'protection_none'],
+  '2026-10-24': ['emergency_contraception'], '2026-10-25': ['workout_light', 'mood_happy'], '2026-10-27': ['mood_anxious', 'headache']
+};
+var PAST_PDS = ['2026-03-08'];
+
+var PHASE_PROFILE = {
+  cramps: [62, 8, 10, 20], back_pain: [45, 10, 10, 35], breast_tenderness: [10, 8, 17, 65], acne: [12, 18, 15, 55],
+  bloating: [28, 10, 12, 50], headache: [35, 20, 15, 30], nausea: [30, 25, 20, 25], mood_anxious: [12, 15, 18, 55],
+  mood_irritated: [15, 10, 15, 60], mood_sad: [25, 10, 10, 55], mood_sensitive: [20, 10, 15, 55], fatigue: [40, 15, 10, 35],
+  mood_happy: [10, 40, 35, 15], spotting: [10, 30, 45, 15], abdominal_pain: [50, 10, 10, 30], insomnia: [15, 15, 15, 55],
+  vaginal_itch: [15, 25, 25, 35], diarrhea: [55, 10, 10, 25], constipation: [10, 15, 15, 60], mood_swings: [10, 10, 15, 65],
+  mood_calm: [15, 40, 30, 15], discharge_eggwhite: [0, 15, 80, 5], discharge_creamy: [5, 30, 15, 50]
+};
+var PAIN = { cramps: 1, back_pain: 1, headache: 1 };
+var PHASE_PREP = ['na menstruação', 'na fase folicular', 'na janela fértil', 'na fase lútea'];
+var PHASE_PREP_HORMONAL = ['na menstruação', 'fora da menstruação'];
+
+// Histórico de exemplo: durações dos ciclos passados, do mais antigo ao mais recente.
+// Inclui um ciclo fora do padrão (37 dias) para demonstrar o aviso suave de regularidade.
+var PAST_LENGTHS = [26, 28, 27, 25, 28, 27, 27, 27, 37, 26, 27, 28];
+function pastStartsFrom(last) {
+  var out = [], s = last;
+  for (var i = PAST_LENGTHS.length - 1; i >= 0; i--) { s = addDays(s, -PAST_LENGTHS[i]); out.unshift(s); }
+  return out;
+}
+function rng(seed) {
+  var s = seed >>> 0;
+  return function () {
+    s = (s + 0x6D2B79F5) >>> 0;
+    var t = s;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+var PLAUSIBLE_MAX = 90;
+function fmtShort(iso) { var d = new Date(toMs(iso)); return d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()]; }
+
+// RN03 com dois tons: um único ciclo fora da curva gera aviso suave;
+// variação acima de 8 dias mesmo sem ele é "irregular".
+function regularity(lens) {
+  var last = lens.slice(-6);
+  if (last.length < 3) return { kind: 'insufficient', last: last };
+  var range = Math.max.apply(null, last) - Math.min.apply(null, last);
+  if (range <= 8) return { kind: 'regular', last: last, range: range };
+  var median = last.slice().sort(function (a, b) { return a - b; })[Math.floor(last.length / 2)];
+  var idx = 0;
+  last.forEach(function (l, i) { if (Math.abs(l - median) > Math.abs(last[idx] - median)) idx = i; });
+  var rest = last.filter(function (l, i) { return i !== idx; });
+  var restRange = Math.max.apply(null, rest) - Math.min.apply(null, rest);
+  if (restRange <= 8) return { kind: 'outlier', last: last, range: range, idx: idx, restRange: restRange, rest: rest };
+  return { kind: 'irregular', last: last, range: range };
+}
+
+var GREETING = 'Oi! Posso responder sobre o seu histórico e tirar dúvidas sobre o ciclo. Não recebo seu nome nem e-mail.';
+var PILLS = ['Quando foi minha última menstruação?', 'Quantas vezes tomei a pílula do dia seguinte neste ano?', 'Senti cólica em todos os ciclos?', 'Estou na janela fértil?'];
+var PILLS_PREG = ['Com quantas semanas estou?', 'Quando é a data provável do parto?', 'O que registrei nesta semana?', 'Posso tomar remédio para dor de cabeça?'];
+// Sugestões da gestação por trimestre, completadas pelo que ela mais registra.
+var PREG_SUGGEST = [
+  ['nausea', 'fatigue', 'breast_tenderness', 'sleepy'],
+  ['heartburn', 'back_pain', 'baby_movement', 'leg_cramps'],
+  ['swelling_legs', 'insomnia', 'back_pain', 'frequent_urination']
+];
+var MED_WORDS = ['remédio', 'remedio', 'medicamento', 'posso tomar', 'posso usar', 'dipirona', 'paracetamol', 'ibuprofeno', 'chá', 'suplemento'];
+var ALERT_WORDS = ['sangr', 'líquido', 'liquido', 'febre', 'dor forte', 'contraç', 'mexendo menos', 'visão'];
+var URGENT_TEXT = 'Isso precisa de avaliação. Procure atendimento hoje e avise sua equipe do pré-natal. Se for intenso ou piorar, vá ao pronto-socorro ou ligue 192 (SAMU).';
+function fmtYear(iso) { return fmt(iso) + ' de ' + iso.slice(0, 4); }
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = this.initialState(props, props.startScreen || 'onboarding');
+  }
+
+  initialState(props, start) {
+    var map = {
+      onboarding: ['onboarding', null], today: ['today', null], log: ['today', 'log'], symptom: ['today', 'symptom'],
+      calendar: ['calendar', null], stats: ['stats', null], chat: ['today', 'chat'], privacy: ['today', 'privacy']
+    };
+    var pregStart = start.indexOf('pregnancy') === 0;
+    var s = map[start] || (start === 'pregnancyAlert' ? map.log : pregStart ? map.today : map.onboarding);
+    // `lastStart` desloca o histórico de exemplo inteiro, para mostrar outros momentos do ciclo.
+    var last = props.lastStart || '2026-10-17';
+    var shift = diff('2026-10-17', last);
+    var log = {};
+    Object.keys(SAMPLE_LOG).forEach(function (d) { var nd = addDays(d, shift); if (nd <= TODAY) log[nd] = SAMPLE_LOG[d].slice(); });
+    if (start === 'pregnancyAlert') log[TODAY] = ['nausea', 'bleeding'];
+    return {
+      screen: s[0], overlay: s[1], symFromLog: false, obStep: 0,
+      lastStart: last, pastStarts: pastStartsFrom(last), cycleLen: 28, periodLen: 5, birth: '1996-05-12',
+      method: props.method || 'condom', aiOn: true, periodOpen: false,
+      hiddenCats: {}, editCats: false, pregPrompt: false,
+      // Estágios de vida. Da gestação guardamos só datas, nunca o desfecho.
+      pregnant: pregStart, pregLmp: last, pregDating: 'dum', pregHistory: [],
+      stage: 'cycle', postpartumSince: null, awaitingPeriod: false, awaitSince: null,
+      consult: pregStart ? '2026-11-05' : '', showFlags: false,
+      setupMode: 'dum', setupLmp: last, setupDue: '',
+      cycleAnswers: {}, askCycle: null,
+      log: log, logDate: TODAY, symptom: pregStart ? 'nausea' : 'cramps',
+      chat: [{ from: 'ai', text: GREETING }], draft: '',
+      calMonth: '2026-10', calSel: TODAY, delProgress: 0, deleted: false, pdsAck: false
+    };
+  }
+
+  componentDidUpdate(prev) {
+    if (prev.startScreen !== this.props.startScreen || prev.method !== this.props.method || prev.lastStart !== this.props.lastStart) {
+      this.setState(this.initialState(this.props, this.props.startScreen || 'onboarding'));
+    }
+  }
+
+  componentWillUnmount() { clearTimeout(this._lp); clearTimeout(this._jt); clearInterval(this._del); }
+
+  codes(date) { return this.state.log[date] || []; }
+
+  setCodes(date, list) {
+    var log = Object.assign({}, this.state.log);
+    log[date] = list;
+    this.setState({ log: log });
+  }
+
+  toggleCode(date, code) {
+    var item = ITEM_BY[code];
+    var cur = this.codes(date).slice();
+    var i = cur.indexOf(code);
+    if (i >= 0) cur.splice(i, 1);
+    else {
+      if (item.group) cur = cur.filter(function (c) { return !ITEM_BY[c] || ITEM_BY[c].group !== item.group; });
+      // Itens de negação ("Sem sintomas", "Não me exercitei") excluem o resto da categoria e vice-versa:
+      // o dia continua registrado, só muda o conteúdo.
+      if (item.negates) cur = cur.filter(function (c) { return !ITEM_BY[c] || ITEM_BY[c].cat !== item.cat; });
+      else cur = cur.filter(function (c) { return !(ITEM_BY[c] && ITEM_BY[c].negates && ITEM_BY[c].cat === item.cat); });
+      cur.push(code);
+    }
+    var patch = {};
+    if (code === 'emergency_contraception' && i < 0) patch.pdsAck = false;
+    if (code === 'preg_test_positive') patch.pregPrompt = i < 0 && !this.state.pregnant;
+    var log = Object.assign({}, this.state.log);
+    log[date] = cur;
+    patch.log = log;
+    this.setState(patch);
+  }
+
+  tracks() { return !HORMONAL[this.state.method]; }
+
+  // ---- estágios de vida
+  gest(date) {
+    var st = this.state;
+    var days = diff(st.pregLmp, date || TODAY);
+    var w = Math.floor(days / 7);
+    return { days: days, w: w, d: days % 7, tri: w < 14 ? 1 : w < 28 ? 2 : 3, short: w + 's ' + (days % 7) + 'd' };
+  }
+
+  // Ciclo de exemplo ou registrado que cruza uma gestação não entra em médias nem estatísticas.
+  overlapsPregnancy(start, endExclusive) {
+    var st = this.state;
+    var list = st.pregHistory.slice();
+    if (st.pregnant) list.push({ lmp: st.pregLmp, end: '9999-12-31' });
+    return list.some(function (p) { return start < p.end && endExclusive > p.lmp; });
+  }
+
+  noPredictions() { var st = this.state; return st.pregnant || st.stage === 'postpartum' || st.awaitingPeriod; }
+
+  visible(entity) {
+    var st = this.state;
+    var stage = st.pregnant ? 'pregnancy' : 'cycle';
+    if (entity.only && entity.only !== stage) return false;
+    if (entity.minWeek && (!st.pregnant || this.gest().w < entity.minWeek)) return false;
+    return true;
+  }
+
+  // Tags do topo do registro: rolam a lista até a seção e acompanham a rolagem.
+  jumpTo(e, id) {
+    var dialog = e.currentTarget.closest('[role="dialog"]');
+    var box = dialog && dialog.querySelector('.log-scroll');
+    var target = box && box.querySelector('[id="sec-' + id + '"]');
+    if (target) box.scrollTo({ top: target.offsetTop - 8, behavior: 'smooth' });
+    var self = this;
+    this._jumping = true;
+    clearTimeout(this._jt);
+    this._jt = setTimeout(function () { self._jumping = false; }, 700);
+    this.setState({ activeSec: id });
+  }
+
+  onLogScroll(e) {
+    if (this._jumping) return;
+    var box = e.currentTarget;
+    var secs = box.querySelectorAll('section[id^="sec-"]');
+    if (!secs.length) return;
+    var cur = 'top';
+    for (var i = 0; i < secs.length; i++) if (secs[i].offsetTop - 24 <= box.scrollTop) cur = secs[i].id.slice(4);
+    // As últimas seções são curtas e nunca chegam ao topo: no fim da lista, vale a última.
+    if (box.scrollTop + box.clientHeight >= box.scrollHeight - 4) cur = secs[secs.length - 1].id.slice(4);
+    if (cur === this.state.activeSec) return;
+    var row = box.closest('[role="dialog"]').querySelector('.log-chips');
+    var chip = row && row.querySelector('[id="chip-' + cur + '"]');
+    if (chip) row.scrollTo({ left: chip.offsetLeft - 16, behavior: 'smooth' });
+    this.setState({ activeSec: cur });
+  }
+
+  allStarts() { return this.state.pastStarts.concat([this.state.lastStart]); }
+
+  // Média (RN02, sem o ciclo fora do padrão) e janela da próxima menstruação.
+  cycleStats() {
+    var st = this.state;
+    var key = st.pastStarts.join(',') + '|' + st.lastStart + '|' + st.cycleLen + '|' + st.pregHistory.length + '|' + st.pregnant;
+    if (this._csKey === key) return this._cs;
+    var starts = this.allStarts();
+    var lens = [], lenStarts = [];
+    for (var k = 1; k < starts.length; k++) {
+      var len = diff(starts[k - 1], starts[k]);
+      if (len > PLAUSIBLE_MAX || this.overlapsPregnancy(starts[k - 1], starts[k])) continue;
+      lens.push(len);
+      lenStarts.push(starts[k - 1]);
+    }
+    var reg = regularity(lens);
+    var base = reg.kind === 'outlier' ? reg.rest : lens.slice(-6);
+    var avg = base.length ? Math.round(base.reduce(function (s, v) { return s + v; }, 0) / base.length) : st.cycleLen;
+    // Janela: do ciclo recente mais curto ao mais longo, nunca menor que média ± 1.
+    var lo = base.length >= 2 ? Math.min.apply(null, base) : avg - 2;
+    var hi = base.length >= 2 ? Math.max.apply(null, base) : avg + 2;
+    lo = Math.min(lo, avg - 1);
+    hi = Math.max(hi, avg + 1);
+    this._csKey = key;
+    this._cs = { starts: starts, lens: lens, lenStarts: lenStarts, reg: reg, avg: avg, winLo: addDays(st.lastStart, lo), winHi: addDays(st.lastStart, hi) };
+    return this._cs;
+  }
+
+  predictedStarts(n) {
+    if (this.noPredictions()) return [];
+    var cs = this.cycleStats();
+    // Depois que a janela passa, a próxima previsão parte de amanhã, não de uma data já vencida.
+    var first = addDays(this.state.lastStart, cs.avg);
+    if (first <= TODAY && cs.winHi < TODAY) first = addDays(TODAY, 1);
+    var out = [];
+    for (var i = 0; i < n; i++) out.push(addDays(first, i * cs.avg));
+    return out;
+  }
+
+  // Fase mais comum de cada sintoma/humor na fase atual: vira a linha "Comuns para você agora".
+  suggestions(date) {
+    var self = this;
+    if (this.state.pregnant) {
+      // Gestação: o que ela mais registrou desde a DUM, completado pelo típico do trimestre.
+      var g = this.gest(date);
+      var counts = {};
+      var log = this.state.log;
+      Object.keys(log).forEach(function (d) {
+        if (d < self.state.pregLmp || d > date) return;
+        log[d].forEach(function (c) { var it = ITEM_BY[c]; if (it && it.cat === 'symptom' && !it.special) counts[c] = (counts[c] || 0) + 1; });
+      });
+      // Até 2 sintomas pessoais recorrentes; o resto vem do típico do trimestre.
+      var mine = Object.keys(counts).filter(function (c) { return counts[c] >= 2; }).sort(function (a, b) { return counts[b] - counts[a]; }).slice(0, 2);
+      var pick = mine.concat(PREG_SUGGEST[g.tri - 1]).filter(function (c, i, all) { return all.indexOf(c) === i && self.visible(ITEM_BY[c]); });
+      return { phase: g.tri + 'º trimestre', codes: pick.slice(0, 4) };
+    }
+    var cyc = this.cycleList();
+    var cur = null;
+    cyc.forEach(function (c) { if (c.start <= date) cur = c; });
+    var names = this.tracks() ? ['Menstruação', 'Fase folicular', 'Janela fértil', 'Fase lútea'] : ['Menstruação', 'Fora da menstruação'];
+    if (!cur) return { phase: '', codes: DEFAULT_SUGGEST.slice() };
+    var p = this.phaseIdx(diff(cur.start, date) + 1, cur.len);
+    var scores = [];
+    ITEMS.forEach(function (it) {
+      if ((it.cat !== 'symptom' && it.cat !== 'mood') || it.special) return;
+      var n = 0;
+      cyc.forEach(function (c) {
+        if (c.current) return;
+        self.symptomDaysIn(c, it.code).days.forEach(function (cd) { if (self.phaseIdx(cd, c.len) === p) n++; });
+      });
+      if (n > 0) scores.push({ code: it.code, n: n });
+    });
+    scores.sort(function (a, b) { return b.n - a.n; });
+    var codes = scores.slice(0, 4).map(function (s) { return s.code; });
+    DEFAULT_SUGGEST.forEach(function (c) { if (codes.length < 4 && codes.indexOf(c) < 0) codes.push(c); });
+    return { phase: names[p], codes: codes };
+  }
+
+  phaseOf(date) {
+    var st = this.state;
+    var base = { predicted: false, period: false, fertile: false, ovulation: false, special: true };
+    if (st.pregnant && date >= addDays(st.pregLmp, st.periodLen)) {
+      var g = this.gest(date);
+      return Object.assign(base, { cd: g.days + 1, name: g.short + ' · ' + g.tri + 'º trimestre' });
+    }
+    var past = st.pregHistory.filter(function (p) { return date >= addDays(p.lmp, st.periodLen) && date < p.end; })[0];
+    if (past) return Object.assign(base, { name: 'Gestação' });
+    if (st.stage === 'postpartum' && date >= st.postpartumSince) return Object.assign(base, { name: 'Pós-parto' });
+    if (st.awaitingPeriod && date >= st.awaitSince) return Object.assign(base, { name: 'Aguardando a menstruação voltar' });
+    var starts = this.allStarts().concat(this.predictedStarts(4));
+    var idx = -1;
+    for (var i = 0; i < starts.length; i++) if (starts[i] <= date) idx = i;
+    if (idx < 0) return null;
+    var s = starts[idx];
+    var next = starts[idx + 1] || addDays(s, this.cycleStats().avg);
+    var cd = diff(s, date) + 1;
+    var predicted = idx >= this.allStarts().length;
+    var inPeriod = cd <= st.periodLen || (s === st.lastStart && st.periodOpen && date <= TODAY);
+    var res = { cd: cd, predicted: predicted, period: inPeriod, fertile: false, ovulation: false, name: '' };
+    if (inPeriod) { res.name = predicted ? 'Menstruação prevista' : 'Menstruação'; return res; }
+    if (s === st.lastStart && cd > this.cycleStats().avg) { res.name = 'Ciclo mais longo que a média'; return res; }
+    if (!this.tracks()) { res.name = 'Fora da menstruação'; return res; }
+    var ov = addDays(next, -14), fs = addDays(ov, -5), fe = addDays(ov, 1);
+    res.ov = ov; res.fs = fs; res.fe = fe;
+    if (date >= fs && date <= fe) { res.fertile = true; res.ovulation = date === ov; res.name = res.ovulation ? 'Ovulação estimada' : 'Janela fértil'; }
+    else res.name = date < fs ? 'Fase folicular' : 'Fase lútea';
+    return res;
+  }
+
+  pdsDates() {
+    var log = this.state.log;
+    var out = PAST_PDS.slice();
+    Object.keys(log).forEach(function (d) { if (log[d].indexOf('emergency_contraception') >= 0) out.push(d); });
+    return out.sort();
+  }
+
+  pdsStatus() {
+    var st = this.state;
+    var dates = this.pdsDates();
+    var inCycle = dates.filter(function (d) { return d >= st.lastStart && d <= TODAY; }).length;
+    var in12 = dates.filter(function (d) { return d > '2025-10-28' && d <= TODAY; }).length;
+    var triggered = inCycle >= 2 || in12 > 3;
+    var body = 'A pílula do dia seguinte tem alta carga hormonal e não é feita para uso frequente. Uma consulta pode ajudar a achar um método que funcione melhor para você.';
+    var title = inCycle >= 2 ? 'Esta é a ' + inCycle + 'ª vez neste ciclo' : 'Foram ' + in12 + ' vezes em 12 meses';
+    return { dates: dates, inCycle: inCycle, in12: in12, triggered: triggered, title: title, body: body };
+  }
+
+  cycleList() {
+    var self = this;
+    var avg = this.cycleStats().avg;
+    var starts = this.allStarts();
+    return starts.map(function (s, i) {
+      var next = starts[i + 1];
+      return {
+        start: s, current: !next, len: next ? diff(s, next) : avg,
+        end: next ? addDays(next, -1) : TODAY, age: starts.length - 1 - i
+      };
+    }).filter(function (c) {
+      return c.len <= PLAUSIBLE_MAX && !self.overlapsPregnancy(c.start, addDays(c.end, 1));
+    });
+  }
+
+  phaseIdx(cd, len) {
+    if (cd <= this.state.periodLen) return 0;
+    if (!this.tracks()) return 1;
+    var ov = len - 13;
+    if (cd < ov - 5) return 1;
+    if (cd <= ov + 1) return 2;
+    return 3;
+  }
+
+  // Três estados por categoria: marcou o item (teve), marcou outro item da mesma
+  // categoria ou a negação (não teve), ou nada na categoria (sem registro).
+  // `logged: false` = ciclo sem nenhum dia observado na categoria: não entra na conta.
+  symptomDaysIn(cycle, code) {
+    var cat = ITEM_BY[code].cat;
+    var days = [], observed = false;
+    var span = diff(cycle.start, cycle.end) + 1;
+    for (var cd = 1; cd <= span; cd++) {
+      var codes = this.codes(addDays(cycle.start, cd - 1));
+      if (codes.some(function (c) { return ITEM_BY[c] && ITEM_BY[c].cat === cat; })) observed = true;
+      if (codes.indexOf(code) >= 0) days.push(cd);
+    }
+    // Resposta do fim da menstruação ("Teve cólica neste ciclo?") vale para o ciclo todo.
+    var answer = (this.state.cycleAnswers[cycle.start] || {})[code];
+    if (answer === 'yes') return { logged: true, days: days, confirmed: true };
+    if (answer === 'no' || observed) return { logged: true, days: days };
+    if (cycle.age <= 1 || cycle.age === 3 || cycle.age === 7) return { logged: false, days: [] };
+    // Ciclos mais antigos: histórico de exemplo gerado de forma determinística.
+    var r = rng(hash(code) * 7919 + hash(cycle.start));
+    var prof = PHASE_PROFILE[code] || [20, 20, 20, 20];
+    var boost = PAIN[code] ? 2.1 : 1.4;
+    var ov = cycle.len - 13, P = this.state.periodLen;
+    var ranges = [[1, Math.min(3, P)], [P + 1, ov - 6], [ov - 5, ov + 1], [ov + 2, cycle.len]];
+    ranges.forEach(function (rg, p) {
+      if (rg[1] < rg[0]) return;
+      if (r() < Math.min(0.92, prof[p] / 100 * boost)) {
+        var d = rg[0] + Math.floor(r() * (rg[1] - rg[0] + 1));
+        days.push(d);
+        if (r() < 0.45 && d + 1 <= rg[1]) days.push(d + 1);
+      }
+    });
+    return { logged: true, days: days };
+  }
+
+  // Ficha do sintoma na gestação: semana a semana e por trimestre, em vez de ciclos.
+  symptomDataPreg(code) {
+    var self = this, st = this.state;
+    var item = ITEM_BY[code], cat = CAT_BY[item.cat];
+    var g = this.gest();
+    var weekDays = function (w) {
+      var start = addDays(st.pregLmp, w * 7), days = [], observed = false;
+      for (var d = 0; d < 7; d++) {
+        var date = addDays(start, d);
+        if (date > TODAY) break;
+        var codes = self.codes(date);
+        if (codes.some(function (c) { return ITEM_BY[c] && ITEM_BY[c].cat === item.cat; })) observed = true;
+        if (codes.indexOf(code) >= 0) days.push(d);
+      }
+      return { start: start, days: days, observed: observed };
+    };
+    var byTri = [0, 0, 0], total = 0, thisWeek = 0;
+    for (var w = 0; w <= g.w; w++) {
+      var wd = weekDays(w);
+      wd.days.forEach(function () { byTri[w < 14 ? 0 : w < 28 ? 1 : 2]++; total++; });
+      if (w === g.w) thisWeek = wd.days.length;
+    }
+    var triNow = g.tri;
+    var phases = ['1º trimestre', '2º trimestre', '3º trimestre'].slice(0, triNow).map(function (l, i) {
+      return { label: l, pct: total ? Math.round(byTri[i] / total * 100) : 0, color: ['#0E6F86', INDIGO, '#6E3B96'][i], i: i };
+    });
+    var rows = [];
+    for (var k = g.w; k >= Math.max(0, g.w - 7); k--) {
+      var wk = weekDays(k);
+      rows.push({
+        label: 'Semana ' + k + (k === g.w ? ' · atual' : ''), right: wk.observed ? wk.days.length + '×' : '',
+        logged: wk.observed, notLogged: !wk.observed,
+        emptyText: 'Sem registros de ' + cat.label.toLowerCase() + ' nesta semana',
+        width: '100', periodW: '0', fertL: '0', fertW: '0',
+        dots: wk.days.map(function (d) { return { left: ((d + 0.5) / 7 * 100).toFixed(1), color: cat.color }; })
+      });
+    }
+    var observedWeeks = rows.filter(function (r) { return r.logged; });
+    var presentWeeks = observedWeeks.filter(function (r) { return r.dots.length > 0; }).length;
+    var insight = item.alert ? 'É um sinal de alerta. ' + URGENT_TEXT
+      : total ? 'Registrado em ' + total + (total === 1 ? ' dia' : ' dias') + ' desde o início da gestação.' : 'Ainda sem registros na gestação.';
+    if (CARE[code]) insight += ' ' + CARE[code];
+    return {
+      label: item.label, cat: cat.label, color: cat.color, tint: cat.tint, icon: ICONS[item.icon],
+      windows: [{ count: thisWeek, label: 'dias nesta semana' }, { count: byTri[triNow - 1], label: 'dias no ' + triNow + 'º trimestre' }, { count: total, label: 'dias na gestação' }],
+      phases: phases, top: phases[0], topPrep: '', rows: rows, legendFertile: false, legendCycle: false,
+      phaseTitle: 'Em que trimestre aparece', rowsTitle: 'Semana a semana',
+      n: presentWeeks, loggedCount: observedWeeks.length, skipped: rows.length - observedWeeks.length, total: total, thisWeek: thisWeek,
+      cycleText: 'Aparece em ' + presentWeeks + ' das últimas ' + observedWeeks.length + ' semanas com registro de ' + cat.label.toLowerCase() + '.',
+      insight: insight
+    };
+  }
+
+  symptomData(code) {
+    var self = this, st = this.state;
+    if (st.pregnant) return this.symptomDataPreg(code);
+    var item = ITEM_BY[code], cat = CAT_BY[item.cat];
+    var tracks = this.tracks();
+    var cycles = this.cycleList().map(function (c) { return Object.assign({}, c, self.symptomDaysIn(c, code)); });
+
+    var cuts = [addDays(TODAY, -91), addDays(TODAY, -182), addDays(TODAY, -365)];
+    var counts = [0, 0, 0], byPhase = [0, 0, 0, 0], cdByPhase = [[], [], [], []], total = 0;
+    cycles.forEach(function (c) {
+      c.days.forEach(function (cd) {
+        var date = addDays(c.start, cd - 1);
+        if (date > TODAY) return;
+        cuts.forEach(function (k, i) { if (date > k) counts[i]++; });
+        if (date > cuts[2]) { var p = self.phaseIdx(cd, c.len); byPhase[p]++; cdByPhase[p].push(cd); total++; }
+      });
+    });
+
+    var labels = tracks ? ['Menstruação', 'Fase folicular', 'Janela fértil', 'Fase lútea'] : ['Menstruação', 'Fora da menstruação'];
+    var colors = tracks ? [BERRY, '#8C879C', INDIGO, '#6E3B96'] : [BERRY, '#6E3B96'];
+    var preps = tracks ? PHASE_PREP : PHASE_PREP_HORMONAL;
+    var phases = labels.map(function (l, i) { return { label: l, pct: total ? Math.round(byPhase[i] / total * 100) : 0, color: colors[i], i: i }; });
+    var top = phases.slice().sort(function (a, b) { return b.pct - a.pct; })[0];
+    var topDays = cdByPhase[top.i];
+
+    // "X de Y ciclos" só conta ciclos completos com algum dia observado na categoria.
+    var catName = cat.label.toLowerCase();
+    var done = cycles.filter(function (c) { return !c.current; }).slice(-6);
+    var loggedC = done.filter(function (c) { return c.logged; });
+    var present = loggedC.filter(function (c) { return c.days.length > 0 || c.confirmed; }).length;
+    var skipped = done.length - loggedC.length;
+    var cycleText = done.length === 0 ? 'Ainda não há ciclos completos registrados.'
+      : 'Aparece em ' + present + ' de ' + loggedC.length + ' ciclos com registro de ' + catName +
+        (skipped ? '. ' + skipped + (skipped === 1 ? ' ciclo sem registro de ' + catName + ' não entra' : ' ciclos sem registro de ' + catName + ' não entram') + ' na conta.' : '.');
+
+    var topPrep = '', insight;
+    if (present < 3 || !topDays.length) {
+      insight = 'Ainda há poucos registros para apontar um padrão. A partir de 3 ciclos com ' + item.label.toLowerCase() + ' mostramos a tendência.';
+    } else {
+      // Faixa central (quartis) dos dias, para um ciclo longo não esticar o padrão.
+      var sorted = topDays.slice().sort(function (a, b) { return a - b; });
+      var lo = sorted[Math.floor((sorted.length - 1) * 0.25)], hi = sorted[Math.ceil((sorted.length - 1) * 0.75)];
+      topPrep = preps[top.i] + ' (' + (lo === hi ? 'dia ' + lo : 'dias ' + lo + '–' + hi) + ' do ciclo)';
+      insight = 'Aparece mais ' + topPrep + '.';
+    }
+    if (PAIN[code] && present > 0) insight += ' Se a dor atrapalha sua rotina, vale conversar com sua ginecologista.';
+    if (CARE[code]) insight += ' ' + CARE[code];
+
+    var shown = cycles.slice(-8).reverse();
+    var maxLen = Math.max.apply(null, shown.map(function (c) { return c.len; }).concat([28]));
+    var rows = shown.map(function (c) {
+      var ov = c.len - 13;
+      var right = c.current ? 'dia ' + (diff(c.start, TODAY) + 1) : c.len + ' dias';
+      if (c.logged) right += ' · ' + (c.confirmed && !c.days.length ? 'teve, sem dia marcado' : c.days.length + '×');
+      return {
+        label: c.current ? 'Ciclo atual · desde ' + fmtShort(c.start) : fmtShort(c.start) + ' – ' + fmtShort(c.end),
+        right: right, logged: c.logged, notLogged: !c.logged,
+        emptyText: c.current ? 'Ainda sem registros de ' + catName + ' neste ciclo' : 'Sem registros de ' + catName + ' neste ciclo · não entra na conta',
+        width: (c.len / maxLen * 100).toFixed(1),
+        periodW: (Math.min(st.periodLen, c.len) / c.len * 100).toFixed(1),
+        fertL: ((ov - 6) / c.len * 100).toFixed(1),
+        fertW: (tracks ? 7 / c.len * 100 : 0).toFixed(1),
+        dots: c.days.map(function (cd) { return { left: ((cd - 0.5) / c.len * 100).toFixed(1), color: cat.color }; })
+      };
+    });
+
+    return {
+      label: item.label, cat: cat.label, color: cat.color, tint: cat.tint, icon: ICONS[item.icon],
+      windows: [{ count: counts[0], label: 'dias em 3 meses' }, { count: counts[1], label: 'dias em 6 meses' }, { count: counts[2], label: 'dias em 12 meses' }],
+      phases: phases, top: top, topPrep: topPrep, rows: rows, legendFertile: tracks, legendCycle: true,
+      phaseTitle: 'Em que fase aparece', rowsTitle: 'Ciclo a ciclo', catName: catName,
+      n: present, loggedCount: loggedC.length, skipped: skipped, cycleText: cycleText, insight: insight
+    };
+  }
+
+  // Gestação: guardrails mais rígidos. Remédio nunca é avaliado; sinal de alerta vira "procure atendimento".
+  answerPreg(q) {
+    var st = this.state;
+    var lq = q.toLowerCase();
+    var has = function (words) { return words.some(function (w) { return lq.indexOf(w) >= 0; }); };
+    if (has(MED_WORDS)) {
+      return 'Na gestação eu não indico nem avalio remédios, chás ou suplementos, mesmo os mais comuns. Quem pode dizer o que é seguro para você é sua obstetra ou o farmacêutico.\n\nSe a dor de cabeça for forte, não passar ou vier com visão turva ou inchaço no rosto e nas mãos, procure atendimento.';
+    }
+    if (has(ALERT_WORDS)) return URGENT_TEXT;
+    var g = this.gest();
+    var how = st.pregDating === 'usg' ? 'pela ultrassonografia' : 'pela data da última menstruação';
+    if (lq.indexOf('registrei') >= 0) {
+      var counts = {};
+      for (var i = 0; i < 7; i++) {
+        this.codes(addDays(TODAY, -i)).forEach(function (c) { if (ITEM_BY[c] && !ITEM_BY[c].special) counts[c] = (counts[c] || 0) + 1; });
+      }
+      var keys = Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a]; });
+      if (!keys.length) return 'Nos últimos 7 dias você não registrou nada. Dias sem registro não contam como "não teve".';
+      return 'Nos últimos 7 dias: ' + keys.map(function (c) { return ITEM_BY[c].label.toLowerCase() + ' (' + counts[c] + (counts[c] === 1 ? ' dia)' : ' dias)'); }).join(', ') + '.';
+    }
+    if (lq.indexOf('parto') >= 0) {
+      return 'A data provável do parto é ' + fmtYear(addDays(st.pregLmp, 280)) + ', calculada ' + how + '. É uma estimativa: poucos bebês nascem exatamente nesse dia, e o pré-natal pode ajustá-la.';
+    }
+    if (lq.indexOf('semana') >= 0) {
+      return 'Você está com ' + g.w + ' semanas e ' + g.d + (g.d === 1 ? ' dia' : ' dias') + ' (' + g.short + '), no ' + g.tri + 'º trimestre, contando ' + how + '.';
+    }
+    return 'Neste protótipo só as perguntas sugeridas têm resposta. Para qualquer dúvida sobre a gestação, sua equipe do pré-natal é a melhor referência.';
+  }
+
+  answer(q) {
+    var st = this.state;
+    if (st.pregnant) return this.answerPreg(q);
+    var lq = q.toLowerCase();
+    var next = addDays(st.lastStart, st.cycleLen);
+    if (lq.indexOf('última menstrua') >= 0) {
+      return 'Sua última menstruação começou em ' + fmt(st.lastStart) + ' (há ' + diff(st.lastStart, TODAY) + ' dias). A próxima está prevista para ' + fmt(next) + '.';
+    }
+    if (lq.indexOf('pílula do dia') >= 0) {
+      var p = this.pdsStatus();
+      var thisYear = p.dates.filter(function (d) { return d >= '2026-01-01'; });
+      var t = 'Você registrou ' + thisYear.length + (thisYear.length === 1 ? ' vez' : ' vezes') + ' em 2026: ' + thisYear.map(fmt).join(', ') + '.';
+      if (p.triggered) t += '\n\nComo foram ' + p.inCycle + ' neste ciclo, vale conversar com sua ginecologista sobre um método que funcione melhor para você. A pílula do dia seguinte tem alta carga hormonal.';
+      return t;
+    }
+    var sym = ITEMS.filter(function (i) { return (i.cat === 'symptom' || i.cat === 'mood') && lq.indexOf(i.label.toLowerCase()) >= 0; })[0];
+    if (sym) {
+      var d = this.symptomData(sym.code);
+      if (!d.loggedCount) return 'Ainda não há ciclos completos com registros para responder.';
+      var a = 'Você registrou ' + sym.label.toLowerCase() + ' em ' + d.n + ' dos últimos ' + d.loggedCount + ' ciclos com registro de ' + d.catName +
+        (d.skipped ? ' (' + d.skipped + (d.skipped === 1 ? ' ciclo sem registro de ' + d.catName + ' ficou' : ' ciclos sem registro de ' + d.catName + ' ficaram') + ' de fora)' : '') + '.';
+      if (d.topPrep) a += ' Aparece mais ' + d.topPrep + '.';
+      if (PAIN[sym.code] && d.n > 0) a += '\n\nSe a dor atrapalha sua rotina, vale conversar com sua ginecologista.';
+      return a;
+    }
+    if (lq.indexOf('fértil') >= 0) {
+      if (!this.tracks()) return 'Com ' + METHOD_LABEL[st.method].toLowerCase() + ', a ovulação costuma ficar suprimida, então o app não mostra janela fértil. Posso te ajudar a acompanhar sintomas e humor.';
+      var ph = this.phaseOf(TODAY);
+      var w = 'pela previsão, sua janela fértil vai de ' + fmt(ph.fs) + ' a ' + fmt(ph.fe) + ', com ovulação estimada em ' + fmt(ph.ov) + '.';
+      return (ph.fertile ? 'Sim, ' : 'Hoje não. ') + w + '\n\nÉ uma estimativa e não funciona como método contraceptivo.';
+    }
+    return 'Neste protótipo só as perguntas sugeridas têm resposta. Na versão real, sua pergunta vai sem nome ou e-mail, só com datas e eventos do seu histórico.';
+  }
+
+  openPregSetup() {
+    var st = this.state;
+    this.setState({
+      overlay: 'pregSetup', setupMode: st.pregnant ? st.pregDating : 'dum',
+      setupLmp: st.pregnant && st.pregDating === 'dum' ? st.pregLmp : st.lastStart,
+      setupDue: st.pregnant ? addDays(st.pregLmp, 280) : ''
+    });
+  }
+
+  endPregnancy(next) {
+    var st = this.state;
+    var patch = {
+      pregnant: false, pregHistory: st.pregHistory.concat([{ lmp: st.pregLmp, end: TODAY }]),
+      overlay: null, consult: '', screen: 'today', symptom: 'cramps', showFlags: false
+    };
+    if (next === 'postpartum') Object.assign(patch, { stage: 'postpartum', postpartumSince: TODAY, awaitingPeriod: false });
+    else Object.assign(patch, { stage: 'cycle', awaitingPeriod: true, awaitSince: TODAY });
+    this.setState(patch);
+  }
+
+  ask(q) {
+    if (!q || !q.trim()) return;
+    var chat = this.state.chat.concat([{ from: 'me', text: q.trim() }, { from: 'ai', text: this.answer(q) }]);
+    this.setState({ chat: chat, draft: '', overlay: 'chat' });
+  }
+
+  renderVals() {
+    var self = this;
+    var st = this.state;
+    var tracks = this.tracks();
+    var hormonal = !tracks;
+
+    // ---- onboarding
+    var obDays = [];
+    for (var i = 27; i >= 0; i--) {
+      (function (date) {
+        var sel = date === st.lastStart;
+        obDays.push({
+          num: dayOf(date), wd: WEEK[wdOf(date)], selected: sel, aria: fmt(date),
+          style: sel ? 'border: 0; background: ' + BERRY + '; color: #FFFFFF' : 'border: 1px solid ' + LINE + '; background: #FFFFFF; color: ' + INK,
+          pick: function () { self.setState({ lastStart: date }); }
+        });
+      })(addDays(TODAY, -i));
+    }
+    var age = Math.floor(diff(st.birth || '1996-05-12', TODAY) / 365.25);
+    var ob = {
+      s0: st.obStep === 0, s1: st.obStep === 1, s2: st.obStep === 2, s3: st.obStep === 3,
+      canBack: st.obStep > 0, stepLabel: (st.obStep + 1) + ' de 4', days: obDays,
+      bars: [0, 1, 2, 3].map(function (n) { return { color: n <= st.obStep ? INK : '#DAD6E1' }; }),
+      cycleText: st.cycleLen + ' dias', periodText: st.periodLen + ' dias',
+      ageText: st.birth ? age + ' anos' : 'Usamos só para calcular sua idade.',
+      cta: st.obStep === 3 ? 'Começar' : 'Continuar'
+    };
+
+    // ---- ciclo / anel
+    var cs = this.cycleStats();
+    var L = cs.avg;
+    var C = 2 * Math.PI * 96;
+    var cd = diff(st.lastStart, TODAY) + 1;
+    var phase = this.phaseOf(TODAY);
+    var ovCd = L - 14 + 1;
+    var fa = (ovCd - 6) / L, fb = (ovCd + 1) / L;
+    var frac = (Math.min(cd, L) - 0.5) / L;
+    var ang = frac * 2 * Math.PI - Math.PI / 2;
+    var toLo = diff(TODAY, cs.winLo), pastHi = diff(cs.winHi, TODAY);
+    // Previsão é uma janela: "atrasada" só depois que a janela inteira passou.
+    var when = phase.period && !phase.predicted ? 'period' : pastHi > 0 ? 'late' : toLo <= 0 ? 'window' : 'before';
+    var ring = {
+      showFertile: tracks,
+      showWindow: when === 'before' || when === 'window',
+      window: 'Previsão: entre ' + fmtShort(cs.winLo) + ' e ' + fmtShort(cs.winHi),
+      periodDash: (Math.min(st.periodLen, L) / L * C).toFixed(1) + ' ' + C.toFixed(1),
+      fertDash: (tracks ? (fb - fa) * C : 0).toFixed(1) + ' ' + C.toFixed(1),
+      fertOffset: (-fa * C).toFixed(1),
+      mx: (120 + 96 * Math.cos(ang)).toFixed(1), my: (120 + 96 * Math.sin(ang)).toFixed(1),
+      top: hormonal ? METHOD_LABEL[st.method] : 'Dia ' + cd + ' do ciclo',
+      big: when === 'period' ? 'Menstruação' : when === 'late' ? 'Atrasada' : when === 'window' ? 'Pode começar' : hormonal ? 'Dia ' + cd : phase.name.replace('Fase ', ''),
+      color: when === 'period' || when === 'window' ? BERRY : when === 'late' ? '#9A3412' : phase.fertile ? INDIGO : INK,
+      bottom: when === 'period' ? 'Dia ' + cd + ' da menstruação'
+        : when === 'late' ? 'há ' + pastHi + (pastHi === 1 ? ' dia' : ' dias') + ' além da janela prevista'
+        : when === 'window' ? 'a qualquer dia até ' + fmtShort(cs.winHi)
+        : 'Menstruação em ' + toLo + (toLo === 1 ? ' dia' : ' dias'),
+      hormonalNote: 'Sem janela fértil com ' + METHOD_LABEL[st.method].toLowerCase() + '. O foco aqui é como você se sente.'
+    };
+    // ---- estágio: gestação, pós-parto, aguardando a menstruação ou ciclo
+    var showRing = !st.pregnant && st.stage !== 'postpartum' && !st.awaitingPeriod;
+    ring.showFertile = tracks && showRing;
+    ring.showWindow = ring.showWindow && showRing;
+    var g = this.gest();
+    var consultIn = st.consult ? diff(TODAY, st.consult) : null;
+    var preg = {
+      on: !!st.pregnant, off: !st.pregnant,
+      short: g.short, trimester: g.tri + 'º trimestre',
+      long: g.w + (g.w === 1 ? ' semana' : ' semanas') + (g.d ? ' e ' + g.d + (g.d === 1 ? ' dia' : ' dias') : ''),
+      pct: (Math.min(280, Math.max(0, g.days)) / 280 * 100).toFixed(1),
+      due: fmtYear(addDays(st.pregLmp, 280)),
+      datingLabel: st.pregDating === 'usg' ? 'Datação pela ultrassonografia' : 'Datação pela última menstruação (' + fmt(st.pregLmp) + ')',
+      bg: st.pregnant ? INDIGO : '#C9C5D2', justify: st.pregnant ? 'flex-end' : 'flex-start',
+      consult: st.consult,
+      consultText: consultIn == null ? 'Nenhuma consulta marcada' : consultIn > 1 ? 'Em ' + consultIn + ' dias' : consultIn === 1 ? 'Amanhã' : consultIn === 0 ? 'Hoje' : 'Já passou: marque a próxima',
+      flagsOpen: !!st.showFlags, flagsLabel: st.showFlags ? 'Esconder sinais de alerta' : 'Quando procurar atendimento',
+      flags: ITEMS.filter(function (it) { return it.alert && self.visible(it); }).map(function (it) { return { label: it.label }; })
+    };
+    var pp = {
+      on: st.stage === 'postpartum' && !st.pregnant,
+      since: st.postpartumSince ? 'Desde ' + fmt(st.postpartumSince) + ' · ' + Math.floor(diff(st.postpartumSince, TODAY) / 7) + ' semanas' : ''
+    };
+    var awaiting = { on: !st.pregnant && st.stage !== 'postpartum' && st.awaitingPeriod };
+
+    // Datação da gestação: pela última menstruação ou pela DPP do laudo da ultrassonografia.
+    var setupLmp = st.setupMode === 'usg' ? (st.setupDue ? addDays(st.setupDue, -280) : null) : st.setupLmp;
+    var sg = setupLmp ? diff(setupLmp, TODAY) : null;
+    var pick = function (on) { return on ? 'border: 2px solid ' + INDIGO + '; background: #F6F5FD' : 'border: 1px solid ' + LINE + '; background: #FFFFFF'; };
+    var setup = {
+      dum: st.setupMode === 'dum', usg: st.setupMode === 'usg',
+      dumStyle: pick(st.setupMode === 'dum'), usgStyle: pick(st.setupMode === 'usg'),
+      lmp: st.setupLmp, due: st.setupDue,
+      preview: setupLmp ? 'Hoje: ' + Math.floor(sg / 7) + 's ' + (sg % 7) + 'd · data provável do parto ' + fmtYear(addDays(setupLmp, 280)) : 'Informe a data provável do parto que está no laudo.',
+      early: st.setupMode === 'dum' && sg != null && sg >= 0 && sg < 28,
+      earlyText: sg != null ? 'Pela data informada seriam só ' + Math.floor(sg / 7) + 's ' + (sg % 7) + 'd. Os testes costumam dar positivo a partir de umas 4 semanas, contando da última menstruação. Se aquele sangramento foi um escape, informe a menstruação anterior ou use a ultrassonografia.' : '',
+      invalid: !setupLmp || sg < 0 || sg > 300,
+      cta: st.pregnant ? 'Salvar datação' : 'Começar o modo gestação'
+    };
+
+    // ---- ações rápidas
+    var today = this.codes(TODAY);
+    var sexDone = today.indexOf('sex_vaginal') >= 0;
+    var hasCondom = today.indexOf('protection_condom') >= 0, hasNone = today.indexOf('protection_none') >= 0;
+    var unprotected = sexDone && !hasCondom && (hasNone ? !BASELINE[st.method] : (st.method !== 'condom' && !BASELINE[st.method]));
+    var pdsToday = today.indexOf('emergency_contraception') >= 0;
+    var protText = hasCondom ? 'com preservativo' : hasNone ? 'sem preservativo' : BASELINE[st.method] ? 'protegida por: ' + METHOD_LABEL[st.method].toLowerCase() : 'sem proteção registrada';
+    // Na gestação, o atalho de relação (com método contraceptivo e PDS) não faz sentido.
+    var showSex = !st.hiddenCats.sex && !st.pregnant, showPeriod = !st.pregnant;
+    var qa = {
+      showSex: showSex, showPeriod: showPeriod, showStrip: sexDone && !st.pregnant,
+      cols: showSex && showPeriod ? 'repeat(2, minmax(0, 1fr))' : 'minmax(0, 1fr)',
+      periodLabel: st.periodOpen ? 'Menstruando' : 'Menstruei',
+      periodSub: st.periodOpen ? 'Toque quando terminar' : 'Marca hoje como dia 1',
+      periodStyle: st.periodOpen ? 'border: 0; background: ' + BERRY + '; color: #FFFFFF' : 'border: 1.5px solid #E7C3CB; background: #FFFFFF; color: #8E1F35',
+      sexDone: sexDone,
+      sexLabel: sexDone ? 'Relação hoje' : 'Relação',
+      sexSub: sexDone ? 'Toque para desfazer' : '1 toque · ' + (st.method === 'condom' ? 'com preservativo' : METHOD_LABEL[st.method].toLowerCase()),
+      sexStyle: sexDone ? 'border: 0; background: #A8326E; color: #FFFFFF' : 'border: 1.5px solid #EBC5D8; background: #FFFFFF; color: #7D2152',
+      stripText: 'Registrada ' + protText + (st.method === 'condom' && hasCondom ? ' (seu padrão)' : '') + '.',
+      stripStyle: unprotected ? 'background: #FFF1E6; border: 1.5px solid #C2410C' : 'background: #FFFFFF; border: 1px solid ' + LINE,
+      protChips: [['protection_condom', 'Com preservativo'], ['protection_none', 'Sem preservativo']].map(function (p) {
+        var on = today.indexOf(p[0]) >= 0;
+        return {
+          label: p[1], selected: on,
+          style: on ? 'border: 0; background: ' + INK + '; color: #FFFFFF' : 'border: 1px solid #CFCAD8; background: #FFFFFF; color: ' + INK,
+          pick: function () { self.toggleCode(TODAY, p[0]); }
+        };
+      }),
+      pdsToday: pdsToday,
+      pdsLabel: pdsToday ? 'Pílula do dia seguinte registrada' : 'Tomei a pílula do dia seguinte',
+      pdsStyle: pdsToday ? 'border: 0; background: #9A3412; color: #FFFFFF' : unprotected ? 'border: 0; background: #C2410C; color: #FFFFFF' : 'border: 1.5px solid #C2410C; background: #FFFFFF; color: #9A3412'
+    };
+
+    var pds = this.pdsStatus();
+    pds.showToday = pds.triggered && !st.pdsAck && today.indexOf('emergency_contraception') >= 0;
+
+    var tagOf = function (date) {
+      return function (code) {
+        var it = ITEM_BY[code], cat = CAT_BY[it.cat];
+        return {
+          label: it.label, color: cat.color, tint: cat.tint, removeAria: 'Remover ' + it.label,
+          remove: function () { self.toggleCode(date, code); }
+        };
+      };
+    };
+    var todayTags = today.map(tagOf(TODAY));
+
+    // Sinais de alerta são regra local e determinística: a IA explica, não decide.
+    var flagsOf = function (codes) {
+      return st.pregnant ? codes.filter(function (c) { return ITEM_BY[c] && ITEM_BY[c].alert; }).map(function (c) { return ITEM_BY[c].label.toLowerCase(); }) : [];
+    };
+    var todayFlags = flagsOf(today);
+    var redFlag = { show: todayFlags.length > 0, text: 'Você marcou: ' + todayFlags.join(', ') + '. ' + URGENT_TEXT };
+
+    // Pergunta do fim da menstruação: preenche o ciclo todo de uma vez.
+    var answerCycle = function (v) {
+      var a = Object.assign({}, st.cycleAnswers);
+      if (v !== 'unknown') a[st.askCycle] = Object.assign({}, a[st.askCycle], { cramps: v });
+      self.setState({ cycleAnswers: a, askCycle: null });
+    };
+    var askCard = {
+      show: !!st.askCycle && !st.pregnant,
+      yes: function () { answerCycle('yes'); }, no: function () { answerCycle('no'); }, unknown: function () { answerCycle('unknown'); }
+    };
+
+    // ---- seções do modal
+    var logCodes = this.codes(st.logDate);
+    var itemVM = function (it) {
+      var cat = CAT_BY[it.cat];
+      var on = logCodes.indexOf(it.code) >= 0;
+      var border = on ? cat.color : it.highlight ? '#C2410C' : LINE;
+      return {
+        label: it.label, pressed: on, icon: ICONS[it.icon],
+        aria: it.label + (on ? ', marcado' : '') + '. Segure para ver o histórico.',
+        style: (on ? 'background: ' + cat.color + '; color: #FFFFFF; ' : 'background: #FFFFFF; color: ' + INK + '; ') + 'border: ' + (it.highlight ? '2px' : '1.5px') + ' solid ' + border,
+        iconStyle: on ? 'background: rgba(255, 255, 255, 0.22); color: #FFFFFF' : it.highlight ? 'background: #FFE7D6; color: #9A3412' : 'background: ' + cat.tint + '; color: ' + cat.color,
+        tap: function () {
+          if (self._lpFired) { self._lpFired = false; return; }
+          self.toggleCode(st.logDate, it.code);
+        },
+        down: function () {
+          self._lpFired = false;
+          clearTimeout(self._lp);
+          self._lp = setTimeout(function () {
+            self._lpFired = true;
+            self.setState({ overlay: 'symptom', symptom: it.code, symFromLog: true });
+          }, 500);
+        },
+        up: function () { clearTimeout(self._lp); }
+      };
+    };
+    var logFlags = flagsOf(logCodes);
+    var logRedFlag = { show: logFlags.length > 0, text: 'Você marcou: ' + logFlags.join(', ') + '. ' + URGENT_TEXT };
+    var sections = CATS.filter(function (cat) { return !st.hiddenCats[cat.id] && self.visible(cat); }).map(function (cat) {
+      return {
+        id: cat.id, label: cat.label, short: cat.short, color: cat.color, tint: cat.tint, hint: cat.hint,
+        showAlert: cat.id === 'sex' && pds.triggered && logCodes.indexOf('emergency_contraception') >= 0,
+        showPregPrompt: cat.id === 'test' && st.pregPrompt && !st.pregnant,
+        items: ITEMS.filter(function (it) { return it.cat === cat.id && !it.special && self.visible(it); }).map(itemVM)
+      };
+    });
+    var active = st.activeSec || 'top';
+    var jumpChips = [{ id: 'top', short: 'Sugeridos', color: INK, tint: '#EEEBF3' }].concat(sections).map(function (s) {
+      var on = s.id === active;
+      return {
+        id: s.id, short: s.short, current: on ? 'location' : 'false',
+        style: on ? 'background: ' + s.color + '; color: #FFFFFF' : 'background: ' + s.tint + '; color: ' + s.color,
+        jump: function (e) { self.jumpTo(e, s.id); }
+      };
+    });
+    var sug = this.suggestions(st.logDate);
+    var suggest = {
+      phase: sug.phase,
+      items: sug.codes.filter(function (c) { return !st.hiddenCats[ITEM_BY[c].cat]; }).map(function (c) { return itemVM(ITEM_BY[c]); })
+    };
+    var calmOn = logCodes.indexOf('no_symptoms') >= 0;
+    var calmDay = {
+      pressed: calmOn,
+      style: calmOn ? 'border: 0; background: #1C6E64; color: #FFFFFF' : 'border: 1.5px solid #B9DCD6; background: #FFFFFF; color: #14524A',
+      tap: function () { self.toggleCode(st.logDate, 'no_symptoms'); }
+    };
+    var editRows = CATS.filter(function (cat) { return self.visible(cat); }).map(function (cat) {
+      var on = !st.hiddenCats[cat.id];
+      return {
+        label: cat.label, color: cat.color, on: on,
+        count: ITEMS.filter(function (i) { return i.cat === cat.id && !i.special && self.visible(i); }).length + ' itens',
+        aria: (on ? 'Esconder ' : 'Mostrar ') + cat.label,
+        bg: on ? INDIGO : '#C9C5D2', justify: on ? 'flex-end' : 'flex-start',
+        toggle: function () { var h = Object.assign({}, st.hiddenCats); h[cat.id] = on; self.setState({ hiddenCats: h }); }
+      };
+    });
+
+    // ---- calendário
+    var mParts = st.calMonth.split('-');
+    var y = +mParts[0], m = +mParts[1];
+    var first = st.calMonth + '-01';
+    var nDays = new Date(Date.UTC(y, m, 0)).getUTCDate();
+    var cells = [];
+    for (var b = 0; b < wdOf(first); b++) cells.push({ blank: true, day: false });
+    for (var dnum = 1; dnum <= nDays; dnum++) {
+      (function (date) {
+        var ph = self.phaseOf(date);
+        var codes = self.codes(date);
+        var sex = codes.some(function (c) { return c.indexOf('sex_') === 0; });
+        var isToday = date === TODAY, sel = date === st.calSel;
+        var bg = 'transparent', fg = INK, border = '2px solid transparent', weight = '600';
+        if (ph && ph.period && !ph.predicted && date <= TODAY) { bg = BERRY; fg = '#FFFFFF'; }
+        else if (ph && ph.period) { border = '2px dashed ' + BERRY; fg = '#8E1F35'; }
+        else if (ph && ph.fertile) { bg = '#E4E2FA'; fg = '#2F2A80'; if (ph.ovulation) border = '2px solid ' + INDIGO; }
+        var consult = st.consult === date;
+        if (consult) { bg = '#ECEBFA'; fg = '#2F2A80'; border = '2px solid ' + INDIGO; }
+        if (isToday) { border = '2px solid ' + INK; weight = '800'; }
+        var style = 'background: ' + bg + '; color: ' + fg + '; border: ' + border + '; font-weight: ' + weight + (sel ? '; box-shadow: 0 0 0 3px rgba(31, 26, 46, 0.22)' : '');
+        cells.push({
+          blank: false, day: true, num: dayOf(date), selected: sel, style: style,
+          dot: sex ? (bg === BERRY ? '#FFFFFF' : '#B23A78') : 'transparent',
+          aria: fmt(date) + (isToday ? ', hoje' : '') + (ph ? ', ' + ph.name.toLowerCase() : '') + (consult ? ', consulta do pré-natal' : '') + (sex ? ', relação registrada' : ''),
+          pick: function () { self.setState({ calSel: date }); }
+        });
+      })(st.calMonth + '-' + String(dnum).padStart(2, '0'));
+    }
+    var selPh = this.phaseOf(st.calSel);
+    var selCodes = this.codes(st.calSel);
+    var cal = {
+      title: MONTHS_LONG[m - 1].charAt(0).toUpperCase() + MONTHS_LONG[m - 1].slice(1) + ' ' + y,
+      weekdays: ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'], cells: cells,
+      selTitle: (st.calSel === TODAY ? 'Hoje, ' : '') + fmt(st.calSel),
+      selPhase: !selPh ? 'Sem dados de ciclo' : selPh.special ? selPh.name + (st.consult === st.calSel ? ' · consulta do pré-natal' : '')
+        : (st.calSel > TODAY ? 'Previsão: ' : '') + selPh.name + ' · dia ' + selPh.cd + ' do ciclo',
+      selHasTags: selCodes.length > 0, selTags: selCodes.map(tagOf(st.calSel)), canLog: st.calSel <= TODAY
+    };
+    var shiftMonth = function (delta) {
+      var d = new Date(Date.UTC(y, m - 1 + delta, 1));
+      var key = d.toISOString().slice(0, 7);
+      if (key < '2026-08' || key > '2027-01') return;
+      self.setState({ calMonth: key });
+    };
+
+    // ---- resumo
+    // A média (em cycleStats) ignora o ciclo fora do padrão para não puxar a previsão.
+    var lens = cs.lens, reg = cs.reg, avg = cs.avg;
+    var lastStarts = reg.last.length ? cs.lenStarts.slice(-reg.last.length) : [];
+    var regText = {
+      insufficient: ['Ainda sem dados suficientes', MUTED, 'Precisamos de 3 ciclos completos registrados para avaliar' + (lens.length ? '. Até agora: ' + lens.join(' e ') + ' dias.' : '.')],
+      regular: ['Regular', '#1C6E64', 'Seus últimos ciclos variaram ' + reg.range + ' dias entre o mais curto e o mais longo.'],
+      outlier: ['Um ciclo fora do padrão', '#9A3412', reg.kind === 'outlier'
+        ? 'O ciclo que começou em ' + fmt(lastStarts[reg.idx]) + ' durou ' + reg.last[reg.idx] + ' dias. Os outros variaram só ' + reg.restRange + ' dias. Isso pode acontecer de vez em quando; se repetir, vale mostrar este histórico à sua ginecologista.' : ''],
+      irregular: ['Ciclos irregulares', '#9A3412', 'Seus últimos ciclos variaram ' + reg.range + ' dias, mais que o limite de 8. Vale compartilhar este histórico com sua ginecologista.']
+    }[reg.kind];
+    // Depois de uma gestação os primeiros ciclos costumam ser irregulares: o aviso fica pausado.
+    if (st.stage === 'postpartum' || st.awaitingPeriod) {
+      regText = ['Pausado', MUTED, 'Depois de uma gestação, principalmente amamentando, a menstruação pode demorar a voltar e vir irregular. Voltamos a avaliar quando houver 3 ciclos novos.'];
+    }
+    var maxBar = Math.max.apply(null, reg.last.concat([28]));
+    var stats = {
+      cycle: avg + ' dias', cycleSub: reg.kind === 'outlier' ? 'sem contar o ciclo fora do padrão' : 'últimos ' + Math.min(6, lens.length || 0) + ' ciclos',
+      period: st.periodLen + ' dias',
+      regTitle: regText[0], regColor: regText[1], regularity: regText[2], hasBars: reg.last.length > 0,
+      bars: reg.last.map(function (l, i) {
+        var odd = reg.kind === 'outlier' && i === reg.idx;
+        return { len: l, h: Math.round(l / maxBar * 60) + 8, color: odd ? '#C2410C' : '#A9A4B8', textColor: odd ? '#9A3412' : MUTED, label: fmtShort(lastStarts[i]).split(' ')[1] };
+      }),
+      pds: pds.in12 + (pds.in12 === 1 ? ' vez' : ' vezes') + ' nos últimos 12 meses · ' + pds.inCycle + ' neste ciclo.',
+      top: ['cramps', 'fatigue', 'breast_tenderness'].map(function (c) {
+        var d = self.symptomData(c);
+        return { label: d.label, text: d.n + ' de ' + d.loggedCount + ' ciclos', pct: d.loggedCount ? Math.round(d.n / d.loggedCount * 100) : 0 };
+      })
+    };
+
+    // Resumo da gestação, para levar ao pré-natal.
+    var pcounts = {}, pflags = [];
+    if (st.pregnant) {
+      Object.keys(st.log).sort().forEach(function (d) {
+        if (d < st.pregLmp || d > TODAY) return;
+        st.log[d].forEach(function (c) {
+          var it = ITEM_BY[c];
+          if (!it || it.special) return;
+          if (it.alert) pflags.push({ text: fmt(d) + ' · ' + it.label });
+          else if (it.cat === 'symptom' || it.cat === 'mood') pcounts[c] = (pcounts[c] || 0) + 1;
+        });
+      });
+    }
+    var pkeys = Object.keys(pcounts).sort(function (a, b) { return pcounts[b] - pcounts[a]; }).slice(0, 5);
+    var pmax = pkeys.length ? pcounts[pkeys[0]] : 1;
+    stats.pregnant = !!st.pregnant;
+    stats.normal = !st.pregnant;
+    stats.preg = {
+      top: pkeys.map(function (c) { return { label: ITEM_BY[c].label, text: pcounts[c] + (pcounts[c] === 1 ? ' dia' : ' dias'), pct: Math.round(pcounts[c] / pmax * 100) }; }),
+      hasTop: pkeys.length > 0, noTop: !pkeys.length,
+      flags: pflags, hasFlags: pflags.length > 0, noFlags: !pflags.length
+    };
+
+    var tabDefs = [
+      ['today', 'Hoje', 'M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1v-9z'],
+      ['calendar', 'Calendário', 'M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z M4 10h16 M8 3v4 M16 3v4'],
+      ['stats', 'Resumo', 'M5 20V10 M12 20V4 M19 20v-7']
+    ];
+
+    return {
+      isOnboarding: st.screen === 'onboarding', isApp: st.screen !== 'onboarding',
+      isToday: st.screen === 'today', isCalendar: st.screen === 'calendar', isStats: st.screen === 'stats',
+      ov: {
+        log: st.overlay === 'log', symptom: st.overlay === 'symptom', chat: st.overlay === 'chat', privacy: st.overlay === 'privacy',
+        pregSetup: st.overlay === 'pregSetup', pregEnd: st.overlay === 'pregEnd'
+      },
+      showRing: showRing, pp: pp, awaiting: awaiting, redFlag: redFlag, logRedFlag: logRedFlag, askCard: askCard, setup: setup,
+      ob: ob, birth: st.birth, hormonal: hormonal, aiOn: st.aiOn, aiOff: !st.aiOn,
+      aiSwitch: { bg: st.aiOn ? INDIGO : '#C9C5D2', justify: st.aiOn ? 'flex-end' : 'flex-start' },
+      methodChips: METHODS.map(function (mm) {
+        var on = mm.id === st.method;
+        return {
+          label: mm.label, selected: on,
+          style: on ? 'border: 0; background: ' + INK + '; color: #FFFFFF' : 'border: 1px solid ' + LINE + '; background: #FFFFFF; color: ' + INK,
+          pick: function () { self.setState({ method: mm.id }); }
+        };
+      }),
+      todayLong: fmtLong(TODAY), ring: ring, qa: qa, pds: pds, periodOpen: st.periodOpen,
+      todayTags: todayTags, hasTags: todayTags.length > 0, noTags: todayTags.length === 0,
+      todayCountText: todayTags.length === 1 ? '1 item' : todayTags.length + ' itens',
+      sections: sections, jumpChips: jumpChips, suggest: suggest,
+      logScroll: function (e) { self.onLogScroll(e); }, calmDay: calmDay, editRows: editRows, preg: preg,
+      editing: st.editCats, notEditing: !st.editCats, editLabel: st.editCats ? 'Concluir' : 'Editar',
+      logHint: st.editCats ? 'Escolha o que aparece no registro.' : 'Toque para marcar · segure para ver o histórico',
+      toggleEdit: function () { self.setState({ editCats: !st.editCats }); },
+      startPregnancy: function () { self.openPregSetup(); },
+      openPregSetup: function () { self.openPregSetup(); },
+      dismissPreg: function () { self.setState({ pregPrompt: false }); },
+      // O interruptor nunca liga/desliga direto: entrar pede a datação, sair pede confirmação.
+      togglePregnancy: function () { if (st.pregnant) self.setState({ overlay: 'pregEnd' }); else self.openPregSetup(); },
+      openPregEnd: function () { self.setState({ overlay: 'pregEnd' }); },
+      setupDum: function () { self.setState({ setupMode: 'dum' }); },
+      setupUsg: function () { self.setState({ setupMode: 'usg' }); },
+      setSetupLmp: function (e) { self.setState({ setupLmp: e.target.value }); },
+      setSetupDue: function (e) { self.setState({ setupDue: e.target.value }); },
+      confirmSetup: function () {
+        if (setup.invalid) return;
+        self.setState({
+          pregnant: true, pregLmp: setupLmp, pregDating: st.setupMode, pregPrompt: false, periodOpen: false,
+          stage: 'cycle', awaitingPeriod: false, postpartumSince: null, overlay: null, screen: 'today', symptom: 'nausea'
+        });
+      },
+      // Guardamos só as datas da gestação. O motivo do fim não é perguntado nem armazenado.
+      endToPostpartum: function () { self.endPregnancy('postpartum'); },
+      endToCycle: function () { self.endPregnancy('cycle'); },
+      toggleFlags: function () { self.setState({ showFlags: !st.showFlags }); },
+      setConsult: function (e) { self.setState({ consult: e.target.value }); },
+      logDateLabel: st.logDate === TODAY ? 'Hoje, ' + fmt(TODAY) : fmtLong(st.logDate),
+      sym: this.symptomData(st.symptom), cal: cal, stats: stats,
+      showFab: st.aiOn && st.screen !== 'onboarding',
+      tabs: tabDefs.map(function (t) {
+        var on = st.screen === t[0];
+        return { label: t[1], icon: t[2], current: on ? 'page' : 'false', color: on ? INK : MUTED, weight: on ? '800' : '600', go: function () { self.setState({ screen: t[0], overlay: null }); } };
+      }),
+      chatRev: st.chat.slice().reverse().map(function (msg) {
+        return {
+          text: msg.text,
+          style: msg.from === 'me' ? 'align-self: flex-end; background: ' + INK + '; color: #FFFFFF; border-bottom-right-radius: 6px' : 'align-self: flex-start; background: #F1EFF5; color: ' + INK + '; border-bottom-left-radius: 6px'
+        };
+      }),
+      pills: (st.pregnant ? PILLS_PREG : PILLS).map(function (q) { return { q: q, ask: function () { self.ask(q); } }; }),
+      draft: st.draft, delProgress: st.delProgress, deleted: st.deleted, notDeleted: !st.deleted,
+
+      noMenu: function (e) { e.preventDefault(); },
+      obBack: function () { self.setState({ obStep: Math.max(0, st.obStep - 1) }); },
+      obNext: function () { if (st.obStep < 3) self.setState({ obStep: st.obStep + 1 }); else self.setState({ screen: 'today', overlay: null }); },
+      incCycle: function () { self.setState({ cycleLen: Math.min(90, st.cycleLen + 1) }); },
+      decCycle: function () { self.setState({ cycleLen: Math.max(15, st.cycleLen - 1) }); },
+      incPeriod: function () { self.setState({ periodLen: Math.min(15, st.periodLen + 1) }); },
+      decPeriod: function () { self.setState({ periodLen: Math.max(1, st.periodLen - 1) }); },
+      setBirth: function (e) { self.setState({ birth: e.target.value }); },
+      toggleAi: function () { self.setState({ aiOn: !st.aiOn }); },
+      openPrivacy: function () { self.setState({ overlay: 'privacy' }); },
+      openLog: function () { self.setState({ overlay: 'log', logDate: TODAY, activeSec: 'top' }); },
+      openChat: function () { self.setState({ overlay: 'chat' }); },
+      closeOverlay: function () { clearInterval(self._del); self.setState({ overlay: null, delProgress: 0, editCats: false }); },
+      closeSymptom: function () { self.setState({ overlay: st.symFromLog ? 'log' : null, symFromLog: false }); },
+      askSymptom: function () {
+        var it = ITEM_BY[st.symptom];
+        var q = it.cat === 'mood' ? 'Me senti ' + it.label.toLowerCase() + ' em todos os ciclos?' : 'Tive ' + it.label.toLowerCase() + ' em todos os ciclos?';
+        self.ask(q);
+      },
+      togglePeriod: function () {
+        if (st.periodOpen) {
+          // Fim da menstruação: se nada foi registrado em sintomas, pergunta uma vez pelo ciclo todo.
+          var observed = false;
+          for (var d = st.lastStart; d <= TODAY; d = addDays(d, 1)) {
+            if (self.codes(d).some(function (c) { return ITEM_BY[c] && ITEM_BY[c].cat === 'symptom'; })) observed = true;
+          }
+          var answered = (st.cycleAnswers[st.lastStart] || {}).cramps;
+          self.setState({ periodOpen: false, askCycle: observed || answered ? null : st.lastStart });
+          return;
+        }
+        var past = st.lastStart !== TODAY ? st.pastStarts.concat([st.lastStart]) : st.pastStarts;
+        var codes = self.codes(TODAY).filter(function (c) { return !ITEM_BY[c] || ITEM_BY[c].group !== 'flow'; }).concat(['flow_medium']);
+        var log = Object.assign({}, st.log); log[TODAY] = codes;
+        self.setState({ periodOpen: true, lastStart: TODAY, pastStarts: past, log: log, stage: 'cycle', awaitingPeriod: false, askCycle: null });
+      },
+      quickSex: function () {
+        if (sexDone) {
+          self.setCodes(TODAY, today.filter(function (c) { return c !== 'sex_vaginal' && c !== 'protection_condom' && c !== 'protection_none'; }));
+          return;
+        }
+        var add = st.method === 'condom' ? ['sex_vaginal', 'protection_condom'] : ['sex_vaginal'];
+        self.setCodes(TODAY, today.filter(function (c) { return add.indexOf(c) < 0; }).concat(add));
+      },
+      togglePdsToday: function () { self.toggleCode(TODAY, 'emergency_contraception'); },
+      ackPds: function () { self.setState({ pdsAck: true }); },
+      askPds: function () { self.setState({ pdsAck: true }); self.ask('Quantas vezes tomei a pílula do dia seguinte neste ano?'); },
+      calPrev: function () { shiftMonth(-1); },
+      calNext: function () { shiftMonth(1); },
+      logSelected: function () { self.setState({ overlay: 'log', logDate: st.calSel, activeSec: 'top' }); },
+      setDraft: function (e) { self.setState({ draft: e.target.value }); },
+      sendDraft: function (e) { e.preventDefault(); self.ask(st.draft); },
+      holdStart: function () {
+        if (st.deleted) return;
+        clearInterval(self._del);
+        self._del = setInterval(function () {
+          var p = self.state.delProgress + 4;
+          if (p >= 100) { clearInterval(self._del); self.setState({ delProgress: 100, deleted: true }); }
+          else self.setState({ delProgress: p });
+        }, 60);
+      },
+      holdEnd: function () { clearInterval(self._del); if (!self.state.deleted) self.setState({ delProgress: 0 }); },
+      restart: function () {
+        var fresh = self.initialState(self.props, 'onboarding');
+        fresh.log = {}; fresh.pastStarts = [];
+        self.setState(fresh);
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>
