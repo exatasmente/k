@@ -310,15 +310,31 @@ body{margin:0}
       <div style="background: #FFFFFF; border: 1px solid #E6E2EC; border-radius: 22px; padding: 16px">
         <div style="font-size: 13px; color: #5C5670; font-weight: 600">Ciclo médio</div>
         <div style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 30px; font-weight: 800">{{stats.cycle}}</div>
+        <div style="font-size: 12px; color: #5C5670">{{stats.cycleSub}}</div>
       </div>
       <div style="background: #FFFFFF; border: 1px solid #E6E2EC; border-radius: 22px; padding: 16px">
         <div style="font-size: 13px; color: #5C5670; font-weight: 600">Menstruação média</div>
         <div style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 30px; font-weight: 800">{{stats.period}}</div>
       </div>
     </div>
-    <div style="background: #FFFFFF; border: 1px solid #E6E2EC; border-radius: 22px; padding: 16px; display: flex; flex-direction: column; gap: 6px">
-      <div style="font-weight: 700">Regularidade</div>
+    <div style="background: #FFFFFF; border: 1px solid #E6E2EC; border-radius: 22px; padding: 16px; display: flex; flex-direction: column; gap: 8px">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px">
+        <div style="font-weight: 700">Regularidade</div>
+        <div style="font-size: 14px; font-weight: 800; color: {{stats.regColor}}">{{stats.regTitle}}</div>
+      </div>
       <div style="font-size: 14px; color: #5C5670">{{stats.regularity}}</div>
+      <sc-if value="{{stats.hasBars}}" hint-placeholder-val="{{true}}">
+        <div style="display: flex; align-items: flex-end; gap: 8px; height: 104px; padding-top: 6px">
+          <sc-for list="{{stats.bars}}" as="b" hint-placeholder-count="6">
+            <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px">
+              <div style="font-size: 12px; font-weight: 800; color: {{b.textColor}}">{{b.len}}</div>
+              <div style="width: 100%; border-radius: 6px; height: {{b.h}}px; background: {{b.color}}"></div>
+              <div style="font-size: 11px; color: #5C5670">{{b.label}}</div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="font-size: 12px; color: #5C5670">Duração dos últimos ciclos, em dias, pelo mês de início</div>
+      </sc-if>
     </div>
     <div style="background: #FFFFFF; border: 1px solid #E6E2EC; border-radius: 22px; padding: 16px; display: flex; flex-direction: column; gap: 6px">
       <div style="font-weight: 700">Pílula do dia seguinte</div>
@@ -332,6 +348,7 @@ body{margin:0}
           <div style="height: 8px; border-radius: 4px; background: #EEEBF3"><div style="height: 8px; border-radius: 4px; background: #6E3B96; width: {{s.pct}}%"></div></div>
         </div>
       </sc-for>
+      <div style="font-size: 12px; color: #5C5670">Contamos só ciclos com algum registro. Ciclo em branco não é ciclo sem sintoma.</div>
     </div>
     <button disabled="{{true}}" style="min-height: 48px; border-radius: 24px; border: 1px dashed #8C879C; background: transparent; color: #5C5670; font: inherit; font-weight: 700">Exportar PDF/CSV · em breve</button>
   </div>
@@ -441,16 +458,38 @@ body{margin:0}
         </div>
       </sc-for>
     </div>
-    <div style="display: flex; flex-direction: column; gap: 10px">
-      <h3 style="margin: 0; font-size: 16px; font-weight: 800">Últimos 6 ciclos</h3>
-      <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px">
-        <sc-for list="{{sym.cycles}}" as="c" hint-placeholder-count="6">
-          <div style="display: flex; flex-direction: column; align-items: center; gap: 4px">
-            <div style="width: 36px; height: 36px; border-radius: 18px; box-sizing: border-box; {{c.style}}"></div>
-            <div style="font-size: 11px; color: #5C5670; font-weight: 600">{{c.label}}</div>
-          </div>
-        </sc-for>
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <h3 style="margin: 0; font-size: 16px; font-weight: 800">Ciclo a ciclo</h3>
+      <div style="display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: #5C5670">
+        <span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 5px; display: inline-block; background: {{sym.color}}"></span>dia com {{sym.label}}</span>
+        <span style="display: flex; align-items: center; gap: 6px"><span style="width: 16px; height: 8px; border-radius: 4px; background: #F0B8C3; display: inline-block"></span>menstruação</span>
+        <sc-if value="{{sym.legendFertile}}" hint-placeholder-val="{{true}}">
+          <span style="display: flex; align-items: center; gap: 6px"><span style="width: 16px; height: 8px; border-radius: 4px; background: #D6D3F6; display: inline-block"></span>janela fértil</span>
+        </sc-if>
+        <span style="display: flex; align-items: center; gap: 6px"><span style="width: 16px; height: 8px; border-radius: 4px; border: 1.5px dashed #A9A4B8; box-sizing: border-box; display: inline-block"></span>sem registros</span>
       </div>
+      <sc-for list="{{sym.rows}}" as="r" hint-placeholder-count="6">
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <div style="display: flex; justify-content: space-between; gap: 8px; font-size: 13px">
+            <span style="font-weight: 700">{{r.label}}</span>
+            <span style="color: #5C5670">{{r.right}}</span>
+          </div>
+          <sc-if value="{{r.logged}}" hint-placeholder-val="{{true}}">
+            <div style="position: relative; height: 14px; width: {{r.width}}%">
+              <div style="position: absolute; inset: 0; border-radius: 7px; background: #EEEBF3"></div>
+              <div style="position: absolute; left: 0; top: 0; bottom: 0; border-radius: 7px; background: #F0B8C3; width: {{r.periodW}}%"></div>
+              <div style="position: absolute; top: 0; bottom: 0; border-radius: 7px; background: #D6D3F6; left: {{r.fertL}}%; width: {{r.fertW}}%"></div>
+              <sc-for list="{{r.dots}}" as="d" hint-placeholder-count="2">
+                <div style="position: absolute; top: 50%; width: 14px; height: 14px; border-radius: 7px; border: 2px solid #FFFFFF; box-sizing: border-box; transform: translate(-50%, -50%); left: {{d.left}}%; background: {{d.color}}"></div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{r.notLogged}}" hint-placeholder-val="{{false}}">
+            <div style="height: 14px; border-radius: 7px; border: 1.5px dashed #A9A4B8; box-sizing: border-box; width: {{r.width}}%"></div>
+            <div style="font-size: 12px; color: #5C5670">{{r.emptyText}}</div>
+          </sc-if>
+        </div>
+      </sc-for>
       <div style="font-size: 14px; color: #5C5670">{{sym.cycleText}}</div>
     </div>
     <div style="background: #F5F3F7; border-radius: 18px; padding: 14px; font-size: 14px">{{sym.insight}}</div>
@@ -689,6 +728,44 @@ var PHASE_PROFILE = {
   mood_happy: [10, 40, 35, 15], spotting: [10, 30, 45, 15]
 };
 var PAIN = { cramps: 1, back_pain: 1, headache: 1 };
+var PHASE_PREP = ['na menstruação', 'na fase folicular', 'na janela fértil', 'na fase lútea'];
+var PHASE_PREP_HORMONAL = ['na menstruação', 'fora da menstruação'];
+
+// Histórico de exemplo: durações dos ciclos passados, do mais antigo ao mais recente.
+// Inclui um ciclo fora do padrão (37 dias) para demonstrar o aviso suave de regularidade.
+var PAST_LENGTHS = [26, 28, 27, 25, 28, 27, 27, 27, 37, 26, 27, 28];
+function pastStartsFrom(last) {
+  var out = [], s = last;
+  for (var i = PAST_LENGTHS.length - 1; i >= 0; i--) { s = addDays(s, -PAST_LENGTHS[i]); out.unshift(s); }
+  return out;
+}
+function rng(seed) {
+  var s = seed >>> 0;
+  return function () {
+    s = (s + 0x6D2B79F5) >>> 0;
+    var t = s;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function fmtShort(iso) { var d = new Date(toMs(iso)); return d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()]; }
+
+// RN03 com dois tons: um único ciclo fora da curva gera aviso suave;
+// variação acima de 8 dias mesmo sem ele é "irregular".
+function regularity(lens) {
+  var last = lens.slice(-6);
+  if (last.length < 3) return { kind: 'insufficient', last: last };
+  var range = Math.max.apply(null, last) - Math.min.apply(null, last);
+  if (range <= 8) return { kind: 'regular', last: last, range: range };
+  var median = last.slice().sort(function (a, b) { return a - b; })[Math.floor(last.length / 2)];
+  var idx = 0;
+  last.forEach(function (l, i) { if (Math.abs(l - median) > Math.abs(last[idx] - median)) idx = i; });
+  var rest = last.filter(function (l, i) { return i !== idx; });
+  var restRange = Math.max.apply(null, rest) - Math.min.apply(null, rest);
+  if (restRange <= 8) return { kind: 'outlier', last: last, range: range, idx: idx, restRange: restRange, rest: rest };
+  return { kind: 'irregular', last: last, range: range };
+}
 
 var GREETING = 'Oi! Posso responder sobre o seu histórico e tirar dúvidas sobre o ciclo. Não recebo seu nome nem e-mail.';
 var PILLS = ['Quando foi minha última menstruação?', 'Quantas vezes tomei a pílula do dia seguinte neste ano?', 'Senti cólica em todos os ciclos?', 'Estou na janela fértil?'];
@@ -707,7 +784,7 @@ class Component extends DCLogic {
     var s = map[start] || map.onboarding;
     return {
       screen: s[0], overlay: s[1], symFromLog: false, obStep: 0,
-      lastStart: '2026-10-17', pastStarts: ['2026-08-22', '2026-09-19'], cycleLen: 28, periodLen: 5, birth: '1996-05-12',
+      lastStart: '2026-10-17', pastStarts: pastStartsFrom('2026-10-17'), cycleLen: 28, periodLen: 5, birth: '1996-05-12',
       method: props.method || 'condom', aiOn: true, periodOpen: false,
       log: JSON.parse(JSON.stringify(SAMPLE_LOG)), logDate: TODAY, symptom: 'cramps',
       chat: [{ from: 'ai', text: GREETING }], draft: '',
@@ -797,34 +874,124 @@ class Component extends DCLogic {
     return { dates: dates, inCycle: inCycle, in12: in12, triggered: triggered, title: title, body: body };
   }
 
-  symptomData(code) {
-    var item = ITEM_BY[code], cat = CAT_BY[item.cat];
-    var h = hash(code);
-    var m3 = 2 + (h % 5), m6 = m3 * 2 + (h % 2), m12 = m6 * 2 - (h % 3);
-    var prof = PHASE_PROFILE[code] || [25, 25, 25, 25];
-    var phases;
-    if (this.tracks()) {
-      var labels = ['Menstruação', 'Fase folicular', 'Janela fértil', 'Fase lútea'];
-      var colors = [BERRY, '#8C879C', INDIGO, '#6E3B96'];
-      phases = prof.map(function (p, i) { return { label: labels[i], pct: p, color: colors[i] }; });
-    } else {
-      phases = [{ label: 'Menstruação', pct: prof[0], color: BERRY }, { label: 'Fora da menstruação', pct: 100 - prof[0], color: '#6E3B96' }];
-    }
-    var top = phases.slice().sort(function (a, b) { return b.pct - a.pct; })[0];
-    var n = code === 'cramps' ? 5 : 1 + (h % 5);
-    var rot = h % 6;
-    var cycleNames = ['mai', 'jun', 'jul', 'ago', 'set', 'out'];
-    var cycles = cycleNames.map(function (lbl, i) {
-      var present = ((i + rot) % 6) < n;
-      return { label: lbl, present: present, style: present ? 'background: ' + cat.color : 'border: 2px solid #D9D5E0' };
+  cycleList() {
+    var st = this.state;
+    var starts = this.allStarts();
+    return starts.map(function (s, i) {
+      var next = starts[i + 1];
+      return {
+        start: s, current: !next, len: next ? diff(s, next) : st.cycleLen,
+        end: next ? addDays(next, -1) : TODAY, age: starts.length - 1 - i
+      };
     });
-    var insight = 'Aparece mais em: ' + top.label.toLowerCase() + '.';
-    if (PAIN[code]) insight += ' Se a dor atrapalha sua rotina, vale conversar com sua ginecologista.';
+  }
+
+  phaseIdx(cd, len) {
+    if (cd <= this.state.periodLen) return 0;
+    if (!this.tracks()) return 1;
+    var ov = len - 13;
+    if (cd < ov - 5) return 1;
+    if (cd <= ov + 1) return 2;
+    return 3;
+  }
+
+  // Dias do ciclo em que o sintoma foi marcado. `logged: false` = nenhum registro
+  // de nada no ciclo: "não registrou" é diferente de "não teve".
+  symptomDaysIn(cycle, code) {
+    var days = [], any = false;
+    var span = diff(cycle.start, cycle.end) + 1;
+    for (var cd = 1; cd <= span; cd++) {
+      var codes = this.codes(addDays(cycle.start, cd - 1));
+      if (codes.length) any = true;
+      if (codes.indexOf(code) >= 0) days.push(cd);
+    }
+    if (any) return { logged: true, days: days };
+    if (cycle.age <= 1 || cycle.age === 3 || cycle.age === 7) return { logged: false, days: [] };
+    // Ciclos mais antigos: histórico de exemplo gerado de forma determinística.
+    var r = rng(hash(code) * 7919 + hash(cycle.start));
+    var prof = PHASE_PROFILE[code] || [20, 20, 20, 20];
+    var boost = PAIN[code] ? 2.1 : 1.4;
+    var ov = cycle.len - 13, P = this.state.periodLen;
+    var ranges = [[1, Math.min(3, P)], [P + 1, ov - 6], [ov - 5, ov + 1], [ov + 2, cycle.len]];
+    ranges.forEach(function (rg, p) {
+      if (rg[1] < rg[0]) return;
+      if (r() < Math.min(0.92, prof[p] / 100 * boost)) {
+        var d = rg[0] + Math.floor(r() * (rg[1] - rg[0] + 1));
+        days.push(d);
+        if (r() < 0.45 && d + 1 <= rg[1]) days.push(d + 1);
+      }
+    });
+    return { logged: true, days: days };
+  }
+
+  symptomData(code) {
+    var self = this, st = this.state;
+    var item = ITEM_BY[code], cat = CAT_BY[item.cat];
+    var tracks = this.tracks();
+    var cycles = this.cycleList().map(function (c) { return Object.assign({}, c, self.symptomDaysIn(c, code)); });
+
+    var cuts = [addDays(TODAY, -91), addDays(TODAY, -182), addDays(TODAY, -365)];
+    var counts = [0, 0, 0], byPhase = [0, 0, 0, 0], cdByPhase = [[], [], [], []], total = 0;
+    cycles.forEach(function (c) {
+      c.days.forEach(function (cd) {
+        var date = addDays(c.start, cd - 1);
+        if (date > TODAY) return;
+        cuts.forEach(function (k, i) { if (date > k) counts[i]++; });
+        if (date > cuts[2]) { var p = self.phaseIdx(cd, c.len); byPhase[p]++; cdByPhase[p].push(cd); total++; }
+      });
+    });
+
+    var labels = tracks ? ['Menstruação', 'Fase folicular', 'Janela fértil', 'Fase lútea'] : ['Menstruação', 'Fora da menstruação'];
+    var colors = tracks ? [BERRY, '#8C879C', INDIGO, '#6E3B96'] : [BERRY, '#6E3B96'];
+    var preps = tracks ? PHASE_PREP : PHASE_PREP_HORMONAL;
+    var phases = labels.map(function (l, i) { return { label: l, pct: total ? Math.round(byPhase[i] / total * 100) : 0, color: colors[i], i: i }; });
+    var top = phases.slice().sort(function (a, b) { return b.pct - a.pct; })[0];
+    var topDays = cdByPhase[top.i];
+
+    // "X de Y ciclos" só conta ciclos completos com algum registro.
+    var done = cycles.filter(function (c) { return !c.current; }).slice(-6);
+    var loggedC = done.filter(function (c) { return c.logged; });
+    var present = loggedC.filter(function (c) { return c.days.length > 0; }).length;
+    var skipped = done.length - loggedC.length;
+    var cycleText = done.length === 0 ? 'Ainda não há ciclos completos registrados.'
+      : 'Aparece em ' + present + ' de ' + loggedC.length + ' ciclos com registros' +
+        (skipped ? '. ' + skipped + (skipped === 1 ? ' ciclo sem nenhum registro não entra' : ' ciclos sem nenhum registro não entram') + ' na conta.' : '.');
+
+    var topPrep = '', insight;
+    if (present < 3 || !topDays.length) {
+      insight = 'Ainda há poucos registros para apontar um padrão. A partir de 3 ciclos com ' + item.label.toLowerCase() + ' mostramos a tendência.';
+    } else {
+      // Faixa central (quartis) dos dias, para um ciclo longo não esticar o padrão.
+      var sorted = topDays.slice().sort(function (a, b) { return a - b; });
+      var lo = sorted[Math.floor((sorted.length - 1) * 0.25)], hi = sorted[Math.ceil((sorted.length - 1) * 0.75)];
+      topPrep = preps[top.i] + ' (' + (lo === hi ? 'dia ' + lo : 'dias ' + lo + '–' + hi) + ' do ciclo)';
+      insight = 'Aparece mais ' + topPrep + '.';
+    }
+    if (PAIN[code] && present > 0) insight += ' Se a dor atrapalha sua rotina, vale conversar com sua ginecologista.';
+
+    var shown = cycles.slice(-8).reverse();
+    var maxLen = Math.max.apply(null, shown.map(function (c) { return c.len; }).concat([28]));
+    var rows = shown.map(function (c) {
+      var ov = c.len - 13;
+      var right = c.current ? 'dia ' + (diff(c.start, TODAY) + 1) : c.len + ' dias';
+      if (c.logged) right += ' · ' + c.days.length + '×';
+      return {
+        label: c.current ? 'Ciclo atual · desde ' + fmtShort(c.start) : fmtShort(c.start) + ' – ' + fmtShort(c.end),
+        right: right, logged: c.logged, notLogged: !c.logged,
+        emptyText: c.current ? 'Ainda sem registros neste ciclo' : 'Sem registros neste ciclo · não entra na conta',
+        width: (c.len / maxLen * 100).toFixed(1),
+        periodW: (Math.min(st.periodLen, c.len) / c.len * 100).toFixed(1),
+        fertL: ((ov - 6) / c.len * 100).toFixed(1),
+        fertW: (tracks ? 7 / c.len * 100 : 0).toFixed(1),
+        dots: c.days.map(function (cd) { return { left: ((cd - 0.5) / c.len * 100).toFixed(1), color: cat.color }; })
+      };
+    });
+
     return {
       label: item.label, cat: cat.label, color: cat.color, tint: cat.tint, icon: ICONS[item.icon],
-      windows: [{ count: m3, label: 'dias em 3 meses' }, { count: m6, label: 'dias em 6 meses' }, { count: m12, label: 'dias em 12 meses' }],
-      phases: phases, top: top, cycles: cycles, n: n,
-      cycleText: 'Registrado em ' + n + ' dos últimos 6 ciclos.', insight: insight
+      windows: [{ count: counts[0], label: 'dias em 3 meses' }, { count: counts[1], label: 'dias em 6 meses' }, { count: counts[2], label: 'dias em 12 meses' }],
+      phases: phases, top: top, topPrep: topPrep, rows: rows, legendFertile: tracks,
+      n: present, loggedCount: loggedC.length, skipped: skipped, cycleText: cycleText, insight: insight
     };
   }
 
@@ -845,8 +1012,11 @@ class Component extends DCLogic {
     var sym = ITEMS.filter(function (i) { return (i.cat === 'symptom' || i.cat === 'mood') && lq.indexOf(i.label.toLowerCase()) >= 0; })[0];
     if (sym) {
       var d = this.symptomData(sym.code);
-      var a = 'Você registrou ' + sym.label.toLowerCase() + ' em ' + d.n + ' dos últimos 6 ciclos, mais em: ' + d.top.label.toLowerCase() + '.';
-      if (PAIN[sym.code]) a += '\n\nSe a dor atrapalha sua rotina, vale conversar com sua ginecologista.';
+      if (!d.loggedCount) return 'Ainda não há ciclos completos com registros para responder.';
+      var a = 'Você registrou ' + sym.label.toLowerCase() + ' em ' + d.n + ' dos últimos ' + d.loggedCount + ' ciclos com registros' +
+        (d.skipped ? ' (' + d.skipped + (d.skipped === 1 ? ' ciclo sem nenhum registro ficou' : ' ciclos sem nenhum registro ficaram') + ' de fora)' : '') + '.';
+      if (d.topPrep) a += ' Aparece mais ' + d.topPrep + '.';
+      if (PAIN[sym.code] && d.n > 0) a += '\n\nSe a dor atrapalha sua rotina, vale conversar com sua ginecologista.';
       return a;
     }
     if (lq.indexOf('fértil') >= 0) {
@@ -1039,16 +1209,32 @@ class Component extends DCLogic {
     var starts = this.allStarts();
     var lens = [];
     for (var k = 1; k < starts.length; k++) lens.push(diff(starts[k - 1], starts[k]));
-    var avg = lens.length ? Math.round(lens.reduce(function (s, v) { return s + v; }, 0) / lens.length) : st.cycleLen;
+    var reg = regularity(lens);
+    var mean = function (xs) { return Math.round(xs.reduce(function (s, v) { return s + v; }, 0) / xs.length); };
+    // A média ignora o ciclo fora do padrão para não puxar a previsão.
+    var avgBase = reg.kind === 'outlier' ? reg.rest : lens.slice(-6);
+    var avg = avgBase.length ? mean(avgBase) : st.cycleLen;
+    var lastStarts = starts.slice(-reg.last.length - 1, -1);
+    var regText = {
+      insufficient: ['Ainda sem dados suficientes', MUTED, 'Precisamos de 3 ciclos completos registrados para avaliar' + (lens.length ? '. Até agora: ' + lens.join(' e ') + ' dias.' : '.')],
+      regular: ['Regular', '#1C6E64', 'Seus últimos ciclos variaram ' + reg.range + ' dias entre o mais curto e o mais longo.'],
+      outlier: ['Um ciclo fora do padrão', '#9A3412', reg.kind === 'outlier'
+        ? 'O ciclo que começou em ' + fmt(lastStarts[reg.idx]) + ' durou ' + reg.last[reg.idx] + ' dias. Os outros variaram só ' + reg.restRange + ' dias. Isso pode acontecer de vez em quando; se repetir, vale mostrar este histórico à sua ginecologista.' : ''],
+      irregular: ['Ciclos irregulares', '#9A3412', 'Seus últimos ciclos variaram ' + reg.range + ' dias, mais que o limite de 8. Vale compartilhar este histórico com sua ginecologista.']
+    }[reg.kind];
+    var maxBar = Math.max.apply(null, reg.last.concat([28]));
     var stats = {
-      cycle: avg + ' dias', period: st.periodLen + ' dias',
-      regularity: lens.length < 3
-        ? 'Precisamos de mais ' + (3 - lens.length) + (3 - lens.length === 1 ? ' ciclo' : ' ciclos') + ' registrados para avaliar. Ciclos até agora: ' + lens.join(' e ') + ' dias.'
-        : (Math.max.apply(null, lens) - Math.min.apply(null, lens) > 8 ? 'Irregular. Vale compartilhar com sua ginecologista.' : 'Regular.'),
+      cycle: avg + ' dias', cycleSub: reg.kind === 'outlier' ? 'sem contar o ciclo fora do padrão' : 'últimos ' + Math.min(6, lens.length || 0) + ' ciclos',
+      period: st.periodLen + ' dias',
+      regTitle: regText[0], regColor: regText[1], regularity: regText[2], hasBars: reg.last.length > 0,
+      bars: reg.last.map(function (l, i) {
+        var odd = reg.kind === 'outlier' && i === reg.idx;
+        return { len: l, h: Math.round(l / maxBar * 60) + 8, color: odd ? '#C2410C' : '#A9A4B8', textColor: odd ? '#9A3412' : MUTED, label: fmtShort(lastStarts[i]).split(' ')[1] };
+      }),
       pds: pds.in12 + (pds.in12 === 1 ? ' vez' : ' vezes') + ' nos últimos 12 meses · ' + pds.inCycle + ' neste ciclo.',
       top: ['cramps', 'mood_tired', 'breast_tenderness'].map(function (c) {
         var d = self.symptomData(c);
-        return { label: d.label, text: d.n + ' de 6 ciclos', pct: Math.round(d.n / 6 * 100) };
+        return { label: d.label, text: d.n + ' de ' + d.loggedCount + ' ciclos', pct: d.loggedCount ? Math.round(d.n / d.loggedCount * 100) : 0 };
       })
     };
 
