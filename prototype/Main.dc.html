@@ -408,16 +408,16 @@ body{margin:0}
     </div>
     <div style="font-size: 13px; color: #5C5670">{{logHint}}</div>
     <sc-if value="{{notEditing}}" hint-placeholder-val="{{true}}">
-      <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px">
-        <sc-for list="{{sections}}" as="sec" hint-placeholder-count="8">
-          <a href="#sec-{{sec.id}}" style="flex: none; padding: 8px 12px; border-radius: 16px; font-size: 13px; font-weight: 700; text-decoration: none; background: {{sec.tint}}; color: {{sec.color}}">{{sec.short}}</a>
+      <nav aria-label="Ir para a seção" class="log-chips" style="position: relative; display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px">
+        <sc-for list="{{jumpChips}}" as="j" hint-placeholder-count="9">
+          <button id="chip-{{j.id}}" onClick="{{j.jump}}" aria-current="{{j.current}}" style="flex: none; min-height: 36px; padding: 0 14px; border: 0; border-radius: 18px; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; {{j.style}}">{{j.short}}</button>
         </sc-for>
-      </div>
+      </nav>
     </sc-if>
   </div>
   <sc-if value="{{notEditing}}" hint-placeholder-val="{{true}}">
-  <div style="flex: 1; overflow-y: auto; padding: 4px 16px 24px; display: flex; flex-direction: column; gap: 18px">
-    <section style="background: #F5F3F7; border-radius: 20px; padding: 14px 10px 12px; display: flex; flex-direction: column; gap: 10px">
+  <div class="log-scroll" onScroll="{{logScroll}}" style="position: relative; flex: 1; overflow-y: auto; padding: 4px 16px 24px; display: flex; flex-direction: column; gap: 18px">
+    <section id="sec-top" style="background: #F5F3F7; border-radius: 20px; padding: 14px 10px 12px; display: flex; flex-direction: column; gap: 10px">
       <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 0 4px">
         <h3 style="margin: 0; font-size: 15px; font-weight: 800">Comuns para você agora</h3>
         <span style="font-size: 12px; color: #5C5670">{{suggest.phase}}</span>
@@ -930,7 +930,7 @@ class Component extends DCLogic {
     }
   }
 
-  componentWillUnmount() { clearTimeout(this._lp); clearInterval(this._del); }
+  componentWillUnmount() { clearTimeout(this._lp); clearTimeout(this._jt); clearInterval(this._del); }
 
   codes(date) { return this.state.log[date] || []; }
 
@@ -962,6 +962,35 @@ class Component extends DCLogic {
   }
 
   tracks() { return !HORMONAL[this.state.method]; }
+
+  // Tags do topo do registro: rolam a lista até a seção e acompanham a rolagem.
+  jumpTo(e, id) {
+    var dialog = e.currentTarget.closest('[role="dialog"]');
+    var box = dialog && dialog.querySelector('.log-scroll');
+    var target = box && box.querySelector('[id="sec-' + id + '"]');
+    if (target) box.scrollTo({ top: target.offsetTop - 8, behavior: 'smooth' });
+    var self = this;
+    this._jumping = true;
+    clearTimeout(this._jt);
+    this._jt = setTimeout(function () { self._jumping = false; }, 700);
+    this.setState({ activeSec: id });
+  }
+
+  onLogScroll(e) {
+    if (this._jumping) return;
+    var box = e.currentTarget;
+    var secs = box.querySelectorAll('section[id^="sec-"]');
+    if (!secs.length) return;
+    var cur = 'top';
+    for (var i = 0; i < secs.length; i++) if (secs[i].offsetTop - 24 <= box.scrollTop) cur = secs[i].id.slice(4);
+    // As últimas seções são curtas e nunca chegam ao topo: no fim da lista, vale a última.
+    if (box.scrollTop + box.clientHeight >= box.scrollHeight - 4) cur = secs[secs.length - 1].id.slice(4);
+    if (cur === this.state.activeSec) return;
+    var row = box.closest('[role="dialog"]').querySelector('.log-chips');
+    var chip = row && row.querySelector('[id="chip-' + cur + '"]');
+    if (chip) row.scrollTo({ left: chip.offsetLeft - 16, behavior: 'smooth' });
+    this.setState({ activeSec: cur });
+  }
 
   allStarts() { return this.state.pastStarts.concat([this.state.lastStart]); }
 
@@ -1374,6 +1403,15 @@ class Component extends DCLogic {
         items: ITEMS.filter(function (it) { return it.cat === cat.id && !it.special; }).map(itemVM)
       };
     });
+    var active = st.activeSec || 'top';
+    var jumpChips = [{ id: 'top', short: 'Sugeridos', color: INK, tint: '#EEEBF3' }].concat(sections).map(function (s) {
+      var on = s.id === active;
+      return {
+        id: s.id, short: s.short, current: on ? 'location' : 'false',
+        style: on ? 'background: ' + s.color + '; color: #FFFFFF' : 'background: ' + s.tint + '; color: ' + s.color,
+        jump: function (e) { self.jumpTo(e, s.id); }
+      };
+    });
     var sug = this.suggestions(st.logDate);
     var suggest = {
       phase: sug.phase,
@@ -1489,7 +1527,8 @@ class Component extends DCLogic {
       todayLong: fmtLong(TODAY), ring: ring, qa: qa, pds: pds, periodOpen: st.periodOpen,
       todayTags: todayTags, hasTags: todayTags.length > 0, noTags: todayTags.length === 0,
       todayCountText: todayTags.length === 1 ? '1 item' : todayTags.length + ' itens',
-      sections: sections, suggest: suggest, calmDay: calmDay, editRows: editRows, preg: preg,
+      sections: sections, jumpChips: jumpChips, suggest: suggest,
+      logScroll: function (e) { self.onLogScroll(e); }, calmDay: calmDay, editRows: editRows, preg: preg,
       editing: st.editCats, notEditing: !st.editCats, editLabel: st.editCats ? 'Concluir' : 'Editar',
       logHint: st.editCats ? 'Escolha o que aparece no registro.' : 'Toque para marcar · segure para ver o histórico',
       toggleEdit: function () { self.setState({ editCats: !st.editCats }); },
@@ -1522,7 +1561,7 @@ class Component extends DCLogic {
       setBirth: function (e) { self.setState({ birth: e.target.value }); },
       toggleAi: function () { self.setState({ aiOn: !st.aiOn }); },
       openPrivacy: function () { self.setState({ overlay: 'privacy' }); },
-      openLog: function () { self.setState({ overlay: 'log', logDate: TODAY }); },
+      openLog: function () { self.setState({ overlay: 'log', logDate: TODAY, activeSec: 'top' }); },
       openChat: function () { self.setState({ overlay: 'chat' }); },
       closeOverlay: function () { clearInterval(self._del); self.setState({ overlay: null, delProgress: 0, editCats: false }); },
       closeSymptom: function () { self.setState({ overlay: st.symFromLog ? 'log' : null, symFromLog: false }); },
@@ -1551,7 +1590,7 @@ class Component extends DCLogic {
       askPds: function () { self.setState({ pdsAck: true }); self.ask('Quantas vezes tomei a pílula do dia seguinte neste ano?'); },
       calPrev: function () { shiftMonth(-1); },
       calNext: function () { shiftMonth(1); },
-      logSelected: function () { self.setState({ overlay: 'log', logDate: st.calSel }); },
+      logSelected: function () { self.setState({ overlay: 'log', logDate: st.calSel, activeSec: 'top' }); },
       setDraft: function (e) { self.setState({ draft: e.target.value }); },
       sendDraft: function (e) { e.preventDefault(); self.ask(st.draft); },
       holdStart: function () {
