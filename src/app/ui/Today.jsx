@@ -202,6 +202,18 @@ export function Today({ model, store, nav, askCycle }) {
         </div>
       )}
 
+      {v.irregular && (
+        <section class="alert warn" aria-label="Ciclos irregulares">
+          <strong style={{ display: 'flex', gap: 8, alignItems: 'center' }}><Icon name="warn" width={2} />{v.irregular.title}</strong>
+          <div>{v.irregular.body}</div>
+          <div class="row">
+            <button class="btn" style={{ background: 'var(--warn-ink)', color: 'var(--on-accent)', border: 0 }}
+              onClick={() => { store.dismiss('irregular', v.irregular.context); nav.goStats(); }}>Ver meus ciclos</button>
+            <button class="btn" onClick={() => store.dismiss('irregular', v.irregular.context)}>Ok</button>
+          </div>
+        </section>
+      )}
+
       <button class="btn primary block" onClick={() => nav.openLog()}>
         <span class="row" style={{ justifyContent: 'center' }}><Icon name="plus" width={2.2} />Registrar sintomas, humor e mais</span>
       </button>

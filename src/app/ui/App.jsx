@@ -10,6 +10,7 @@ import { SettingsSheet } from './Settings.jsx';
 import { PregnancySetupSheet, PregnancyEndSheet } from './Pregnancy.jsx';
 import { ChatSheet } from './ChatSheet.jsx';
 import { answer, GREETING } from '../assistant.js';
+import { registerBackground } from '../notify.js';
 
 const TABS = [
   ['today', 'Hoje', 'home'],
@@ -21,9 +22,12 @@ function useModel(store) {
   const [model, setModel] = useState(store.getModel());
   useEffect(() => {
     const off = store.subscribe(setModel);
-    // App instalado fica aberto por dias: recalcula "hoje" ao voltar para ele.
-    const onVisible = () => { if (document.visibilityState === 'visible') store.refresh(); };
+    // App instalado fica aberto por dias: recalcula "hoje" e os lembretes ao voltar para ele.
+    const onVisible = () => { if (document.visibilityState === 'visible') store.syncReminders(); };
     document.addEventListener('visibilitychange', onVisible);
+    store.syncReminders();
+    // O navegador pode ter liberado a verificação em segundo plano depois (ex.: app instalado).
+    if (store.getModel().profile?.reminders?.enabled) registerBackground().catch(() => {});
     return () => { off(); document.removeEventListener('visibilitychange', onVisible); };
   }, [store]);
   return model;
@@ -48,6 +52,7 @@ export function App({ store }) {
     openPregEnd: () => setSheet({ type: 'pregEnd' }),
     close: () => setSheet(null),
     goToday: () => { setSheet(null); setScreen('today'); },
+    goStats: () => { setSheet(null); setScreen('stats'); },
     askCycle: setAskCycle,
     openChat: () => setSheet({ type: 'chat' }),
     ask: (q) => {

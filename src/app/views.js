@@ -94,6 +94,12 @@ export function todayView(model) {
     pdsToday: codes.has('emergency_contraception'),
   };
 
+  // RN03: ciclos irregulares, uma vez por ciclo completo até ela tocar em "Ok".
+  const lastCycle = ctx?.cycles.at(-1)?.start;
+  if (mode === 'cycle' && lastCycle && irregularity(ctx).kind === 'irregular' && !model.dismissed.has(`irregular|${lastCycle}`)) {
+    view.irregular = { context: lastCycle, title: 'Seus ciclos variaram bastante', body: COPY.irregular };
+  }
+
   if (ctx && codes.has('emergency_contraception')) {
     const alert = emergencyContraceptionAlert(ctx, ecDates(model), today);
     const context = lastPeriodStart(model) ?? today;
@@ -391,7 +397,7 @@ export function calendarView(model, month, selected) {
   for (let n = 1; n <= days; n++) {
     const date = `${month}-${String(n).padStart(2, '0')}`;
     const codes = model.codesOn(date);
-    const actual = model.periods.some((p) => date >= p.start && date <= (p.end ?? today) && date <= today);
+    const actual = model.livePeriods.some((p) => date >= p.start && date <= (p.end ?? today) && date <= today);
     const predicted = !actual && date > today && upcoming.some((u) => inRange(date, u.start, u.end));
     let fertile = false;
     let ovulation = false;

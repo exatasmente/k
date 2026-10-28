@@ -128,3 +128,20 @@ test('previsão pedida para 6 ciclos devolve 6', () => {
   assert.equal(p.upcoming.length, 6);
   for (let i = 1; i < 6; i++) assert.ok(p.upcoming[i].start > p.upcoming[i - 1].start);
 });
+
+test('RF01.2: ovulação 14 dias antes da próxima menstruação; janela fértil de 5 dias antes a 1 depois', () => {
+  const ctx = buildCycleContext({ periods: [periodFromOnboarding(onboarding)], onboarding, today: '2026-10-28' });
+  const next = predict(ctx).upcoming[0];
+  assert.equal(next.start, '2026-11-14');
+  assert.equal(next.ovulation, '2026-10-31');
+  assert.deepEqual(next.fertileWindow, { start: '2026-10-26', end: '2026-11-01' });
+});
+
+test('RN02: média dos últimos 6 ciclos; com menos de 3, mistura com o valor do cadastro', () => {
+  const starts = startsFrom('2026-01-01', [32, 32]);
+  const few = buildCycleContext({ periods: periodsAt(...starts), onboarding: { ...onboarding, cycleLength: 26 }, today: '2026-03-20' });
+  assert.ok(few.avgCycleLength > 26 && few.avgCycleLength < 32, `misturada: ${few.avgCycleLength}`);
+  const many = startsFrom('2025-06-01', [40, 40, 40, 28, 28, 28, 28, 28, 28]);
+  const ctx = buildCycleContext({ periods: periodsAt(...many), onboarding, today: addDays(many.at(-1), 5) });
+  assert.equal(ctx.avgCycleLength, 28, 'os ciclos de 40 dias ficaram fora da janela de 6');
+});

@@ -35,9 +35,9 @@ export function CloseButton({ onClick, label = 'Fechar' }) {
   );
 }
 
-export function Switch({ on, onToggle, label }) {
+export function Switch({ on, onToggle, label, disabled = false }) {
   return (
-    <button class="switch" aria-pressed={on ? 'true' : 'false'} aria-label={label} onClick={onToggle}>
+    <button class="switch" aria-pressed={on ? 'true' : 'false'} aria-label={label} disabled={disabled} onClick={onToggle}>
       <span />
     </button>
   );

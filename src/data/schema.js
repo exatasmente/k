@@ -15,7 +15,7 @@ import { METHODS } from '../domain/contraception.js';
 // para uma sincronização futura por "última escrita vence" sem perder exclusões.
 
 export const DB_NAME = 'ciclo';
-export const DB_VERSION = 1;
+export const DB_VERSION = 2; // 2: store `reminders`
 
 /**
  * Formato decifrado de cada store. `id` é estável e determinístico quando o
@@ -23,7 +23,7 @@ export const DB_VERSION = 1;
  */
 export const STORES = Object.freeze({
   // Um único registro, id 'me'. Sem nome, e-mail, telefone ou foto.
-  profile: { id: 'me', fields: ['birthDate', 'onboarding', 'defaultMethod', 'aiEnabled', 'hiddenCategories'] },
+  profile: { id: 'me', fields: ['birthDate', 'onboarding', 'defaultMethod', 'aiEnabled', 'hiddenCategories', 'reminders'] },
   // Um registro por (dia, código): o toque liga/desliga via deletedAt.
   entries: { id: 'date|code', fields: ['date', 'code', 'source'] },
   // Menstruações. Fonte da verdade do ciclo; fluxo diário é anotação em `entries`.
@@ -37,8 +37,14 @@ export const STORES = Object.freeze({
   // Consultas do pré-natal (e, no futuro, outras).
   appointments: { id: 'uuid', fields: ['date', 'kind'] },
   // Alertas que ela já viu ("Ok" no alerta da PDS), para não repetir no mesmo contexto.
+  // Lembretes já mostrados também ficam aqui, com rule 'notified' e context = chave do lembrete.
   dismissals: { id: 'rule|context', fields: ['rule', 'context'] },
+  // Um único registro, id 'plan': os próximos lembretes, calculados pelo app aberto.
+  // O service worker só lê isto; não precisa das regras do ciclo para notificar.
+  reminders: { id: 'plan', fields: ['items'] },
 });
+
+export const REMINDER_KINDS = ['period_soon', 'confirm_end', 'irregular', 'prenatal'];
 
 export const entryId = (date, code) => `${date}|${code}`;
 export const cycleAnswerId = (cycleStart, code) => `${cycleStart}|${code}`;
@@ -69,6 +75,11 @@ export const validate = Object.freeze({
     check(e, r.birthDate == null || isDate(r.birthDate), 'birthDate inválida');
     check(e, r.defaultMethod == null || r.defaultMethod in METHODS, 'defaultMethod desconhecido');
     for (const banned of ['name', 'email', 'phone', 'photo']) check(e, !(banned in r), `profile não guarda ${banned}`);
+    if (r.reminders != null) {
+      const { enabled, details, daysBefore } = r.reminders;
+      check(e, typeof enabled === 'boolean' && typeof details === 'boolean', 'reminders.enabled e reminders.details são booleanos');
+      check(e, Number.isInteger(daysBefore) && daysBefore >= 1 && daysBefore <= 7, 'reminders.daysBefore entre 1 e 7');
+    }
     return e;
   },
   entries(r) {
@@ -130,6 +141,17 @@ export const validate = Object.freeze({
     common(e, r);
     check(e, typeof r.rule === 'string' && typeof r.context === 'string', 'rule e context obrigatórios');
     check(e, r.id === dismissalId(r.rule, r.context), 'id deve ser rule|context');
+    return e;
+  },
+  reminders(r) {
+    const e = [];
+    common(e, r);
+    check(e, r.id === 'plan', "reminders tem um único registro, id 'plan'");
+    check(e, Array.isArray(r.items), 'items deve ser lista');
+    for (const i of r.items ?? []) {
+      check(e, typeof i.key === 'string' && isDate(i.date) && REMINDER_KINDS.includes(i.kind), `lembrete inválido: ${i.key}`);
+      check(e, typeof i.title === 'string' && typeof i.body === 'string', `lembrete sem texto: ${i.key}`);
+    }
     return e;
   },
 });

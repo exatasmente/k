@@ -9,7 +9,8 @@ async function boot() {
   try {
     // Pede ao navegador para não apagar o banco por falta de espaço ou inatividade.
     navigator.storage?.persist?.();
-    const repo = await openRepository();
+    // Outra aba apagou ou migrou o banco: recarrega em vez de seguir com dados velhos.
+    const repo = await openRepository({ onVersionChange: () => location.reload() });
     render(<App store={createStore(repo)} />, root);
   } catch (err) {
     root.innerHTML = '';

@@ -5,6 +5,7 @@ import { openRepository } from '../src/data/repository.js';
 import { createStore } from '../src/app/store.js';
 import { calendarView, logView, statsView, symptomView, todayView } from '../src/app/views.js';
 import { COPY } from '../src/domain/rules.js';
+import { answer, suggestedQuestions } from '../src/app/assistant.js';
 import { addDays } from '../src/domain/dates.js';
 
 /** Histórico: 6 ciclos de 27/28 dias com cólica nos dias 1-2 e um ciclo só com relação. */
@@ -116,4 +117,16 @@ test('Hoje: muito tempo sem menstruação muda o anel e só alerta quem ovula', 
   assert.equal(v.ring.absenceNote, COPY.longAbsence);
   await store.setMethod('implant');
   assert.equal(todayView(store.getModel()).ring.absenceNote, null, 'implante pode suspender a menstruação de propósito');
+});
+
+test('método que suprime a ovulação: sem janela fértil no calendário, no Hoje nem na assistente', async () => {
+  const { store } = await seeded();
+  const fertileDays = (m) => ['2026-09', '2026-10', '2026-11'].flatMap((mo) => calendarView(m, mo, `${mo}-01`).cells.filter((c) => c.fertile || c.ovulation));
+  assert.ok(fertileDays(store.getModel()).length > 0, 'com preservativo a janela aparece');
+  await store.setMethod('continuous_pill');
+  const m = store.getModel();
+  assert.deepEqual(fertileDays(m), []);
+  assert.equal(todayView(m).ring.fertile, null);
+  assert.ok(!suggestedQuestions(m).includes('Estou na janela fértil?'));
+  assert.match(answer(m, 'Estou na janela fértil?'), /pílula contínua.*não mostra janela fértil/);
 });

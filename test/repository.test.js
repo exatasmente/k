@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { IDBFactory } from 'fake-indexeddb';
 import { openRepository, ValidationError } from '../src/data/repository.js';
 import { entryId } from '../src/data/schema.js';
+import { encryptJSON, generateKey } from '../src/data/crypto.js';
 
 const entry = (date, code) => ({ id: entryId(date, code), date, code, source: 'user' });
 
@@ -72,4 +73,57 @@ test('apagar tudo remove dados e chave', async () => {
   await repo.wipe();
   const fresh = await openRepository({ indexedDB });
   assert.equal(fresh.all('entries').length, 0);
+});
+
+test('banco da versão 1 (app publicado antes) ganha o store de lembretes e continua abrindo', async () => {
+  const indexedDB = new IDBFactory();
+  await new Promise((resolve) => {
+    const open = indexedDB.open('ciclo', 1);
+    open.onupgradeneeded = () => {
+      for (const s of ['profile', 'entries', 'periods', 'methods', 'stages', 'cycleAnswers', 'appointments', 'dismissals', 'keys']) {
+        open.result.createObjectStore(s, { keyPath: 'id' });
+      }
+    };
+    open.onsuccess = () => { open.result.close(); resolve(); };
+  });
+  const repo = await openRepository({ indexedDB });
+  await repo.put('entries', entry('2026-10-28', 'cramps'));
+  await repo.put('reminders', { id: 'plan', items: [] });
+  const again = await openRepository({ indexedDB });
+  assert.deepEqual(again.get('reminders', 'plan').items, []);
+  assert.equal(again.all('entries').length, 1);
+});
+
+test('conexão aberta não trava a migração de uma versão nova (outra aba ou o service worker)', async () => {
+  const indexedDB = new IDBFactory();
+  await openRepository({ indexedDB }); // fica aberta
+  const upgraded = await new Promise((resolve, reject) => {
+    const open = indexedDB.open('ciclo', 99);
+    open.onblocked = () => reject(new Error('migração bloqueada pela conexão antiga'));
+    setTimeout(() => reject(new Error('migração travada pela conexão antiga')), 2000).unref();
+    open.onsuccess = () => resolve(open.result.version);
+  });
+  assert.equal(upgraded, 99);
+});
+
+test('apagar tudo não trava com o app aberto em outra aba, e a outra aba fica sabendo', async () => {
+  const indexedDB = new IDBFactory();
+  let otherTabClosed = false;
+  await openRepository({ indexedDB, onVersionChange: () => { otherTabClosed = true; } });
+  const repo = await openRepository({ indexedDB });
+  await Promise.race([
+    repo.wipe(),
+    new Promise((_, reject) => setTimeout(() => reject(new Error('exclusão travada pela outra aba')), 2000).unref()),
+  ]);
+  assert.equal(otherTabClosed, true);
+});
+
+test('chave do aparelho não exportável e IV novo a cada gravação', async () => {
+  const key = await generateKey();
+  assert.equal(key.extractable, false);
+  await assert.rejects(globalThis.crypto.subtle.exportKey('raw', key));
+  const a = await encryptJSON(key, { code: 'cramps' });
+  const b = await encryptJSON(key, { code: 'cramps' });
+  assert.notDeepEqual([...a.iv], [...b.iv], 'IV repetido no AES-GCM quebra a confidencialidade');
+  assert.notDeepEqual(new Uint8Array(a.data), new Uint8Array(b.data));
 });

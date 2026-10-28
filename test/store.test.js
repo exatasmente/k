@@ -23,7 +23,7 @@ test('onboarding já dá previsão', async () => {
   assert.equal(m.method, 'condom');
 });
 
-test('marcar fluxo abre a menstruação; "Terminou" fecha e pergunta pela cólica', async () => {
+test('"Menstruei" abre a menstruação; "Terminou" fecha e pergunta pela cólica', async () => {
   const { store, clock } = await setup('2026-11-14');
   await store.startPeriod();
   assert.equal(store.getModel().openPeriod.start, '2026-11-14');
@@ -158,4 +158,83 @@ test('app aberto virando a meia-noite: a ação usa o dia novo', async () => {
   clock.today = '2026-11-14'; // sem refresh: a tela ficou aberta
   await store.startPeriod();
   assert.equal(store.getModel().openPeriod.start, '2026-11-14');
+});
+
+test('esqueceu o "Terminou": depois de 10 dias o atalho volta a "Menstruei" e abre um ciclo novo', async () => {
+  const { store, clock } = await setup('2026-11-14');
+  await store.startPeriod(); // e nunca toca em "Terminou"
+  clock.today = '2026-12-12';
+  await store.syncReminders();
+  const m = store.getModel();
+  assert.equal(m.openPeriod, null, 'fechada pela média (RF01.4), não "Menstruando" há 29 dias');
+  await store.startPeriod();
+  const periods = store.getModel().periods.map((p) => [p.start, p.end]);
+  assert.deepEqual(periods.slice(-2), [['2026-11-14', '2026-11-18'], ['2026-12-12', null]]);
+  assert.deepEqual(store.getModel().ctx.cycles.at(-1), { start: '2026-11-14', length: 28 });
+});
+
+test('RF01.4 fecha pela média dela, não pelo padrão de 5 dias', async () => {
+  const { store, clock } = await setup('2026-11-14');
+  for (const [start, end] of [['2026-11-14', '2026-11-20'], ['2026-12-12', '2026-12-18']]) {
+    clock.today = start;
+    await store.startPeriod();
+    clock.today = end;
+    await store.endPeriod();
+  }
+  clock.today = '2027-01-09';
+  await store.startPeriod();
+  clock.today = '2027-01-25';
+  await store.syncReminders();
+  const pending = store.getModel().ctx.pendingConfirmation.at(-1);
+  assert.equal(pending.end, '2027-01-14', 'menstruações de 5, 7 e 7 dias: média 6, de 09 a 14/01');
+});
+
+test('restaurar backup substitui os dados do aparelho em vez de somar', async () => {
+  const a = await setup();
+  await a.store.setMethod('continuous_pill');
+  await a.store.tap('2026-10-27', 'cramps');
+  const backup = JSON.parse(JSON.stringify(a.store.exportBackup()));
+
+  const b = await setup(); // outro aparelho, já cadastrado com preservativo
+  await b.store.tap('2026-10-26', 'headache');
+  await b.store.importBackup(backup);
+  const m = b.store.getModel();
+  assert.equal(m.method, 'continuous_pill', 'antes ficavam dois métodos vigentes e valia o do aparelho');
+  assert.equal(m.prediction.upcoming[0].fertileWindow, null);
+  assert.equal(m.periods.length, 1, 'sem menstruação em dobro');
+  assert.ok(m.codesOn('2026-10-27').has('cramps'));
+  assert.ok(!m.codesOn('2026-10-26').has('headache'), 'o que não está no backup sai');
+});
+
+test('backup com um registro inválido não grava nada', async () => {
+  const a = await setup();
+  const backup = JSON.parse(JSON.stringify(a.store.exportBackup()));
+  backup.stores.methods.push({ id: 'x', method: 'inventado', from: '2026-01-01', to: null });
+  backup.stores.entries.push({ id: '2026-10-27|cramps', date: '2026-10-27', code: 'cramps', source: 'user' });
+
+  const b = await setup();
+  await b.store.tap('2026-10-26', 'headache');
+  await assert.rejects(b.store.importBackup(backup), /método desconhecido/);
+  const m = b.store.getModel();
+  assert.ok(m.codesOn('2026-10-26').has('headache'), 'dados do aparelho intactos');
+  assert.ok(!m.codesOn('2026-10-27').has('cramps'), 'nada do backup entrou pela metade');
+  assert.equal(m.method, 'condom');
+});
+
+test('gestação ida e volta ("voltar ao ciclo"): nada do histórico se perde', async () => {
+  const { store, clock } = await setup('2026-11-14');
+  await store.startPeriod();
+  await store.tap('2026-11-14', 'cramps');
+  clock.today = '2026-12-01';
+  await store.savePregnancy({ method: 'lmp', lmp: '2026-11-14' });
+  assert.equal(store.getModel().stage, 'pregnancy');
+  clock.today = '2026-12-20';
+  await store.endPregnancy('cycle');
+  const m = store.getModel();
+  assert.equal(m.stage, 'cycle');
+  assert.equal(m.postpartum, null);
+  assert.equal(m.prediction.mode, 'awaiting_period', 'previsões voltam com a próxima menstruação');
+  assert.ok(m.codesOn('2026-11-14').has('cramps'));
+  assert.deepEqual(m.periods.map((p) => p.start), ['2026-10-17', '2026-11-14']);
+  assert.deepEqual(m.ctx.cycles, [{ start: '2026-10-17', length: 28 }], 'o ciclo de antes da gestação continua nas médias');
 });

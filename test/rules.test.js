@@ -44,3 +44,23 @@ test('sinais de alerta só disparam na gestação', () => {
   assert.equal(pregnancyAlert(['nausea'], 'pregnancy').triggered, false);
   assert.equal(pregnancyAlert(['bleeding'], 'cycle').triggered, false);
 });
+
+test('RN03: limiar exato de 8 dias', () => {
+  assert.equal(classifyRegularity([24, 32, 28, 26]).kind, 'regular', 'variação de 8 dias ainda é regular');
+  assert.equal(classifyRegularity([24, 33, 24, 33]).kind, 'irregular', 'variação de 9 dias, sem um único ciclo fora da curva');
+});
+
+test('RN03 volta a avaliar com 3 ciclos depois da gestação', () => {
+  const stages = [{ stage: 'pregnancy', start: '2025-01-01', end: '2025-10-01' }, { stage: 'postpartum', start: '2025-10-02', end: '2026-02-01' }];
+  const before = [{ start: '2024-10-01', length: 28 }];
+  const after = (lengths) => lengths.map((length, i) => ({ start: `2026-0${i + 2}-10`, length }));
+  assert.equal(irregularity({ cycles: [...before, ...after([30, 40])], stages }).kind, 'paused');
+  assert.equal(irregularity({ cycles: [...before, ...after([20, 30, 40])], stages }).kind, 'irregular');
+});
+
+test('RN04: limites dos 12 meses (3 vezes não dispara, a 4ª sim; 12 meses atrás já não conta)', () => {
+  const ctx = { today: '2026-10-28', periods: [{ start: '2026-01-01' }, { start: '2026-03-01' }, { start: '2026-06-01' }, { start: '2026-10-17' }] };
+  assert.equal(emergencyContraceptionAlert(ctx, ['2026-01-10', '2026-04-02', '2026-10-28']).triggered, false);
+  assert.equal(emergencyContraceptionAlert(ctx, ['2026-01-10', '2026-04-02', '2026-07-15', '2026-10-28']).triggered, true);
+  assert.equal(emergencyContraceptionAlert(ctx, ['2025-10-28', '2026-04-02', '2026-07-15', '2026-10-28']).triggered, false, 'exatamente 12 meses atrás fica fora');
+});

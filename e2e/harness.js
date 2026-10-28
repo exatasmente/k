@@ -1,4 +1,4 @@
-import { after, before } from 'node:test';
+import { after, afterEach, before } from 'node:test';
 import { preview } from 'vite';
 import { chromium } from 'playwright';
 
@@ -11,11 +11,18 @@ export const TODAY = '2026-10-28';
 let server;
 let browser;
 let baseUrl;
+const contexts = [];
 
 before(async () => {
   server = await preview({ logLevel: 'silent', preview: { port: 0, strictPort: false } });
   baseUrl = server.resolvedUrls.local[0];
-  browser = await chromium.launch();
+  // Chromium completo (não o headless simplificado): notificações funcionam como no celular.
+  browser = await chromium.launch({ channel: 'chromium' });
+});
+
+// Um cenário não herda abas abertas do anterior.
+afterEach(async () => {
+  await Promise.all(contexts.splice(0).map((c) => c.close().catch(() => {})));
 });
 
 after(async () => {
@@ -29,6 +36,7 @@ export async function openApp({ today = TODAY, width = 390, height = 844, colorS
     viewport: { width, height }, deviceScaleFactor: 2, hasTouch: true,
     locale: 'pt-BR', timezoneId: 'America/Sao_Paulo', acceptDownloads: true, colorScheme,
   });
+  contexts.push(context);
   const page = await context.newPage();
   await page.clock.install({ time: new Date(`${today}T10:00:00-03:00`) });
   await page.clock.resume();
@@ -44,20 +52,24 @@ export async function openApp({ today = TODAY, width = 390, height = 844, colorS
 }
 
 /** Onboarding completo. `lastPeriodStart` pode estar em meses anteriores. */
-export async function onboard(page, { lastPeriodStart, cycle = 28, method = 'Preservativo' } = {}) {
+export async function onboard(page, { lastPeriodStart, cycle = 28, periodLength = 5, birth = '1996-05-12', method = 'Preservativo' } = {}) {
   if (lastPeriodStart) await pickDate(page, lastPeriodStart);
   await page.getByRole('button', { name: 'Continuar' }).click();
-  const cycleOut = page.locator('output').first();
-  while (Number((await cycleOut.innerText()).split(' ')[0]) !== cycle) {
-    const now = Number((await cycleOut.innerText()).split(' ')[0]);
-    await page.getByRole('button', { name: now < cycle ? 'Aumentar duração do ciclo' : 'Diminuir duração do ciclo' }).click();
+  const steppers = [[0, cycle, 'duração do ciclo'], [1, periodLength, 'duração da menstruação']];
+  for (const [i, target, name] of steppers) {
+    const out = page.locator('output').nth(i);
+    const value = async () => Number((await out.innerText()).split(' ')[0]);
+    while ((await value()) !== target) {
+      await page.getByRole('button', { name: `${(await value()) < target ? 'Aumentar' : 'Diminuir'} ${name}` }).click();
+    }
   }
-  await page.fill('#birth', '1996-05-12');
+  await page.fill('#birth', birth);
   await page.getByRole('button', { name: 'Continuar' }).click();
   await page.getByRole('button', { name: method, exact: true }).click();
   await page.getByRole('button', { name: 'Continuar' }).click();
   await page.getByRole('button', { name: 'Começar' }).click();
-  await page.getByRole('heading', { level: 1 }).waitFor();
+  // A barra de navegação só existe depois do cadastro gravado.
+  await page.getByRole('navigation', { name: 'Navegação principal' }).waitFor();
 }
 
 const MONTHS = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
@@ -84,16 +96,23 @@ export async function longPress(page, locator, ms = 700) {
   await page.mouse.up();
 }
 
+const escape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/** Item do registro pelo nome exato ("Leve" não casa com "Treino leve"). */
+export function item(page, label, opts = {}) {
+  return page.getByRole('button', { name: new RegExp(`^${escape(label)}(, marcado)?\\. Segure`), ...opts }).first();
+}
+
 /** Abre o registro de hoje e toca nos itens pelo nome. */
 export async function logToday(page, ...labels) {
   await page.getByRole('button', { name: /Registrar sintomas/ }).click();
-  for (const label of labels) await page.locator('.item', { hasText: label }).first().click();
+  for (const label of labels) await item(page, label).click();
   await page.getByRole('button', { name: 'Pronto' }).click();
 }
 
 /** Espera um item do registro ficar marcado (true) ou desmarcado (false). */
 export function expectPressed(page, label, pressed) {
-  return page.locator(`.item[aria-pressed="${pressed}"]`, { hasText: label }).first().waitFor({ timeout: 3000 });
+  return item(page, label, { pressed }).waitFor({ timeout: 3000 });
 }
 
 /** Espera um texto aparecer (ou sumir, com `gone: true`). */
